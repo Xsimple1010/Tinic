@@ -3,21 +3,26 @@ use generics::{
 };
 use libretro_sys::binding_libretro::retro_hw_context_type;
 use retro_av::RetroAv;
-use retro_controllers::RetroController;
+use retro_controllers::{devices_manager::Device, RetroController};
 use retro_core::{graphic_api::GraphicApi, RetroCore, RetroCoreIns, RetroEnvCallbacks};
 use std::{path::PathBuf, sync::Arc};
 use winit::{
-    application::ApplicationHandler, event::WindowEvent, event_loop::ActiveEventLoop, keyboard::{KeyCode, PhysicalKey}, monitor::VideoModeHandle, window::{Fullscreen, WindowId}
+    application::ApplicationHandler,
+    event::WindowEvent,
+    event_loop::ActiveEventLoop,
+    keyboard::{KeyCode, PhysicalKey},
+    window::{Fullscreen, WindowId},
 };
 
 pub struct TinicApp {
-    retro_paths: RetroPaths,
-    core_path: String,
-    rom_path: String,
     controller: Arc<RetroController>,
     retro_av: RetroAv,
-    retro_core: Option<RetroCoreIns>,
-    current_full_creen_mode: Fullscreen,
+    retro_core: RetroCoreIns,
+    current_full_screen_mode: Fullscreen,
+}
+
+pub enum TinicAppActions {
+    ConnectDevice(Device),
 }
 
 impl TinicApp {
@@ -26,37 +31,48 @@ impl TinicApp {
         core_path: String,
         rom_path: String,
         controller: Arc<RetroController>,
-    ) -> Self {
-        Self {
-            retro_paths,
-            core_path,
-            rom_path,
-            retro_av: RetroAv::new().unwrap(),
-            retro_core: None,
+    ) -> Result<Self, ErroHandle> {
+        let retro_av = RetroAv::new()?;
+        let (video_cb, audio_cb) = retro_av.get_core_cb();
+
+        let callbacks = RetroEnvCallbacks {
+            audio: Box::new(audio_cb),
+            video: Box::new(video_cb),
+            controller: Box::new(controller.get_core_cb()),
+        };
+
+        let retro_core = RetroCore::new(
+            &core_path,
+            retro_paths.clone(),
+            callbacks,
+            GraphicApi::with(retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE),
+        )?;
+
+        retro_core.load_game(&rom_path)?;
+
+        for gamepad in controller.get_list()? {
+            retro_core.connect_controller(gamepad.retro_port, gamepad.retro_type)?;
+        }
+
+        Ok(Self {
+            retro_av,
+            retro_core,
             controller,
-            current_full_creen_mode: Fullscreen::Exclusive()
-        }
+            current_full_screen_mode: Fullscreen::Borderless(None),
+        })
     }
 }
 
-impl Drop for TinicApp {
-    fn drop(&mut self) {
-        if let Some(retro_core) = &mut self.retro_core {
-            let _ = retro_core.de_init();
-        }
-    }
-}
-
-impl ApplicationHandler for TinicApp {
+impl ApplicationHandler<TinicAppActions> for TinicApp {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        if let Err(e) = self.create_retro_context(event_loop) {
+        if let Err(e) = self.create_window(event_loop) {
             println!("{:?}", e);
             event_loop.exit();
         }
     }
 
     fn suspended(&mut self, _: &ActiveEventLoop) {
-        self.destroy_window();
+        self.suspend_window();
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
@@ -67,8 +83,19 @@ impl ApplicationHandler for TinicApp {
     }
 
     fn exiting(&mut self, _: &ActiveEventLoop) {
-        if let Some(retro_core) = &mut self.retro_core {
-            let _ = retro_core.de_init();
+        if let Err(e) = self.close_retro_ctx() {
+            println!("{:?}", e);
+        }
+    }
+
+    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: TinicAppActions) {
+        let result = match event {
+            TinicAppActions::ConnectDevice(device) => self.connect_controller(device),
+        };
+
+        if let Err(e) = result {
+            println!("{:?}", e);
+            event_loop.exiting();
         }
     }
 
@@ -106,50 +133,41 @@ impl ApplicationHandler for TinicApp {
 }
 
 impl TinicApp {
-    pub fn create_retro_context(&mut self, event_loop: &ActiveEventLoop) -> Result<(), ErroHandle> {
-        let (video_cb, audio_cb) = self.retro_av.get_core_cb();
-
-        let callbacks = RetroEnvCallbacks {
-            audio: Box::new(audio_cb),
-            video: Box::new(video_cb),
-            controller: Box::new(self.controller.get_core_cb()),
-        };
-
-        let retro_core = RetroCore::new(
-            &self.core_path,
-            self.retro_paths.clone(),
-            callbacks,
-            GraphicApi::with(retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE),
-        )?;
-
-        let av_info = retro_core.load_game(&self.rom_path)?;
-        self.retro_core.replace(retro_core);
-        self.retro_av.build_window(&av_info, event_loop)?;
+    fn create_window(&mut self, event_loop: &ActiveEventLoop) -> Result<(), ErroHandle> {
+        self.retro_av
+            .build_window(&self.retro_core.av_info.clone(), event_loop)?;
+        self.controller.stop_thread_events();
 
         Ok(())
     }
 
-    fn destroy_window(&mut self) {
+    fn suspend_window(&mut self) {
         self.retro_av.destroy_window();
+        self.controller.resume_thread_events();
     }
 
-    pub fn redraw_request(&mut self) -> Result<(), ErroHandle> {
-        if let Some(retro_core) = &mut self.retro_core {
-            if self.retro_av.sync() {
-                retro_core.run()?;
-                self.retro_av.get_new_frame()?
-            }
+    fn close_retro_ctx(&self) -> Result<(), ErroHandle> {
+        self.retro_core.de_init()?;
+        self.controller.resume_thread_events();
+
+        Ok(())
+    }
+
+    fn redraw_request(&mut self) -> Result<(), ErroHandle> {
+        if self.retro_av.sync() {
+            self.retro_core.run()?;
+            self.retro_av.get_new_frame()?
         }
 
         Ok(())
     }
 
-    pub fn reset(&self) -> Result<(), ErroHandle> {
-        self.retro_core.as_ref().unwrap().reset()
+    fn reset(&self) -> Result<(), ErroHandle> {
+        self.retro_core.reset()
     }
 
     fn save_state(&self, slot: usize) -> Result<(), ErroHandle> {
-        let save_path = self.retro_core.as_ref().unwrap().save_state(slot)?;
+        let save_path = self.retro_core.save_state(slot)?;
 
         let mut img_path = save_path.clone();
         img_path.set_extension(SAVE_IMAGE_EXTENSION_FILE);
@@ -159,7 +177,7 @@ impl TinicApp {
     }
 
     fn load_state(&self, slot: usize) -> Result<(), ErroHandle> {
-        self.retro_core.as_ref().unwrap().load_state(slot)?;
+        self.retro_core.load_state(slot)?;
         Ok(())
     }
 
@@ -168,11 +186,12 @@ impl TinicApp {
     }
 
     fn toggle_full_screen_mode(&mut self) -> Result<(), ErroHandle> {
+        self.retro_av
+            .set_full_screen(self.current_full_screen_mode.clone())
+    }
 
-        let mode = match self.current_full_creen_mode {
-
-        }
-
-        self.retro_av.set_full_screen(mode)
+    fn connect_controller(&self, device: Device) -> Result<(), ErroHandle> {
+        self.retro_core
+            .connect_controller(device.retro_port, device.retro_type)
     }
 }
