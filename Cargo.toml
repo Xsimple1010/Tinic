@@ -20,8 +20,8 @@ retro_av = { path = "crates/retro_av" }
 libretro_sys = { path = "crates/libretro_sys" }
 generics = { path = "crates/generics" }
 tinic_super = { path = "crates/tinic_super" }
-tokio = { version = "1.42.0", features = ["full"] }
-reqwest = "0.12.9"
+tokio = { version = "1.43.0", features = ["full"] }
+reqwest = "0.12.12"
 zip = "2.2.2"
 sevenz-rust = "0.6.1"
 gilrs = "0.11.0"
@@ -29,13 +29,13 @@ pc-keyboard = "0.8.0"
 image = "0.25.5"
 rodio = "0.20.1"
 sdl2 = { version = "0.37.0", features = ["bundled"] }
-uuid = { features = ["v4"], version = "1.11.0" }
+uuid = { features = ["v4"], version = "1.12.1" }
 bindgen = "0.71.1"
 libloading = "0.8.6"
-cc = "1.2.2"
+cc = "1.2.10"
 cfg_aliases = "0.2.1"
 gl_generator = "0.14.0"
-glutin = "0.32.1"
+glutin = "0.32.2"
 winit = "0.30.8"
 raw-window-handle = "0.6.2"
 glutin-winit = "0.5.0"
