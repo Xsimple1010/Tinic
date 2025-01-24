@@ -7,6 +7,7 @@ extern crate tinic_super;
 
 mod tinic;
 mod tinic_app;
+mod tinic_app_ctx;
 
 pub use tokio;
 
