@@ -24,11 +24,8 @@ impl EventThread {
     }
 
     pub fn resume(&self, devices: Arc<DevicesManager>) {
-        let event_thread_can_run = *self.event_thread_can_run.load_or(false);
-
-        if !event_thread_can_run {
-            self.create_update_devices_state_thread(devices, self.event_thread_can_run.clone());
-        }
+        self.event_thread_can_run.store(true);
+        self.create_update_devices_state_thread(devices, self.event_thread_can_run.clone());
     }
 
     /// # event listener thread
