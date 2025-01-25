@@ -9,7 +9,8 @@ use generics::{
     types::{ArcTMuxte, TMutex},
 };
 use retro_controllers::devices_manager::Device;
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
+use tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper};
 use winit::event_loop::{EventLoop, EventLoopProxy};
 
 pub struct Tinic {
@@ -30,7 +31,7 @@ impl Tinic {
         Ok(Self { controller, proxy })
     }
 
-    pub fn make_context(
+    pub fn build(
         &mut self,
         core_path: &String,
         rom_path: &String,
@@ -48,13 +49,13 @@ impl Tinic {
         Ok(app)
     }
 
-    pub fn run(&mut self, mut ctx: TinicApp) -> Result<(), ErroHandle> {
+    pub fn run(&mut self, mut tinic_app: TinicApp) -> Result<(), ErroHandle> {
         let event_loop = EventLoop::<TinicAppActions>::with_user_event()
             .build()
             .unwrap();
 
         self.proxy.store(Some(event_loop.create_proxy()));
-        event_loop.run_app(&mut ctx).unwrap();
+        event_loop.run_app(&mut tinic_app).unwrap();
         self.proxy.store(None);
 
         Ok(())
