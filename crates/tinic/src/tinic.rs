@@ -59,6 +59,27 @@ impl Tinic {
 
         Ok(())
     }
+
+    pub async fn try_update_core_infos(
+        &mut self,
+        force_update: bool,
+        retro_paths: &RetroPaths,
+    ) -> Result<(), ErroHandle> {
+        match CoreInfoHelper::try_update_core_infos(retro_paths, force_update).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(ErroHandle {
+                message: e.to_string(),
+            }),
+        }
+    }
+
+    pub fn get_cores_infos(&mut self, retro_paths: &RetroPaths) -> Vec<CoreInfo> {
+        CoreInfoHelper::get_core_infos(&retro_paths.infos.clone().to_owned())
+    }
+
+    pub fn get_compatibility_info_cores(&self, rom: &String) -> Vec<CoreInfo> {
+        CoreInfoHelper::get_compatibility_core_infos(PathBuf::from(rom))
+    }
 }
 
 #[derive(Debug)]
