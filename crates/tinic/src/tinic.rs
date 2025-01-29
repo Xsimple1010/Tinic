@@ -1,8 +1,8 @@
 use crate::{
     generics::erro_handle::ErroHandle,
     retro_controllers::{devices_manager::DeviceListener, RetroController},
-    tinic_app::{TinicApp, TinicAppActions},
-    tinic_app_ctx::TinicAppCtx,
+    tinic_app::{GameInstanceActions, TinicGameInstance},
+    tinic_app_ctx::TinicGameCtx,
 };
 use generics::{
     retro_paths::RetroPaths,
@@ -11,11 +11,15 @@ use generics::{
 use retro_controllers::devices_manager::Device;
 use std::{path::PathBuf, sync::Arc};
 use tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper};
-use winit::event_loop::{EventLoop, EventLoopProxy};
+use winit::{
+    event_loop::{EventLoop, EventLoopProxy},
+    platform::pump_events::{EventLoopExtPumpEvents, PumpStatus},
+};
 
 pub struct Tinic {
     pub controller: Arc<RetroController>,
-    proxy: ArcTMuxte<Option<EventLoopProxy<TinicAppActions>>>,
+    proxy: ArcTMuxte<Option<EventLoopProxy<GameInstanceActions>>>,
+    event_loop: Option<EventLoop<GameInstanceActions>>,
 }
 
 impl Tinic {
@@ -28,7 +32,11 @@ impl Tinic {
         };
         let controller = Arc::new(RetroController::new(Box::new(tinic_listener))?);
 
-        Ok(Self { controller, proxy })
+        Ok(Self {
+            controller,
+            proxy,
+            event_loop: None,
+        })
     }
 
     pub fn build(
@@ -36,22 +44,36 @@ impl Tinic {
         core_path: String,
         rom_path: String,
         retro_paths: RetroPaths,
-    ) -> Result<TinicApp, ErroHandle> {
-        let ctx = TinicAppCtx::new(retro_paths, core_path, rom_path, self.controller.clone())?;
+    ) -> Result<TinicGameInstance, ErroHandle> {
+        let ctx = TinicGameCtx::new(retro_paths, core_path, rom_path, self.controller.clone())?;
 
-        Ok(TinicApp::new(ctx))
-    }
-
-    pub fn run(&mut self, mut tinic_app: TinicApp) -> Result<(), ErroHandle> {
-        let event_loop = EventLoop::<TinicAppActions>::with_user_event()
-            .build()
-            .unwrap();
+        let (game_instance, event_loop) = TinicGameInstance::new(ctx);
 
         self.proxy.store(Some(event_loop.create_proxy()));
-        event_loop.run_app(&mut tinic_app).unwrap();
-        self.proxy.store(None);
+        self.event_loop.replace(event_loop);
+
+        Ok(game_instance)
+    }
+
+    pub fn run(&mut self, mut game_instance: TinicGameInstance) -> Result<(), ErroHandle> {
+        if let Some(event_loop) = self.event_loop.take() {
+            event_loop.run_app(&mut game_instance).unwrap();
+        }
 
         Ok(())
+    }
+
+    pub fn pop_event(
+        &mut self,
+        game_instance: &mut TinicGameInstance,
+    ) -> Result<PumpStatus, ErroHandle> {
+        if let Some(event_loop) = self.event_loop.as_mut() {
+            Ok(event_loop.pump_app_events(None, game_instance))
+        } else {
+            Err(ErroHandle {
+                message: "".to_string(),
+            })
+        }
     }
 
     pub async fn try_update_core_infos(
@@ -79,13 +101,21 @@ impl Tinic {
 #[derive(Debug)]
 struct DeviceHandle {
     listener: Box<dyn DeviceListener>,
-    proxy: ArcTMuxte<Option<EventLoopProxy<TinicAppActions>>>,
+    proxy: ArcTMuxte<Option<EventLoopProxy<GameInstanceActions>>>,
 }
 
 impl DeviceListener for DeviceHandle {
     fn connected(&self, device: Device) {
+        let mut invalid_proxy = false;
+
         if let Some(proxy) = self.proxy.load_or(None).as_ref() {
-            let _ = proxy.send_event(TinicAppActions::ConnectDevice(device.clone()));
+            if let Err(_) = proxy.send_event(GameInstanceActions::ConnectDevice(device.clone())) {
+                invalid_proxy = true;
+            }
+        }
+
+        if invalid_proxy {
+            self.proxy.store(None);
         }
 
         self.listener.connected(device);
