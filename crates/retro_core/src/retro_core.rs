@@ -1,12 +1,13 @@
 use crate::av_info::AvInfo;
 use crate::core_env::{self, RetroEnvCallbacks};
 use crate::graphic_api::GraphicApi;
-use crate::tools::game_tools::RomTools;
+use crate::tools::game_tools::{RomTools, SaveInfo};
 use crate::{managers::option_manager::OptionManager, system::System};
 use generics::constants::INVALID_CONTROLLER_PORT;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::LibretroRaw;
+use std::ffi::c_void;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -219,11 +220,17 @@ impl RetroCore {
         }
 
         RomTools::create_save_state(
-            &self.raw,
-            &self.paths.save,
-            &self.system.info,
-            &*self.rom_name.read()?,
-            slot,
+            SaveInfo {
+                slot,
+                library_name: &self.system.info.library_name,
+                rom_name: &self.rom_name.read()?,
+                save_dir: &self.paths.save,
+                buffer_size: unsafe { self.raw.retro_serialize_size() },
+            },
+            |data, size| unsafe {
+                self.raw
+                    .retro_serialize(data.as_mut_ptr() as *mut c_void, size)
+            },
         )
     }
 
@@ -239,11 +246,17 @@ impl RetroCore {
         }
 
         RomTools::load_save_state(
-            &self.raw,
-            &self.paths.save,
-            &self.system.info,
-            &*self.rom_name.read()?,
-            slot,
+            SaveInfo {
+                slot,
+                library_name: &self.system.info.library_name,
+                rom_name: &self.rom_name.read()?,
+                save_dir: &self.paths.save,
+                buffer_size: unsafe { self.raw.retro_serialize_size() },
+            },
+            |data, size| unsafe {
+                self.raw
+                    .retro_unserialize(data.as_mut_ptr() as *mut c_void, size)
+            },
         )?;
 
         Ok(())
