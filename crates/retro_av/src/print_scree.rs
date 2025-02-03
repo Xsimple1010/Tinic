@@ -1,5 +1,5 @@
 use crate::video::RawTextureData;
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use image::{ImageBuffer, RgbImage};
 use libretro_sys::binding_libretro::retro_pixel_format;
 use retro_core::av_info::AvInfo;
@@ -15,14 +15,14 @@ impl PrintScree {
         raw_texture: &RawTextureData,
         av_info: &Arc<AvInfo>,
         out_path: &mut PathBuf,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         match &*av_info.video.pixel_format.read().unwrap() {
             retro_pixel_format::RETRO_PIXEL_FORMAT_XRGB8888 => {
                 PrintScree::_from_xrgb8888(raw_texture, out_path)
             }
             // retro_pixel_format::RETRO_PIXEL_FORMAT_0RGB1555 => ,
             // retro_pixel_format::RETRO_PIXEL_FORMAT_RGB565 => ,
-            _ => Err(ErroHandle {
+            _ => Err(ErrorHandle {
                 message: "Formato de pixel desconhecido".to_string(),
             }),
         }
@@ -31,7 +31,7 @@ impl PrintScree {
     fn _from_xrgb8888(
         raw_texture: &RawTextureData,
         out_path: &mut PathBuf,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         let data = unsafe { raw_texture.data.get().read() };
 
         let buffer: &[u8] = unsafe {
@@ -42,7 +42,7 @@ impl PrintScree {
         };
 
         if buffer.len() != (raw_texture.width * raw_texture.height) as usize * 4 {
-            return Err(ErroHandle {
+            return Err(ErrorHandle {
                 message: "Tamanho do buffer video esta errado".to_string(),
             });
         }

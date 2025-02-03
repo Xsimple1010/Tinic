@@ -2,7 +2,7 @@ use super::gl::gl::{
     self,
     types::{GLenum, GLuint},
 };
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use gl::COMPILE_STATUS;
 use std::{ffi::CString, ptr::null, rc::Rc};
 
@@ -24,7 +24,7 @@ impl Shader {
         shader_type: GLenum,
         source_code: &str,
         gl: Rc<gl::Gl>,
-    ) -> Result<Shader, ErroHandle> {
+    ) -> Result<Shader, ErrorHandle> {
         unsafe {
             let id = gl.CreateShader(shader_type);
 
@@ -49,14 +49,14 @@ impl Shader {
 
                         let log = CString::from_raw(log_ptr);
 
-                        return Err(ErroHandle {
+                        return Err(ErrorHandle {
                             message: log.into_string().unwrap(),
                         });
                     }
 
                     Ok(Self { id, gl })
                 }
-                Err(e) => Err(ErroHandle {
+                Err(e) => Err(ErrorHandle {
                     message: "Erro ao tentar criar um shader: ".to_string()
                         + e.to_string().as_str(),
                 }),

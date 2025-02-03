@@ -1,5 +1,5 @@
 use crate::{
-    generics::erro_handle::ErroHandle,
+    generics::error_handle::ErrorHandle,
     retro_controllers::{devices_manager::DeviceListener, RetroController},
     tinic_app::{GameInstanceActions, TinicGameInstance},
     tinic_app_ctx::TinicGameCtx,
@@ -23,7 +23,7 @@ pub struct Tinic {
 }
 
 impl Tinic {
-    pub fn new(listener: Box<dyn DeviceListener>) -> Result<Tinic, ErroHandle> {
+    pub fn new(listener: Box<dyn DeviceListener>) -> Result<Tinic, ErrorHandle> {
         let proxy = TMutex::new(None);
 
         let tinic_listener = DeviceHandle {
@@ -44,7 +44,7 @@ impl Tinic {
         core_path: String,
         rom_path: String,
         retro_paths: RetroPaths,
-    ) -> Result<TinicGameInstance, ErroHandle> {
+    ) -> Result<TinicGameInstance, ErrorHandle> {
         let ctx = TinicGameCtx::new(retro_paths, core_path, rom_path, self.controller.clone())?;
 
         let (game_instance, event_loop) = TinicGameInstance::new(ctx);
@@ -55,7 +55,7 @@ impl Tinic {
         Ok(game_instance)
     }
 
-    pub fn run(&mut self, mut game_instance: TinicGameInstance) -> Result<(), ErroHandle> {
+    pub fn run(&mut self, mut game_instance: TinicGameInstance) -> Result<(), ErrorHandle> {
         if let Some(event_loop) = self.event_loop.take() {
             event_loop.run_app(&mut game_instance).unwrap();
         }
@@ -66,11 +66,11 @@ impl Tinic {
     pub fn pop_event(
         &mut self,
         game_instance: &mut TinicGameInstance,
-    ) -> Result<PumpStatus, ErroHandle> {
+    ) -> Result<PumpStatus, ErrorHandle> {
         if let Some(event_loop) = self.event_loop.as_mut() {
             Ok(event_loop.pump_app_events(None, game_instance))
         } else {
-            Err(ErroHandle {
+            Err(ErrorHandle {
                 message: "".to_string(),
             })
         }
@@ -80,10 +80,10 @@ impl Tinic {
         &mut self,
         force_update: bool,
         retro_paths: &RetroPaths,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         match CoreInfoHelper::try_update_core_infos(retro_paths, force_update).await {
             Ok(_) => Ok(()),
-            Err(e) => Err(ErroHandle {
+            Err(e) => Err(ErrorHandle {
                 message: e.to_string(),
             }),
         }

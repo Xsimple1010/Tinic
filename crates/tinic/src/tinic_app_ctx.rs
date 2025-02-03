@@ -1,7 +1,7 @@
 use std::{path::Path, sync::Arc};
 
 use generics::{
-    constants::SAVE_IMAGE_EXTENSION_FILE, erro_handle::ErroHandle, retro_paths::RetroPaths,
+    constants::SAVE_IMAGE_EXTENSION_FILE, error_handle::ErrorHandle, retro_paths::RetroPaths,
 };
 use libretro_sys::binding_libretro::retro_hw_context_type;
 use retro_av::RetroAv;
@@ -23,7 +23,7 @@ impl TinicGameCtx {
         core_path: String,
         rom_path: String,
         controller: Arc<RetroController>,
-    ) -> Result<Self, ErroHandle> {
+    ) -> Result<Self, ErrorHandle> {
         let retro_av = RetroAv::new()?;
         let (video_cb, audio_cb) = retro_av.get_core_cb();
 
@@ -55,7 +55,7 @@ impl TinicGameCtx {
         })
     }
 
-    pub fn create_window(&mut self, event_loop: &ActiveEventLoop) -> Result<(), ErroHandle> {
+    pub fn create_window(&mut self, event_loop: &ActiveEventLoop) -> Result<(), ErrorHandle> {
         self.retro_av
             .build_window(&self.retro_core.av_info.clone(), event_loop)?;
         self.controller.stop_thread_events();
@@ -68,18 +68,18 @@ impl TinicGameCtx {
         self.controller.resume_thread_events();
     }
 
-    pub fn close_retro_ctx(&self) -> Result<(), ErroHandle> {
+    pub fn close_retro_ctx(&self) -> Result<(), ErrorHandle> {
         self.retro_core.de_init()?;
         self.controller.resume_thread_events();
 
         Ok(())
     }
 
-    pub fn redraw_request(&self) -> Result<(), ErroHandle> {
+    pub fn redraw_request(&self) -> Result<(), ErrorHandle> {
         self.retro_av.redraw_request()
     }
 
-    pub fn draw_new_frame(&mut self) -> Result<(), ErroHandle> {
+    pub fn draw_new_frame(&mut self) -> Result<(), ErrorHandle> {
         if self.retro_av.sync() {
             if !self.can_request_new_frames {
                 return Ok(());
@@ -92,11 +92,11 @@ impl TinicGameCtx {
         Ok(())
     }
 
-    pub fn reset(&self) -> Result<(), ErroHandle> {
+    pub fn reset(&self) -> Result<(), ErrorHandle> {
         self.retro_core.reset()
     }
 
-    pub fn save_state(&self, slot: usize) -> Result<(), ErroHandle> {
+    pub fn save_state(&self, slot: usize) -> Result<(), ErrorHandle> {
         let save_path = self.retro_core.save_state(slot)?;
 
         let mut img_path = save_path.clone();
@@ -106,16 +106,16 @@ impl TinicGameCtx {
         Ok(())
     }
 
-    pub fn load_state(&self, slot: usize) -> Result<(), ErroHandle> {
+    pub fn load_state(&self, slot: usize) -> Result<(), ErrorHandle> {
         self.retro_core.load_state(slot)?;
         Ok(())
     }
 
-    pub fn print_screen(&self, out_path: &Path) -> Result<(), ErroHandle> {
+    pub fn print_screen(&self, out_path: &Path) -> Result<(), ErrorHandle> {
         self.retro_av.print_screen(out_path)
     }
 
-    pub fn toggle_full_screen_mode(&mut self) -> Result<(), ErroHandle> {
+    pub fn toggle_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
         self.retro_av
             .set_full_screen(self.current_full_screen_mode.clone())
     }
@@ -138,7 +138,7 @@ impl TinicGameCtx {
         self.can_request_new_frames = true;
     }
 
-    pub fn connect_controller(&self, device: Device) -> Result<(), ErroHandle> {
+    pub fn connect_controller(&self, device: Device) -> Result<(), ErrorHandle> {
         self.retro_core
             .connect_controller(device.retro_port, device.retro_type)
     }

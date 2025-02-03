@@ -1,6 +1,6 @@
 use crate::{print_scree::PrintScree, retro_gl::window::RetroGlWindow};
 use generics::{
-    erro_handle::ErroHandle,
+    error_handle::ErrorHandle,
     types::{ArcTMuxte, TMutex},
 };
 use libretro_sys::binding_libretro::retro_hw_context_type::{
@@ -68,7 +68,7 @@ impl RetroVideo {
         &mut self,
         av_info: &Arc<AvInfo>,
         event_loop: &ActiveEventLoop,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         match &av_info.video.graphic_api.context_type {
             RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_OPENGL | RETRO_HW_CONTEXT_NONE => {
                 self.window_ctx
@@ -77,7 +77,7 @@ impl RetroVideo {
                 Ok(())
             }
             // RETRO_HW_CONTEXT_VULKAN => {}
-            _ => Err(ErroHandle {
+            _ => Err(ErrorHandle {
                 message: "suporte para a api selecionada não está disponível".to_owned(),
             }),
         }
@@ -88,7 +88,7 @@ impl RetroVideo {
         self.texture.store(RawTextureData::new());
     }
 
-    pub fn request_redraw(&self) -> Result<(), ErroHandle> {
+    pub fn request_redraw(&self) -> Result<(), ErrorHandle> {
         if let Some(win) = &*self.window_ctx.try_load()? {
             win.request_redraw();
         }
@@ -96,7 +96,7 @@ impl RetroVideo {
         Ok(())
     }
 
-    pub fn draw_new_frame(&self, av_info: &Arc<AvInfo>) -> Result<(), ErroHandle> {
+    pub fn draw_new_frame(&self, av_info: &Arc<AvInfo>) -> Result<(), ErrorHandle> {
         let texture = &*self.texture.try_load()?;
 
         if let Some(win) = &*self.window_ctx.try_load()? {
@@ -106,7 +106,7 @@ impl RetroVideo {
         Ok(())
     }
 
-    pub fn print_screen(&self, out_path: &Path, av_info: &Arc<AvInfo>) -> Result<(), ErroHandle> {
+    pub fn print_screen(&self, out_path: &Path, av_info: &Arc<AvInfo>) -> Result<(), ErrorHandle> {
         PrintScree::take(
             &*self.texture.try_load()?,
             av_info,
@@ -114,7 +114,7 @@ impl RetroVideo {
         )
     }
 
-    pub fn set_full_screen(&mut self, mode: Fullscreen) -> Result<(), ErroHandle> {
+    pub fn set_full_screen(&mut self, mode: Fullscreen) -> Result<(), ErrorHandle> {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
             win.set_full_screen(mode);
         }
@@ -141,7 +141,7 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
         width: u32,
         height: u32,
         pitch: usize,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         let mut texture = self.texture.try_load()?;
         let tex_data = texture.data.get_mut();
 
@@ -153,7 +153,7 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
         Ok(())
     }
 
-    fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErroHandle> {
+    fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErrorHandle> {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
             win.get_proc_address(proc_name);
         }
@@ -161,14 +161,14 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
         Ok(null())
     }
 
-    fn context_destroy(&self) -> Result<(), ErroHandle> {
+    fn context_destroy(&self) -> Result<(), ErrorHandle> {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
             win.context_destroy();
         }
         Ok(())
     }
 
-    fn context_reset(&self) -> Result<(), ErroHandle> {
+    fn context_reset(&self) -> Result<(), ErrorHandle> {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
             win.context_reset();
         }

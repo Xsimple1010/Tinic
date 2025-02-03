@@ -3,7 +3,7 @@ use generics::{
     constants::{
         MAX_CORE_CONTROLLER_INFO_TYPES, MAX_CORE_SUBSYSTEM_INFO, MAX_CORE_SUBSYSTEM_ROM_INFO,
     },
-    erro_handle::ErroHandle,
+    error_handle::ErrorHandle,
 };
 use libretro_sys::binding_libretro::{
     retro_controller_description, retro_controller_info, retro_subsystem_info,
@@ -90,7 +90,7 @@ impl System {
     pub fn get_subsystem(
         &self,
         raw_subsystem: [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO],
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         self.subsystem.write()?.clear();
 
         for raw_sys in raw_subsystem {
@@ -137,7 +137,7 @@ impl System {
     pub fn get_ports(
         &self,
         raw_ctr_infos: [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES],
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         self.ports.write()?.clear();
 
         for raw_ctr_info in raw_ctr_infos {

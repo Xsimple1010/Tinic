@@ -1,5 +1,5 @@
 use crate::graphic_api::GraphicApi;
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::{
     retro_game_geometry,
     retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN},
@@ -80,9 +80,9 @@ impl AvInfo {
     pub unsafe fn try_set_new_geometry(
         &self,
         raw_geometry_ptr: *const retro_game_geometry,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         if raw_geometry_ptr.is_null() {
-            return Err(ErroHandle {
+            return Err(ErrorHandle {
                 message: "nao foi possível atualiza a geometria da textura".to_string(),
             });
         }
@@ -95,7 +95,7 @@ impl AvInfo {
                 *aspect_ratio = raw_geometry.aspect_ratio;
             }
             Err(_) => {
-                return Err(ErroHandle {
+                return Err(ErrorHandle {
                     message: "nao foi possível atualiza o aspect_ratio da textura".to_string(),
                 })
             }
@@ -117,7 +117,7 @@ impl AvInfo {
         Ok(())
     }
 
-    fn _set_timing(&self, raw_system_timing: *const retro_system_timing) -> Result<(), ErroHandle> {
+    fn _set_timing(&self, raw_system_timing: *const retro_system_timing) -> Result<(), ErrorHandle> {
         if raw_system_timing.is_null() {
             return Ok(());
         }
@@ -130,7 +130,7 @@ impl AvInfo {
         Ok(())
     }
 
-    pub fn update_av_info(&self, core_raw: &Arc<LibretroRaw>) -> Result<(), ErroHandle> {
+    pub fn update_av_info(&self, core_raw: &Arc<LibretroRaw>) -> Result<(), ErrorHandle> {
         let mut raw_av_info = retro_system_av_info {
             geometry: retro_game_geometry {
                 aspect_ratio: 0.0,
