@@ -8,6 +8,7 @@ use crate::{
     },
     RetroCoreIns,
 };
+use generics::error_handle::ErrorHandle;
 use std::{ffi::c_uint, os::raw::c_void, ptr::addr_of};
 
 unsafe extern "C" fn rumble_callback(
@@ -75,12 +76,16 @@ pub unsafe extern "C" fn input_state_callback(
     }
 }
 
-pub unsafe fn env_cb_gamepad_io(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void) -> bool {
+pub unsafe fn env_cb_gamepad_io(
+    core_ctx: &RetroCoreIns,
+    cmd: c_uint,
+    data: *mut c_void,
+) -> Result<bool, ErrorHandle> {
     match cmd {
         RETRO_ENVIRONMENT_GET_INPUT_BITMASKS => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_INPUT_BITMASKS -> ok");
-            true
+            Ok(true)
         }
         RETRO_ENVIRONMENT_SET_CONTROLLER_INFO => {
             #[cfg(feature = "core_ev_logs")]
@@ -91,12 +96,12 @@ pub unsafe fn env_cb_gamepad_io(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut
 
             let _ = core_ctx.system.get_ports(raw_ctr_infos);
 
-            true
+            Ok(true)
         }
         RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS -> ok");
-            false
+            Ok(false)
         }
         RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE => {
             #[cfg(feature = "core_ev_logs")]
@@ -105,9 +110,9 @@ pub unsafe fn env_cb_gamepad_io(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut
             let mut rumble_raw = *(data as *mut retro_rumble_interface);
             rumble_raw.set_rumble_state = Some(rumble_callback);
 
-            true
+            Ok(true)
         }
 
-        _ => false,
+        _ => Ok(false),
     }
 }

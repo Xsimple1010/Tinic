@@ -59,7 +59,7 @@ impl Texture2D {
     pub fn new(av_info: &Arc<AvInfo>, gl: Rc<gl::Gl>) -> Result<Texture2D, ErrorHandle> {
         let mut id = 0;
         let geo = &av_info.video.geometry;
-        let pixel = Pixel::new(&*av_info.video.pixel_format.read()?)?;
+        let pixel = Pixel::new(&*av_info.video.pixel_format.try_load()?)?;
 
         unsafe {
             gl.GenTextures(1, &mut id);

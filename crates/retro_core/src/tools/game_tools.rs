@@ -84,9 +84,12 @@ impl RomTools {
 
         let mut buf = Vec::new();
         let meta = CString::new("")?;
-        let path = make_c_string(f_path.to_str().ok_or(ErrorHandle::new(
+        let path = make_c_string(
+            f_path.to_str().ok_or(ErrorHandle::new(
+                "nao foi possível transforma o PathBuf da rom para uma string",
+            ))?,
             "nao foi possível transforma o PathBuf da rom para uma string",
-        ))?)?;
+        )?;
         let mut size = 0;
 
         if !*sys_info.need_full_path {
@@ -142,9 +145,7 @@ impl RomTools {
         let state = get_data(&mut data, save_info.buffer_size);
 
         if !state {
-            return Err(ErrorHandle {
-                message: "nao foi possível salva o estado atual".to_string(),
-            });
+            return Err(ErrorHandle::new("nao foi possível salva o estado atual"));
         }
 
         let save_path = get_save_path(&save_info)?;

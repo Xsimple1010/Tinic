@@ -1,3 +1,4 @@
+use super::environment::CORE_CONTEXT;
 #[cfg(feature = "hw")]
 use crate::libretro_sys::{
     binding_libretro::{
@@ -14,14 +15,13 @@ use crate::{
     },
     RetroCoreIns,
 };
+use generics::error_handle::ErrorHandle;
 #[cfg(feature = "hw")]
 use std::{ffi::c_char, mem};
 use std::{
     ffi::{c_uint, c_void},
     ptr::addr_of,
 };
-
-use super::environment::CORE_CONTEXT;
 
 pub unsafe extern "C" fn audio_sample_callback(left: i16, right: i16) {
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
@@ -142,7 +142,11 @@ unsafe extern "C" fn context_destroy() {
     }
 }
 
-pub unsafe fn env_cb_av(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void) -> bool {
+pub unsafe fn env_cb_av(
+    core_ctx: &RetroCoreIns,
+    cmd: c_uint,
+    data: *mut c_void,
+) -> Result<bool, ErrorHandle> {
     match cmd {
         RETRO_ENVIRONMENT_SET_GEOMETRY => {
             #[cfg(feature = "core_ev_logs")]
@@ -151,21 +155,26 @@ pub unsafe fn env_cb_av(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void)
             let raw_geometry_ptr = data as *mut retro_game_geometry;
 
             if raw_geometry_ptr.is_null() {
-                return false;
+                return Ok(false);
             }
 
-            let _ = core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr);
+            core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr)?;
 
-            true
+            Ok(true)
         }
         RETRO_ENVIRONMENT_SET_PIXEL_FORMAT => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_PIXEL_FORMAT -> ok");
 
-            *core_ctx.av_info.video.pixel_format.write().unwrap() =
-                *(data as *mut retro_pixel_format);
+            let pixel_format = core_ctx
+                .av_info
+                .video
+                .pixel_format
+                .load_or_spaw_err("The pixel format has not been defined")?;
 
-            true
+            *(data as *mut retro_pixel_format) = *pixel_format;
+
+            Ok(true)
         }
         RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE => {
             #[cfg(feature = "core_ev_logs")]
@@ -173,7 +182,7 @@ pub unsafe fn env_cb_av(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void)
 
             *(data as *mut u32) = 1 << 0 | 1 << 1;
 
-            true
+            Ok(true)
         }
         #[cfg(feature = "hw")]
         RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER => {
@@ -182,7 +191,7 @@ pub unsafe fn env_cb_av(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void)
 
             *(data as *mut retro_hw_context_type) = core_ctx.av_info.video.graphic_api.context_type;
 
-            true
+            Ok(true)
         }
         #[cfg(feature = "hw")]
         RETRO_ENVIRONMENT_SET_HW_RENDER | RETRO_ENVIRONMENT_EXPERIMENTAL => {
@@ -190,7 +199,7 @@ pub unsafe fn env_cb_av(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void)
             println!("RETRO_ENVIRONMENT_SET_HW_RENDER");
 
             if data.is_null() {
-                return false;
+                return Ok(false);
             }
 
             binding_log_interface::set_hw_callback(
@@ -201,13 +210,13 @@ pub unsafe fn env_cb_av(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void)
                 Some(get_proc_address),
             );
 
-            core_ctx
+            Ok(core_ctx
                 .av_info
                 .video
                 .graphic_api
-                .try_update_from_raw(data as *mut retro_hw_render_callback)
+                .try_update_from_raw(data as *mut retro_hw_render_callback))
         }
 
-        _ => false,
+        _ => Ok(false),
     }
 }
