@@ -1,4 +1,5 @@
 use crate::gamepad::retro_gamepad::RetroGamePad;
+use crate::keyboard::Keyboard;
 use generics::{
     constants::DEFAULT_MAX_PORT,
     error_handle::ErrorHandle,
@@ -28,6 +29,7 @@ pub type DeviceStateListener = ArcTMutex<Box<dyn DeviceListener>>;
 pub struct DevicesManager {
     gilrs: ArcTMutex<Gilrs>,
     connected_gamepads: ArcTMutex<Vec<RetroGamePad>>,
+    pub keyboard: ArcTMutex<Keyboard>,
     max_ports: Arc<AtomicUsize>,
     listener: DeviceStateListener,
 }
@@ -90,6 +92,7 @@ impl DevicesManager {
             connected_gamepads: TMutex::new(Vec::new()),
             max_ports: Arc::new(AtomicUsize::new(DEFAULT_MAX_PORT)),
             listener: TMutex::new(listener),
+            keyboard: TMutex::new(Keyboard::new()),
         })
     }
 
@@ -100,10 +103,6 @@ impl DevicesManager {
             &self.max_ports,
             &self.listener,
         )
-    }
-
-    pub fn create_virtual_device(&self) -> Result<(), ErrorHandle> {
-        todo!()
     }
 
     pub fn set_max_port(&self, max_port: usize) {
@@ -118,6 +117,16 @@ impl DevicesManager {
     }
 
     pub fn get_input_state(&self, port: i16, key_id: i16) -> i16 {
+        let keyboad = self.keyboard.load_or(Keyboard::new());
+
+        if keyboad.retro_port == port {
+            return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
+                keyboad.get_key_pressed(key_id)
+            } else {
+                keyboad.get_key_bitmasks()
+            };
+        }
+
         for gamepad in &*self.connected_gamepads.load_or(Vec::new()) {
             if gamepad.retro_port == port {
                 return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {

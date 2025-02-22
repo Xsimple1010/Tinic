@@ -70,9 +70,7 @@ impl Tinic {
         if let Some(event_loop) = self.event_loop.as_mut() {
             Ok(event_loop.pump_app_events(None, game_instance))
         } else {
-            Err(ErrorHandle {
-                message: "".to_string(),
-            })
+            Err(ErrorHandle::new(""))
         }
     }
 
@@ -83,9 +81,7 @@ impl Tinic {
     ) -> Result<(), ErrorHandle> {
         match CoreInfoHelper::try_update_core_infos(retro_paths, force_update).await {
             Ok(_) => Ok(()),
-            Err(e) => Err(ErrorHandle {
-                message: e.to_string(),
-            }),
+            Err(e) => Err(ErrorHandle::new(e.to_string().as_str())),
         }
     }
 

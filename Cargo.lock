@@ -2782,6 +2782,7 @@ dependencies = [
  "libretro_sys",
  "retro_core",
  "uuid",
+ "winit",
 ]
 
 [[package]]
