@@ -1,8 +1,8 @@
-use crate::tinic_app::GameInstanceDispatchers;
+use crate::app_dispatcher::{GameInstanceActions, GameInstanceDispatchers};
 use crate::{
     generics::error_handle::ErrorHandle,
     retro_controllers::{RetroController, devices_manager::DeviceListener},
-    tinic_app::{GameInstance, GameInstanceActions},
+    tinic_app::GameInstance,
     tinic_app_ctx::TinicGameCtx,
 };
 use generics::{
