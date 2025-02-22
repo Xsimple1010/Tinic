@@ -69,9 +69,7 @@ pub fn connect_handle(
         let mut gamepads = connected_gamepads.load_or(Vec::new());
         gamepads.push(gamepad.clone());
 
-        listener
-            .try_load()?
-            .connected(Device::from_gamepad(&gamepad));
+        listener.try_load()?.connected(gamepad);
     }
 
     Ok(())
@@ -83,9 +81,7 @@ pub fn disconnect_handle(
     listener: &DeviceStateListener,
 ) -> Result<(), ErrorHandle> {
     if let Some(gamepad) = remove(id, connected_gamepads)? {
-        listener
-            .try_load()?
-            .disconnected(Device::from_gamepad(&gamepad));
+        listener.try_load()?.disconnected(gamepad);
     }
 
     Ok(())
