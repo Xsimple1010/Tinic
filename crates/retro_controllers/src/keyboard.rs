@@ -8,7 +8,7 @@ pub struct Keyboard {
     pub retro_port: i16,
     #[doc = "padrão RETRO_DEVICE_JOYPAD"]
     pub retro_type: u32,
-    pub key_map: Vec<KeyboardKeymap>,
+    key_map: Vec<KeyboardKeymap>,
 }
 
 impl Keyboard {
@@ -95,11 +95,11 @@ impl DeviceKeyMap<KeyboardKeymap, PhysicalKey> for KeyboardKeymap {
             ),
             //buttons
             KeyboardKeymap::new(
-                PhysicalKey::Code(KeyCode::KeyL),
+                PhysicalKey::Code(KeyCode::Space),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_B,
             ),
             KeyboardKeymap::new(
-                PhysicalKey::Code(KeyCode::KeyI),
+                PhysicalKey::Code(KeyCode::KeyL),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_A,
             ),
             KeyboardKeymap::new(
@@ -107,7 +107,7 @@ impl DeviceKeyMap<KeyboardKeymap, PhysicalKey> for KeyboardKeymap {
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_X,
             ),
             KeyboardKeymap::new(
-                PhysicalKey::Code(KeyCode::KeyK),
+                PhysicalKey::Code(KeyCode::KeyI),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_Y,
             ),
             //Trigger

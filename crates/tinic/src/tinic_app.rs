@@ -17,6 +17,8 @@ pub enum GameInstanceActions {
     Resume,
     SaveState(usize),
     LoadState(usize),
+    DisableKeybaord,
+    EnableKeybaord,
     Exit,
 }
 
@@ -25,6 +27,8 @@ pub struct GameInstance {
     proxy: EventLoopProxy<GameInstanceActions>,
     pub default_slot: usize,
 }
+
+#[derive(Debug, Clone)]
 pub struct GameInstanceDispatchers {
     proxy: EventLoopProxy<GameInstanceActions>,
 }
@@ -48,6 +52,14 @@ impl GameInstanceDispatchers {
 
     pub fn save_state(&self, slot: usize) -> Result<(), EventLoopClosed<GameInstanceActions>> {
         self.proxy.send_event(GameInstanceActions::SaveState(slot))
+    }
+
+    pub fn disable_keybaord(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+        self.proxy.send_event(GameInstanceActions::DisableKeybaord)
+    }
+
+    pub fn enable_keybaord(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+        self.proxy.send_event(GameInstanceActions::EnableKeybaord)
     }
 
     pub fn change_default_slot(
@@ -113,6 +125,11 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                 self.default_slot = slot;
                 Ok(())
             }
+            GameInstanceActions::EnableKeybaord => self.ctx.active_keyboard(),
+            GameInstanceActions::DisableKeybaord => {
+                self.ctx.desable_keyboard();
+                Ok(())
+            }
             GameInstanceActions::Pause => {
                 self.ctx.pause();
                 Ok(())
@@ -151,9 +168,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                 is_synthetic: _,
             } => {
                 self.ctx
-                    .controller
-                    .update_keyboard(event.physical_key.clone(), event.state.is_pressed())
-                    .unwrap();
+                    .update_keyboard_state(event.physical_key.clone(), event.state.is_pressed());
 
                 if event.repeat || !event.state.is_pressed() {
                     return;
@@ -162,6 +177,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                 match event.physical_key {
                     PhysicalKey::Code(KeyCode::F1) => self.ctx.save_state(self.default_slot),
                     PhysicalKey::Code(KeyCode::F2) => self.ctx.load_state(self.default_slot),
+                    PhysicalKey::Code(KeyCode::F3) => self.ctx.toggle_keyboard_usage(),
                     PhysicalKey::Code(KeyCode::F5) => self.ctx.reset(),
                     PhysicalKey::Code(KeyCode::F8) => {
                         self.ctx.toggle_can_request_new_frames();

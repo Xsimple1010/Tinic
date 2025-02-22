@@ -15,6 +15,7 @@ use std::{
         atomic::{AtomicUsize, Ordering},
     },
 };
+use winit::keyboard::PhysicalKey;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DeviceRubble {
@@ -29,7 +30,7 @@ pub type DeviceStateListener = ArcTMutex<Box<dyn DeviceListener>>;
 pub struct DevicesManager {
     gilrs: ArcTMutex<Gilrs>,
     connected_gamepads: ArcTMutex<Vec<RetroGamePad>>,
-    pub keyboard: ArcTMutex<Keyboard>,
+    keyboard: ArcTMutex<Option<Keyboard>>,
     max_ports: Arc<AtomicUsize>,
     listener: DeviceStateListener,
 }
@@ -92,7 +93,7 @@ impl DevicesManager {
             connected_gamepads: TMutex::new(Vec::new()),
             max_ports: Arc::new(AtomicUsize::new(DEFAULT_MAX_PORT)),
             listener: TMutex::new(listener),
-            keyboard: TMutex::new(Keyboard::new()),
+            keyboard: TMutex::new(None),
         })
     }
 
@@ -103,6 +104,26 @@ impl DevicesManager {
             &self.max_ports,
             &self.listener,
         )
+    }
+
+    pub fn update_keyboard(&self, native: PhysicalKey, pressed: bool) {
+        if let Some(keyboar) = &mut *self.keyboard.load_or(None) {
+            keyboar.set_key_pressed(native, pressed);
+        }
+    }
+
+    pub fn active_keyboard(&self) -> Keyboard {
+        let keyboard = Keyboard::new();
+        self.keyboard.store(Some(keyboard.clone()));
+        keyboard
+    }
+
+    pub fn disable_keyboard(&self) {
+        self.keyboard.store(None);
+    }
+
+    pub fn is_using_keyboard(&self) -> bool {
+        self.keyboard.load_or(None).is_some()
     }
 
     pub fn set_max_port(&self, max_port: usize) {
@@ -117,18 +138,18 @@ impl DevicesManager {
     }
 
     pub fn get_input_state(&self, port: i16, key_id: i16) -> i16 {
-        let keyboad = self.keyboard.load_or(Keyboard::new());
-
-        if keyboad.retro_port == port {
-            return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
-                keyboad.get_key_pressed(key_id)
-            } else {
-                keyboad.get_key_bitmasks()
-            };
+        if let Some(keyboad) = &*self.keyboard.load_or(None) {
+            if keyboad.retro_port.eq(&port) {
+                return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
+                    keyboad.get_key_pressed(key_id)
+                } else {
+                    keyboad.get_key_bitmasks()
+                };
+            }
         }
 
         for gamepad in &*self.connected_gamepads.load_or(Vec::new()) {
-            if gamepad.retro_port == port {
+            if gamepad.retro_port.eq(&port) {
                 return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
                     gamepad.get_key_pressed(key_id)
                 } else {
