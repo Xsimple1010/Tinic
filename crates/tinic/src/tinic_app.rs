@@ -59,9 +59,9 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                 self.default_slot = slot;
                 Ok(())
             }
-            GameInstanceActions::EnableKeybaord => self.ctx.active_keyboard(),
-            GameInstanceActions::DisableKeybaord => {
-                self.ctx.desable_keyboard();
+            GameInstanceActions::EnableKeyboard => self.ctx.active_keyboard(),
+            GameInstanceActions::DisableKeyboard => {
+                self.ctx.disable_keyboard();
                 Ok(())
             }
             GameInstanceActions::Pause => {

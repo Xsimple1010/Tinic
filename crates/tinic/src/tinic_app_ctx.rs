@@ -65,14 +65,14 @@ impl TinicGameCtx {
 
     pub fn toggle_keyboard_usage(&self) -> Result<(), ErrorHandle> {
         if self.controller.is_using_keyboar() {
-            self.desable_keyboard();
+            self.disable_keyboard();
             Ok(())
         } else {
             self.active_keyboard()
         }
     }
 
-    pub fn desable_keyboard(&self) {
+    pub fn disable_keyboard(&self) {
         self.controller.disable_keyboard()
     }
     pub fn active_keyboard(&self) -> Result<(), ErrorHandle> {

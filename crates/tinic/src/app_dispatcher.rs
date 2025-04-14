@@ -8,8 +8,8 @@ pub enum GameInstanceActions {
     Resume,
     SaveState(usize),
     LoadState(usize),
-    DisableKeybaord,
-    EnableKeybaord,
+    DisableKeyboard,
+    EnableKeyboard,
     Exit,
 }
 
@@ -47,26 +47,20 @@ impl GameInstanceDispatchers {
         self.proxy.send_event(GameInstanceActions::SaveState(slot))
     }
 
-    pub fn disable_keybaord(&self) -> Result<(), GameInstanceActionsClosed> {
-        self.proxy.send_event(GameInstanceActions::DisableKeybaord)
+    pub fn disable_keyboard(&self) -> Result<(), GameInstanceActionsClosed> {
+        self.proxy.send_event(GameInstanceActions::DisableKeyboard)
     }
 
-    pub fn enable_keybaord(&self) -> Result<(), GameInstanceActionsClosed> {
-        self.proxy.send_event(GameInstanceActions::EnableKeybaord)
+    pub fn enable_keyboard(&self) -> Result<(), GameInstanceActionsClosed> {
+        self.proxy.send_event(GameInstanceActions::EnableKeyboard)
     }
 
-    pub fn change_default_slot(
-        &self,
-        slot: usize,
-    ) -> Result<(), GameInstanceActionsClosed> {
+    pub fn change_default_slot(&self, slot: usize) -> Result<(), GameInstanceActionsClosed> {
         self.proxy
             .send_event(GameInstanceActions::ChangeDefaultSlot(slot))
     }
 
-    pub fn connect_device(
-        &self,
-        device: RetroGamePad,
-    ) -> Result<(), GameInstanceActionsClosed> {
+    pub fn connect_device(&self, device: RetroGamePad) -> Result<(), GameInstanceActionsClosed> {
         self.proxy
             .send_event(GameInstanceActions::ConnectDevice(device))
     }

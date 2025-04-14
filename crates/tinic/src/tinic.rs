@@ -107,7 +107,7 @@ impl DeviceListener for DeviceHandle {
         let mut invalid_proxy = false;
 
         if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref() {
-            if dispatcher.disable_keybaord().is_err() {
+            if dispatcher.disable_keyboard().is_err() {
                 invalid_proxy = true;
             }
 
@@ -127,7 +127,7 @@ impl DeviceListener for DeviceHandle {
         let mut invalid_proxy = false;
 
         if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref() {
-            if dispatcher.enable_keybaord().is_err() {
+            if dispatcher.enable_keyboard().is_err() {
                 invalid_proxy = true;
             }
         }

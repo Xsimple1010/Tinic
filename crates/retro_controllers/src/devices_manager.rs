@@ -107,8 +107,8 @@ impl DevicesManager {
     }
 
     pub fn update_keyboard(&self, native: PhysicalKey, pressed: bool) {
-        if let Some(keyboar) = &mut *self.keyboard.load_or(None) {
-            keyboar.set_key_pressed(native, pressed);
+        if let Some(keyboard) = &mut *self.keyboard.load_or(None) {
+            keyboard.set_key_pressed(native, pressed);
         }
     }
 
@@ -138,12 +138,12 @@ impl DevicesManager {
     }
 
     pub fn get_input_state(&self, port: i16, key_id: i16) -> i16 {
-        if let Some(keyboad) = &*self.keyboard.load_or(None) {
-            if keyboad.retro_port.eq(&port) {
+        if let Some(keyboard) = &*self.keyboard.load_or(None) {
+            if keyboard.retro_port.eq(&port) {
                 return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
-                    keyboad.get_key_pressed(key_id)
+                    keyboard.get_key_pressed(key_id)
                 } else {
-                    keyboad.get_key_bitmasks()
+                    keyboard.get_key_bitmasks()
                 };
             }
         }

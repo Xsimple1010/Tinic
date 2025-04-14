@@ -8,7 +8,7 @@ pub struct Keyboard {
     pub retro_port: i16,
     #[doc = "padrão RETRO_DEVICE_JOYPAD"]
     pub retro_type: u32,
-    key_map: Vec<KeyboardKeymap>,
+    key_map: Vec<KeyboardKeyMap>,
 }
 
 impl Keyboard {
@@ -16,14 +16,14 @@ impl Keyboard {
         Self {
             retro_port: 0,
             retro_type: RETRO_DEVICE_JOYPAD,
-            key_map: KeyboardKeymap::get_default_key_maps(),
+            key_map: KeyboardKeyMap::get_default_key_maps(),
         }
     }
 
     pub fn set_key_pressed(&mut self, native: PhysicalKey, pressed: bool) {
-        for keymap in &mut self.key_map {
-            if keymap.native == native {
-                keymap.pressed = pressed;
+        for key_map in &mut self.key_map {
+            if key_map.native == native {
+                key_map.pressed = pressed;
             }
         }
     }
@@ -53,13 +53,13 @@ impl DevicesRequiredFunctions for Keyboard {
 }
 
 #[derive(Debug, Clone)]
-struct KeyboardKeymap {
+struct KeyboardKeyMap {
     pub native: PhysicalKey,
     pub retro: u32,
     pub pressed: bool,
 }
 
-impl KeyboardKeymap {
+impl KeyboardKeyMap {
     fn new(native: PhysicalKey, retro: u32) -> Self {
         Self {
             native,
@@ -69,79 +69,79 @@ impl KeyboardKeymap {
     }
 }
 
-impl DeviceKeyMap<KeyboardKeymap, PhysicalKey> for KeyboardKeymap {
+impl DeviceKeyMap<KeyboardKeyMap, PhysicalKey> for KeyboardKeyMap {
     fn get_key_name_from_native_button<'a>(native: &PhysicalKey) -> &'a str {
         todo!()
     }
 
-    fn get_default_key_maps() -> Vec<KeyboardKeymap> {
+    fn get_default_key_maps() -> Vec<KeyboardKeyMap> {
         vec![
             //DPads
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyS),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_DOWN,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyA),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_LEFT,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyW),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_UP,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyD),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_RIGHT,
             ),
             //buttons
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::Space),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_B,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyL),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_A,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyJ),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_X,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyI),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_Y,
             ),
             //Trigger
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyQ),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_L,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyE),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_R,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyU),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_L2,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyO),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_R2,
             ),
             //Thumb
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyC),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_L3,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::KeyN),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_R3,
             ),
             //Menu
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::Enter),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_START,
             ),
-            KeyboardKeymap::new(
+            KeyboardKeyMap::new(
                 PhysicalKey::Code(KeyCode::Backspace),
                 binding_libretro::RETRO_DEVICE_ID_JOYPAD_SELECT,
             ),
