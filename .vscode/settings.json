@@ -15,6 +15,7 @@
         "glutin",
         "JOYPAD",
         "libloading",
+        "libretro",
         "OPENGL",
         "Parameteri",
         "replacen",
@@ -28,6 +29,7 @@
         "uuid",
         "Uuid",
         "vulkan",
-        "vulkano"
+        "vulkano",
+        "winit"
     ]
 }
