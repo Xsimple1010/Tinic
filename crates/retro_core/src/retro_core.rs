@@ -35,7 +35,13 @@ impl RetroCore {
         callbacks: RetroEnvCallbacks,
         graphic_api: GraphicApi,
     ) -> Result<RetroCoreIns, ErrorHandle> {
-        let raw = unsafe { LibretroRaw::new(core_path).unwrap() };
+        let raw = unsafe {
+            LibretroRaw::new(core_path).map_err(|_| {
+                ErrorHandle::new(&format!(
+                    r#"Não foi possível abrir o core selecionado: {core_path}"#
+                ))
+            })
+        }?;
 
         let system = System::new(&raw);
 
