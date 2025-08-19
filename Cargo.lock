@@ -2828,6 +2828,7 @@ dependencies = [
  "generics",
  "libretro_sys",
  "raw-cpuid",
+ "tempfile",
  "uuid",
 ]
 
