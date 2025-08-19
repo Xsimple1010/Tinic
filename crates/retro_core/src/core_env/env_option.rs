@@ -1,6 +1,6 @@
 use crate::{
     RetroCoreIns,
-    tools::ffi_tools::{get_str_from_ptr, make_c_string},
+    tools::{ffi_tools::get_str_from_ptr, validation::InputValidator},
 };
 use generics::error_handle::ErrorHandle;
 use libretro_sys::{
@@ -110,7 +110,7 @@ pub unsafe fn env_cb_option(
 
             match options_manager.get_opt_value(&key)? {
                 Some(value) => {
-                    let new_value = make_c_string(
+                    let new_value = InputValidator::create_safe_c_string(
                         &value,
                         "Nao foi possivel cria uma C String do novo valor de core_opt",
                     )?;

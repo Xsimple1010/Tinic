@@ -1,3 +1,4 @@
+use generics::constants::INVALID_CONTROLLER_PORT;
 use generics::error_handle::ErrorHandle;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
@@ -156,13 +157,17 @@ impl InputValidator {
     }
 
     /// Safely create C string from Rust string
-    pub fn create_safe_c_string(s: &str) -> Result<CString, ErrorHandle> {
+    pub fn create_safe_c_string(s: &str, err_message: &str) -> Result<CString, ErrorHandle> {
         if s.is_empty() {
-            return Err(ErrorHandle::new("Cannot create C string from empty string"));
+            return Err(ErrorHandle::new(&format!(
+                "{err_message}: Cannot create C string from empty string"
+            )));
         }
 
         if s.len() > 65535 {
-            return Err(ErrorHandle::new("String too long for C string conversion"));
+            return Err(ErrorHandle::new(&format!(
+                "{err_message}: String too long for C string conversion"
+            )));
         }
 
         CString::new(s).map_err(|e| ErrorHandle::new(&format!("Failed to create C string: {}", e)))
@@ -178,7 +183,7 @@ impl InputValidator {
         }
 
         // Use CStr::from_ptr but with additional safety checks
-        let c_str = CStr::from_ptr(ptr);
+        let c_str = unsafe { CStr::from_ptr(ptr) };
         let bytes = c_str.to_bytes();
 
         if bytes.len() > max_len {
@@ -197,7 +202,7 @@ impl InputValidator {
 
     /// Validate controller port number
     pub fn validate_controller_port(port: i16) -> Result<u16, ErrorHandle> {
-        if port < 0 {
+        if port > INVALID_CONTROLLER_PORT {
             return Err(ErrorHandle::new("Controller port cannot be negative"));
         }
 
@@ -233,7 +238,7 @@ impl InputValidator {
     }
 
     /// Validate raw mutable pointer is not null
-    pub fn validate_non_null_mut_ptr<T>(ptr: *mut T, name: &str) -> Result<(), ErrorHandle> {
+    pub fn _validate_non_null_mut_ptr<T>(ptr: *mut T, name: &str) -> Result<(), ErrorHandle> {
         if ptr.is_null() {
             return Err(ErrorHandle::new(&format!("{} pointer is null", name)));
         }
@@ -245,30 +250,6 @@ impl InputValidator {
         s.chars()
             .filter(|c| !c.is_control() || *c == '\n' || *c == '\t')
             .collect()
-    }
-
-    /// Validate video dimensions
-    pub fn validate_video_dimensions(width: u32, height: u32) -> Result<(), ErrorHandle> {
-        if width == 0 || height == 0 {
-            return Err(ErrorHandle::new("Video dimensions cannot be zero"));
-        }
-
-        if width > 7680 || height > 4320 {
-            return Err(ErrorHandle::new(
-                "Video dimensions exceed maximum supported resolution (8K)",
-            ));
-        }
-
-        // Check for reasonable aspect ratios
-        let aspect_ratio = width as f64 / height as f64;
-        if aspect_ratio < 0.1 || aspect_ratio > 10.0 {
-            return Err(ErrorHandle::new(&format!(
-                "Unusual aspect ratio {:.2}. Width: {}, Height: {}",
-                aspect_ratio, width, height
-            )));
-        }
-
-        Ok(())
     }
 
     /// Validate audio sample rate
@@ -364,16 +345,6 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_video_dimensions() {
-        assert!(InputValidator::validate_video_dimensions(1920, 1080).is_ok());
-        assert!(InputValidator::validate_video_dimensions(640, 480).is_ok());
-
-        assert!(InputValidator::validate_video_dimensions(0, 480).is_err());
-        assert!(InputValidator::validate_video_dimensions(640, 0).is_err());
-        assert!(InputValidator::validate_video_dimensions(10000, 10000).is_err());
-    }
-
-    #[test]
     fn test_validate_sample_rate() {
         assert!(InputValidator::validate_sample_rate(44100).is_ok());
         assert!(InputValidator::validate_sample_rate(48000).is_ok());
@@ -384,11 +355,11 @@ mod tests {
 
     #[test]
     fn test_create_safe_c_string() {
-        assert!(InputValidator::create_safe_c_string("test").is_ok());
-        assert!(InputValidator::create_safe_c_string("").is_err());
+        assert!(InputValidator::create_safe_c_string("test", "test").is_ok());
+        assert!(InputValidator::create_safe_c_string("", "test").is_err());
 
         let long_string = "a".repeat(70000);
-        assert!(InputValidator::create_safe_c_string(&long_string).is_err());
+        assert!(InputValidator::create_safe_c_string(&long_string, "test").is_err());
     }
 
     #[test]

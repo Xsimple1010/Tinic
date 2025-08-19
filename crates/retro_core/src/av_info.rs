@@ -1,10 +1,11 @@
 use crate::graphic_api::GraphicApi;
+use crate::tools::validation::InputValidator;
 use generics::error_handle::ErrorHandle;
 use generics::types::{ArcTMutex, TMutex};
 use libretro_sys::binding_libretro::{
-    retro_game_geometry,
+    LibretroRaw, retro_game_geometry,
     retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN},
-    retro_system_av_info, retro_system_timing, LibretroRaw,
+    retro_system_av_info, retro_system_timing,
 };
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, RwLock};
@@ -14,7 +15,7 @@ pub struct Timing {
     #[doc = "FPS of video content."]
     pub fps: RwLock<f64>,
     #[doc = "Sampling rate of audio."]
-    pub sample_rate: RwLock<f64>,
+    pub sample_rate: RwLock<u32>,
 }
 
 #[derive(Debug, Default)]
@@ -82,11 +83,7 @@ impl AvInfo {
         &self,
         raw_geometry_ptr: *const retro_game_geometry,
     ) -> Result<(), ErrorHandle> {
-        if raw_geometry_ptr.is_null() {
-            return Err(ErrorHandle::new(
-                "nao foi possível atualiza a geometria da textura",
-            ));
-        }
+        InputValidator::validate_non_null_ptr(raw_geometry_ptr, "raw_geometry_ptr")?;
 
         let raw_geometry = unsafe { *raw_geometry_ptr };
         let geometry = &self.video.geometry;
@@ -98,7 +95,7 @@ impl AvInfo {
             Err(_) => {
                 return Err(ErrorHandle::new(
                     "nao foi possível atualiza o aspect_ratio da textura",
-                ))
+                ));
             }
         }
 
@@ -122,14 +119,13 @@ impl AvInfo {
         &self,
         raw_system_timing: *const retro_system_timing,
     ) -> Result<(), ErrorHandle> {
-        if raw_system_timing.is_null() {
-            return Ok(());
-        }
+        InputValidator::validate_non_null_ptr(raw_system_timing, "raw_system_timing")?;
 
         let timing = unsafe { *raw_system_timing };
 
         *self.timing.fps.write()? = timing.fps;
-        *self.timing.sample_rate.write()? = timing.sample_rate;
+        InputValidator::validate_sample_rate(timing.sample_rate as u32)?;
+        *self.timing.sample_rate.write()? = timing.sample_rate as u32;
 
         Ok(())
     }

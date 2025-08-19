@@ -37,7 +37,7 @@ impl AudioDriver {
             .map_err(|e| ErrorHandle::new(&e.to_string()))?;
         let sample_rate = config.sample_rate().0;
         let channels = config.channels();
-        eprintln!("cpal sample_rate -> {}", sample_rate);
+        // eprintln!("cpal sample_rate -> {}", sample_rate);
 
         let buffer = TMutex::new(AudioNewFrame {
             data: VecDeque::new(),
