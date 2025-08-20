@@ -1,4 +1,3 @@
-use crate::av_info::AvInfo;
 #[cfg(feature = "core_logs")]
 use crate::tools::ffi_tools::get_str_from_ptr;
 use crate::{
@@ -24,6 +23,7 @@ use crate::{
         get_cpu_features, get_features_get_time_usec,
     },
 };
+use crate::{av_info::AvInfo, tools::validation::InputValidator};
 use generics::error_handle::ErrorHandle;
 use std::sync::Arc;
 use std::{
@@ -128,11 +128,21 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                     #[cfg(feature = "core_ev_logs")]
                     println!("RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME -> ok");
 
-                    core_ctx
-                        .support_no_game
-                        .store(*(data as *mut bool), Ordering::SeqCst);
+                    let result = InputValidator::validate_non_null_ptr(
+                        data,
+                        "ptr data in RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME",
+                    );
 
-                    true
+                    match result {
+                        Err(_) => false,
+                        Ok(_) => {
+                            core_ctx
+                                .support_no_game
+                                .store(*(data as *mut bool), Ordering::SeqCst);
+
+                            true
+                        }
+                    }
                 }
                 RETRO_ENVIRONMENT_GET_LANGUAGE => {
                     #[cfg(feature = "core_ev_logs")]
@@ -162,30 +172,57 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                     #[cfg(feature = "core_ev_logs")]
                     println!("RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL -> OK");
 
-                    println!("{:?}", *(data as *mut u8));
+                    let result = InputValidator::validate_non_null_mut_ptr(
+                        data,
+                        "ptr data in RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL",
+                    );
 
-                    core_ctx
-                        .system
-                        .performance_level
-                        .store(*(data as *mut u8), Ordering::SeqCst);
+                    match result {
+                        Ok(_) => {
+                            core_ctx
+                                .system
+                                .performance_level
+                                .store(*(data as *mut u8), Ordering::SeqCst);
 
-                    true
+                            true
+                        }
+                        Err(_err) => {
+                            #[cfg(feature = "core_ev_logs")]
+                            println!("Error: {:?}", _err);
+
+                            false
+                        }
+                    }
                 }
                 RETRO_ENVIRONMENT_GET_PERF_INTERFACE => {
                     #[cfg(feature = "core_ev_logs")]
                     println!("RETRO_ENVIRONMENT_GET_PERF_INTERFACE -> ok");
 
-                    let mut perf = *(data as *mut retro_perf_callback);
+                    let result = InputValidator::validate_non_null_mut_ptr(
+                        data,
+                        "ptr data in RETRO_ENVIRONMENT_GET_PERF_INTERFACE",
+                    );
 
-                    perf.get_time_usec = Some(get_features_get_time_usec);
-                    perf.get_cpu_features = Some(get_cpu_features);
-                    perf.get_perf_counter = Some(core_get_perf_counter);
-                    perf.perf_register = Some(core_perf_register);
-                    perf.perf_start = Some(core_perf_start);
-                    perf.perf_stop = Some(core_perf_stop);
-                    perf.perf_log = Some(core_perf_log);
+                    match result {
+                        Ok(_) => {
+                            let mut perf = *(data as *mut retro_perf_callback);
 
-                    true
+                            perf.get_time_usec = Some(get_features_get_time_usec);
+                            perf.get_cpu_features = Some(get_cpu_features);
+                            perf.get_perf_counter = Some(core_get_perf_counter);
+                            perf.perf_register = Some(core_perf_register);
+                            perf.perf_start = Some(core_perf_start);
+                            perf.perf_stop = Some(core_perf_stop);
+                            perf.perf_log = Some(core_perf_log);
+
+                            true
+                        }
+                        Err(_err) => {
+                            #[cfg(feature = "core_ev_logs")]
+                            println!("Error: {:?}", _err);
+                            false
+                        }
+                    }
                 }
                 _ => {
                     if handle_env_result(core_ctx, env_cb_av(core_ctx, cmd, data))
