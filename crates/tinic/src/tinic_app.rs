@@ -102,7 +102,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                 is_synthetic: _,
             } => {
                 self.ctx
-                    .update_keyboard_state(event.physical_key.clone(), event.state.is_pressed());
+                    .update_keyboard_state(event.physical_key, event.state.is_pressed());
 
                 if event.repeat || !event.state.is_pressed() {
                     return;
@@ -138,7 +138,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
     }
 
     fn suspended(&mut self, _: &ActiveEventLoop) {
-        let _ = self.ctx.suspend_window();
+        self.ctx.suspend_window();
     }
 
     fn exiting(&mut self, _: &ActiveEventLoop) {

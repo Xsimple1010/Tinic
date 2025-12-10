@@ -10,10 +10,7 @@ impl RetroArgs {
     pub fn new() -> Result<Self, ErrorHandle> {
         let args = env::args().collect();
 
-        let core = match get_value(&args, "--core=") {
-            Ok(value) => Some(value),
-            Err(_) => None,
-        };
+        let core = get_value(&args, "--core=").ok();
         let rom = get_value(&args, "--rom=")?;
 
         Ok(Self { core, rom })

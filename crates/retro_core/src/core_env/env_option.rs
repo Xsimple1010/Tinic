@@ -1,17 +1,17 @@
 use crate::{
-    RetroCoreIns,
     tools::{ffi_tools::get_str_from_ptr, validation::InputValidator},
+    RetroCoreIns,
 };
 use generics::error_handle::ErrorHandle;
 use libretro_sys::{
     binding_libretro::{
-        RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, RETRO_ENVIRONMENT_GET_VARIABLE,
-        RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
-        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL,
-        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK,
-        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL, RETRO_ENVIRONMENT_SET_VARIABLE,
-        RETRO_ENVIRONMENT_SET_VARIABLES, retro_core_option_display, retro_core_options_v2_intl,
-        retro_variable,
+        retro_core_option_display, retro_core_options_v2_intl,
+        retro_variable, RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION,
+        RETRO_ENVIRONMENT_GET_VARIABLE,
+        RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE,
+        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL,
+        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL, RETRO_ENVIRONMENT_SET_VARIABLE,
+        RETRO_ENVIRONMENT_SET_VARIABLES,
     },
     binding_log_interface,
 };
@@ -47,9 +47,11 @@ pub unsafe fn env_cb_option(
                 "ptr data in RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL",
             )?;
 
-            let _ = core_ctx
-                .options
-                .convert_option_v2_intl(data as *mut retro_core_options_v2_intl);
+            let _ = unsafe {
+                core_ctx
+                    .options
+                    .convert_option_v2_intl(data as *mut retro_core_options_v2_intl)
+            };
             let _ = core_ctx.options.try_reload_pref_option();
 
             Ok(true)

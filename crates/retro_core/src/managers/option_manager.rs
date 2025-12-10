@@ -8,8 +8,8 @@ use crate::{
 };
 use generics::constants::{CORE_OPTION_EXTENSION_FILE, MAX_CORE_OPTIONS};
 use generics::error_handle::ErrorHandle;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
+use std::sync::Arc;
 use std::{
     fs::File,
     io::{Read, Write},
@@ -295,7 +295,9 @@ impl OptionManager {
         Ok(())
     }
 
-    pub fn convert_option_v2_intl(
+    
+    
+    pub unsafe fn convert_option_v2_intl(
         &self,
         option_intl_v2: *mut retro_core_options_v2_intl,
     ) -> Result<(), ErrorHandle> {

@@ -73,7 +73,7 @@ impl AudioDriver {
         {
             Some(ref mut stream) => stream.play().map_err(|e| ErrorHandle::new(&e.to_string())),
             None => {
-                return Err(ErrorHandle::new("Stream not initialized"));
+                Err(ErrorHandle::new("Stream not initialized"))
             }
         }
     }
@@ -81,9 +81,7 @@ impl AudioDriver {
     pub fn pause(&self) -> Result<(), ErrorHandle> {
         match &mut *self.stream.load_or(None) {
             Some(ref mut stream) => stream.pause().map_err(|e| ErrorHandle::new(&e.to_string())),
-            None => {
-                return Err(ErrorHandle::new("Stream not initialized"));
-            }
+            None => Err(ErrorHandle::new("Stream not initialized")),
         }
     }
 
