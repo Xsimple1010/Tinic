@@ -1,12 +1,9 @@
 use super::environment::CORE_CONTEXT;
 #[cfg(feature = "hw")]
-use crate::libretro_sys::{
-    binding_libretro::{
-        retro_hw_context_type, retro_hw_render_callback,
-        retro_proc_address_t, RETRO_ENVIRONMENT_EXPERIMENTAL, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
-        RETRO_ENVIRONMENT_SET_HW_RENDER,
-    },
-    binding_log_interface,
+use crate::libretro_sys::binding_libretro::{
+    retro_hw_context_type,
+    retro_hw_render_callback, retro_proc_address_t, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
+    RETRO_ENVIRONMENT_SET_HW_RENDER,
 };
 use crate::{
     libretro_sys::binding_libretro::{
@@ -105,40 +102,48 @@ unsafe extern "C" fn get_proc_address(sym: *const c_char) -> retro_proc_address_
     use crate::tools::ffi_tools::get_str_from_ptr;
 
     println!("get_proc_address");
-    match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => {
-            let fc_name = get_str_from_ptr(sym);
+    unsafe {
+        match &*addr_of!(CORE_CONTEXT) {
+            Some(core_ctx) => {
+                let fc_name = get_str_from_ptr(sym);
 
-            let res = core_ctx.callbacks.video.get_proc_address(&fc_name);
+                let res = core_ctx.callbacks.video.get_proc_address(&fc_name);
 
-            match res {
-                Ok(proc_address) => {
-                    if proc_address.is_null() {
-                        return None;
+                match res {
+                    Ok(proc_address) => {
+                        if proc_address.is_null() {
+                            return None;
+                        }
+
+                        let function: unsafe extern "C" fn() = mem::transmute(proc_address);
+
+                        Some(function)
                     }
-
-                    let function: unsafe extern "C" fn() = unsafe { mem::transmute(proc_address) };
-
-                    Some(function)
-                }
-                Err(e) => {
-                    println!("{:?}", e);
-                    let _ = core_ctx.de_init();
-                    None
+                    Err(e) => {
+                        println!("{:?}", e);
+                        let _ = core_ctx.de_init();
+                        None
+                    }
                 }
             }
+            None => None,
         }
-        None => None,
     }
 }
 
 #[cfg(feature = "hw")]
 unsafe extern "C" fn context_reset() {
     println!("context_reset");
-    if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        if let Err(e) = core_ctx.callbacks.video.context_reset() {
-            println!("{:?}", e);
-            let _ = core_ctx.de_init();
+
+    unsafe {
+        match &*addr_of!(CORE_CONTEXT) {
+            Some(core_ctx) => {
+                if let Err(e) = core_ctx.callbacks.video.context_reset() {
+                    println!("context_reset: {:?}", e);
+                    let _ = core_ctx.de_init();
+                }
+            }
+            None => println!("context_reset: core_ctx is None"),
         }
     }
 }
@@ -147,10 +152,15 @@ unsafe extern "C" fn context_reset() {
 unsafe extern "C" fn context_destroy() {
     println!("context_destroy");
 
-    if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        if let Err(e) = core_ctx.callbacks.video.context_destroy() {
-            println!("{:?}", e);
-            let _ = core_ctx.de_init();
+    unsafe {
+        match &*addr_of!(CORE_CONTEXT) {
+            Some(core_ctx) => {
+                if let Err(e) = core_ctx.callbacks.video.context_destroy() {
+                    println!("context_destroy: {:?}", e);
+                    let _ = core_ctx.de_init();
+                }
+            }
+            None => println!("context_destroy: core_ctx is None"),
         }
     }
 }
@@ -221,28 +231,32 @@ pub unsafe fn env_cb_av(
             Ok(true)
         }
         #[cfg(feature = "hw")]
-        RETRO_ENVIRONMENT_SET_HW_RENDER | RETRO_ENVIRONMENT_EXPERIMENTAL => {
+        RETRO_ENVIRONMENT_SET_HW_RENDER => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_HW_RENDER");
 
-            if data.is_null() {
+            if InputValidator::validate_non_null_ptr(
+                data,
+                "ptr data in RETRO_ENVIRONMENT_SET_HW_RENDER",
+            )
+            .is_err()
+            {
                 return Ok(false);
-            }
+            };
 
             unsafe {
-                binding_log_interface::set_hw_callback(
-                    data,
-                    Some(context_reset),
-                    Some(get_current_frame_buffer),
-                    Some(context_destroy),
-                    Some(get_proc_address),
-                );
+                let hw_cb = &mut *(data as *mut retro_hw_render_callback);
+
+                hw_cb.context_reset = Some(context_reset);
+                hw_cb.context_destroy = Some(context_destroy);
+                hw_cb.get_current_framebuffer = Some(get_current_frame_buffer);
+                hw_cb.get_proc_address = Some(get_proc_address);
 
                 Ok(core_ctx
                     .av_info
                     .video
                     .graphic_api
-                    .try_update_from_raw(data as *mut retro_hw_render_callback))
+                    .try_update_from_raw(hw_cb))
             }
         }
         _ => Ok(false),

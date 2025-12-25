@@ -1,7 +1,7 @@
 use libretro_sys::binding_libretro::{retro_hw_context_type, retro_hw_render_callback};
 use std::sync::{
-    RwLock,
     atomic::{AtomicBool, AtomicU32, Ordering},
+    RwLock,
 };
 
 #[derive(Debug)]
@@ -60,24 +60,17 @@ impl GraphicApi {
         }
     }
 
-    /// # Safety
-    ///
-    /// Garanta que o ponteiro *hw_raw_ptr* é valido antes de envia para essa função.
-    pub unsafe fn try_update_from_raw(&self, hw_raw_ptr: *const retro_hw_render_callback) -> bool {
-        if hw_raw_ptr.is_null() {
-            return false;
-        }
-
-        let hw = unsafe { *hw_raw_ptr };
-
-        self.depth.store(hw.depth, Ordering::SeqCst);
-        self.stencil.store(hw.stencil, Ordering::SeqCst);
+    pub fn try_update_from_raw(&self, hw_cb: &retro_hw_render_callback) -> bool {
+        self.depth.store(hw_cb.depth, Ordering::SeqCst);
+        self.stencil.store(hw_cb.stencil, Ordering::SeqCst);
         self.bottom_left_origin
-            .store(hw.bottom_left_origin, Ordering::SeqCst);
-        self.minor.store(hw.version_minor, Ordering::SeqCst);
-        self.major.store(hw.version_major, Ordering::SeqCst);
-        self.cache_context.store(hw.cache_context, Ordering::SeqCst);
-        self.debug_context.store(hw.debug_context, Ordering::SeqCst);
+            .store(hw_cb.bottom_left_origin, Ordering::SeqCst);
+        self.minor.store(hw_cb.version_minor, Ordering::SeqCst);
+        self.major.store(hw_cb.version_major, Ordering::SeqCst);
+        self.cache_context
+            .store(hw_cb.cache_context, Ordering::SeqCst);
+        self.debug_context
+            .store(hw_cb.debug_context, Ordering::SeqCst);
 
         true
     }
