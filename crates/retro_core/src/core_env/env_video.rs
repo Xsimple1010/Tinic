@@ -196,7 +196,7 @@ pub unsafe fn env_cb_av(
 
             unsafe {
                 core_ctx.av_info.video.pixel_format.store_or_else(
-                    *(data as *mut retro_pixel_format),
+                    *(data as *const retro_pixel_format),
                     |p| {
                         let mut _pixel = *p.into_inner();
                         _pixel = retro_pixel_format::RETRO_PIXEL_FORMAT_UNKNOWN;
