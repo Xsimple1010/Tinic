@@ -1,11 +1,11 @@
-use crate::{RetroCoreIns, tools::validation::InputValidator};
+use crate::{tools::validation::InputValidator, RetroCoreIns};
 use generics::constants::MAX_CORE_SUBSYSTEM_INFO;
 use generics::error_handle::ErrorHandle;
 use libretro_sys::{
     binding_libretro::{
-        RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY, RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY,
-        RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, RETRO_ENVIRONMENT_GET_VFS_INTERFACE,
-        RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, retro_subsystem_info,
+        retro_subsystem_info, RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY,
+        RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY,
+        RETRO_ENVIRONMENT_GET_VFS_INTERFACE, RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO,
     },
     binding_log_interface,
 };
