@@ -71,16 +71,14 @@ impl AudioDriver {
             .stream
             .load_or_spaw_err("Não foi possivel pausar o audio")?
         {
-            Some(ref mut stream) => stream.play().map_err(|e| ErrorHandle::new(&e.to_string())),
-            None => {
-                Err(ErrorHandle::new("Stream not initialized"))
-            }
+            Some(stream) => stream.play().map_err(|e| ErrorHandle::new(&e.to_string())),
+            None => Err(ErrorHandle::new("Stream not initialized")),
         }
     }
 
     pub fn pause(&self) -> Result<(), ErrorHandle> {
         match &mut *self.stream.load_or(None) {
-            Some(ref mut stream) => stream.pause().map_err(|e| ErrorHandle::new(&e.to_string())),
+            Some(stream) => stream.pause().map_err(|e| ErrorHandle::new(&e.to_string())),
             None => Err(ErrorHandle::new("Stream not initialized")),
         }
     }
@@ -117,6 +115,7 @@ impl AudioDriver {
             }
 
             let len = front.len().min(cons.occupied_len());
+            println!("clap len: {}", front.len());
             let mut buffer = vec![0; len];
             cons.pop_slice(&mut buffer);
 

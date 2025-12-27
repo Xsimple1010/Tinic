@@ -3,11 +3,12 @@ resolver = "2"
 members = [
     'crates/retro_controllers',
     'crates/retro_core',
-    "crates/retro_av",
+    "crates/retro_video",
     "crates/tinic",
     "crates/generics",
     "crates/libretro_sys",
     "crates/tinic_super",
+    "crates/retro_audio",
 ]
 default-members = ["crates/tinic"]
 
@@ -16,7 +17,8 @@ default-members = ["crates/tinic"]
 [workspace.dependencies]
 retro_core = { path = "crates/retro_core", features = ["core_full_logs"] }
 retro_controllers = { path = "crates/retro_controllers" }
-retro_av = { path = "crates/retro_av" }
+retro_video = { path = "crates/retro_video" }
+retro_audio = { path = "crates/retro_audio" }
 libretro_sys = { path = "crates/libretro_sys" }
 generics = { path = "crates/generics" }
 tinic_super = { path = "crates/tinic_super" }

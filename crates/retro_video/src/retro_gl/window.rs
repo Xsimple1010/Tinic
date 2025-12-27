@@ -2,7 +2,7 @@ use std::num::NonZeroU32;
 use std::sync::Arc;
 
 use super::render::Render;
-use crate::video::{RawTextureData, RetroVideoAPi};
+use crate::video::RetroWindowsContext;
 use crate::winit::{event_loop::ActiveEventLoop, window::Window};
 use glutin::{
     config::{Config, ConfigTemplateBuilder},
@@ -18,6 +18,7 @@ use raw_window_handle::HasWindowHandle;
 use retro_core::av_info::AvInfo;
 use winit::dpi::PhysicalSize;
 use winit::window::Fullscreen;
+use crate::raw_texture::RawTextureData;
 
 pub struct RetroGlWindow {
     renderer: Render,
@@ -65,7 +66,7 @@ fn create_gl_context(window: &Window, gl_config: &Config) -> NotCurrentContext {
     }
 }
 
-impl RetroVideoAPi for RetroGlWindow {
+impl RetroWindowsContext for RetroGlWindow {
     fn request_redraw(&self) {
         self.window.request_redraw();
     }

@@ -37,7 +37,7 @@ impl RetroSync {
         }
     }
 
-    pub fn prepare_sync_data(&mut self, av: &Arc<AvInfo>) -> Result<(), ErrorHandle> {
+    pub fn prepare_sync(&mut self, av: &Arc<AvInfo>) -> Result<(), ErrorHandle> {
         let fps = *av.timing.fps.read()?;
         let target_frame_duration = Duration::from_secs_f64(1.0 / fps);
         let now = Instant::now();

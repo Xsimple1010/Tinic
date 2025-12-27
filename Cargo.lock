@@ -2846,22 +2846,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "retro_av"
-version = "0.1.1"
+name = "retro_audio"
+version = "0.1.0"
 dependencies = [
- "cfg_aliases",
  "cpal",
  "generics",
- "gl_generator",
- "glutin",
- "glutin-winit",
- "image",
  "libretro_sys",
- "raw-window-handle",
  "retro_core",
  "ringbuf",
  "rubato",
- "winit",
 ]
 
 [[package]]
@@ -2885,6 +2878,22 @@ dependencies = [
  "raw-cpuid",
  "tempfile",
  "uuid",
+]
+
+[[package]]
+name = "retro_video"
+version = "0.1.1"
+dependencies = [
+ "cfg_aliases",
+ "generics",
+ "gl_generator",
+ "glutin",
+ "glutin-winit",
+ "image",
+ "libretro_sys",
+ "raw-window-handle",
+ "retro_core",
+ "winit",
 ]
 
 [[package]]
@@ -3455,9 +3464,10 @@ version = "0.1.0"
 dependencies = [
  "generics",
  "libretro_sys",
- "retro_av",
+ "retro_audio",
  "retro_controllers",
  "retro_core",
+ "retro_video",
  "tokio",
  "winit",
 ]
