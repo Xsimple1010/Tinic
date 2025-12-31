@@ -84,19 +84,19 @@ struct DeviceHandle {
 
 impl DeviceListener for DeviceHandle {
     fn connected(&self, device: RetroGamePad) {
-        let mut invalid_proxy = false;
+        let mut invalid_dispatch = false;
 
         if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref() {
             if dispatcher.disable_keyboard().is_err() {
-                invalid_proxy = true;
+                invalid_dispatch = true;
             }
 
             if dispatcher.connect_device(device.clone()).is_err() {
-                invalid_proxy = true;
+                invalid_dispatch = true;
             }
         }
 
-        if invalid_proxy {
+        if invalid_dispatch {
             self.dispatcher.store(None);
         }
 
@@ -104,15 +104,15 @@ impl DeviceListener for DeviceHandle {
     }
 
     fn disconnected(&self, device: RetroGamePad) {
-        let mut invalid_proxy = false;
+        let mut invalid_dispatch = false;
 
         if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref()
             && dispatcher.enable_keyboard().is_err()
         {
-            invalid_proxy = true;
+            invalid_dispatch = true;
         }
 
-        if invalid_proxy {
+        if invalid_dispatch {
             self.dispatcher.store(None);
         }
 
