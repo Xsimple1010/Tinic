@@ -1,7 +1,7 @@
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
 
-pub fn get_paths() -> Result<RetroPaths, ErroHandle> {
+pub fn get_paths() -> Result<RetroPaths, ErrorHandle> {
     RetroPaths::new(
         "retro_out_test/system".to_string(),
         "retro_out_test/save".to_string(),

@@ -1,0 +1,41 @@
+{
+  "languages": {
+    "Rust": {
+      "format_on_save": "on",
+      "formatter": "rustfmt",
+      "code_actions_on_format": ["source.organizeImports"]
+    }
+  },
+  "lsp": {
+    "rust-analyzer": {
+      "cargo": {
+        "allFeatures": true
+      },
+      "checkOnSave": {
+        "command": "clippy"
+      },
+      "procMacro": {
+        "enable": true
+      },
+      "diagnostics": {
+        "enable": true,
+        "enableExperimental": true
+      }
+    }
+  },
+  "terminal": {
+    "shell": "system"
+  },
+  "git": {
+    "git_gutter": "tracked_files"
+  },
+  "ui_font_size": 14,
+  "buffer_font_size": 13,
+  "theme": "One Dark",
+  "vim_mode": false,
+  "soft_wrap": "editor_width",
+  "show_whitespaces": "selection",
+  "remove_trailing_whitespace_on_save": true,
+  "ensure_final_newline_on_save": true,
+  "tab_size": 4
+}

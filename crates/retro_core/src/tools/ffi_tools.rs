@@ -1,5 +1,4 @@
-use generics::erro_handle::ErroHandle;
-use std::ffi::{c_char, CStr, CString};
+use std::ffi::{CStr, c_char};
 use std::sync::Arc;
 
 pub fn get_str_from_ptr(ptr: *const c_char) -> String {
@@ -16,13 +15,4 @@ pub fn get_str_from_ptr(ptr: *const c_char) -> String {
 
 pub fn get_arc_string_from_ptr(ptr: *const c_char) -> Arc<String> {
     Arc::new(get_str_from_ptr(ptr))
-}
-
-pub fn make_c_string(rs_string: &str) -> Result<CString, ErroHandle> {
-    match CString::new(rs_string) {
-        Ok(c_string) => Ok(c_string),
-        _ => Err(ErroHandle {
-            message: "Nao foi possível cria uma c_string".to_string(),
-        }),
-    }
 }

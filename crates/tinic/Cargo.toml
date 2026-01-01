@@ -1,14 +1,14 @@
 [package]
 name = "tinic"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 
 [dependencies]
-tinic_super.workspace = true
 retro_core.workspace = true
 retro_controllers.workspace = true
-retro_av.workspace = true
+retro_video.workspace = true
+retro_audio.workspace = true
 libretro_sys.workspace = true
 generics.workspace = true
-tokio.workspace = true
+winit.workspace = true

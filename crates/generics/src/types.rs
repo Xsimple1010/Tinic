@@ -1,7 +1,7 @@
-use crate::erro_handle::ErroHandle;
+use crate::error_handle::ErrorHandle;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
-pub type ArcTMuxte<T> = Arc<TMutex<T>>;
+pub type ArcTMutex<T> = Arc<TMutex<T>>;
 
 #[derive(Debug)]
 pub struct TMutex<T> {
@@ -9,7 +9,7 @@ pub struct TMutex<T> {
 }
 
 impl<T> TMutex<T> {
-    pub fn new(value: T) -> ArcTMuxte<T> {
+    pub fn new(value: T) -> ArcTMutex<T> {
         Arc::new(Self {
             value: Mutex::new(value),
         })
@@ -36,6 +36,13 @@ impl<T> TMutex<T> {
         }
     }
 
+    pub fn load_or_spaw_err(&self, error_menssage: &str) -> Result<MutexGuard<'_, T>, ErrorHandle> {
+        match self.value.lock() {
+            Ok(v) => Ok(v),
+            Err(_) => Err(ErrorHandle::new(error_menssage)),
+        }
+    }
+
     pub fn store_or_else<CA: FnOnce(PoisonError<MutexGuard<'_, T>>)>(&self, value: T, or_else: CA) {
         match self.value.lock() {
             Ok(mut v) => *v = value,
@@ -43,10 +50,10 @@ impl<T> TMutex<T> {
         }
     }
 
-    pub fn try_load(&self) -> Result<MutexGuard<'_, T>, ErroHandle> {
-        match self.value.lock() {
+    pub fn try_load(&self) -> Result<MutexGuard<'_, T>, ErrorHandle> {
+        match self.value.try_lock() {
             Ok(v) => Ok(v),
-            Err(e) => Err(ErroHandle {
+            Err(e) => Err(ErrorHandle {
                 message: e.to_string(),
             }),
         }

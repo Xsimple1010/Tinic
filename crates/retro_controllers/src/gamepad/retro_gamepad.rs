@@ -1,11 +1,11 @@
-use super::{
-    gamepad_key_map::GamepadKeyMap,
-    update_gamepad_state_handle::{connect_handle, disconnect_handle, pressed_button_handle},
+use super::update_gamepad_state_handle::{
+    connect_handle, disconnect_handle, pressed_button_handle,
 };
-use crate::devices_manager::{DeviceStateListener, DevicesRequiredFunctions};
-use generics::{erro_handle::ErroHandle, types::ArcTMuxte};
+use crate::devices_manager::{DeviceKeyMap, DeviceStateListener, DevicesRequiredFunctions};
+use crate::gamepad::retro_gamepad_key_map::GamePadKeyMap;
+use generics::{error_handle::ErrorHandle, types::ArcTMutex};
 use gilrs::{Event, GamepadId, Gilrs};
-use std::sync::{atomic::AtomicUsize, Arc};
+use std::sync::{Arc, atomic::AtomicUsize};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -22,7 +22,7 @@ pub struct RetroGamePad {
     pub retro_port: i16,
     #[doc = "padrão RETRO_DEVICE_JOYPAD"]
     pub retro_type: u32,
-    pub key_map: Vec<GamepadKeyMap>,
+    pub key_map: Vec<GamePadKeyMap>,
 }
 
 impl RetroGamePad {
@@ -38,7 +38,7 @@ impl RetroGamePad {
             name,
             retro_port,
             retro_type,
-            key_map: GamepadKeyMap::get_default_key_maps(),
+            key_map: GamePadKeyMap::get_default_key_maps(),
         }
     }
 
@@ -52,10 +52,10 @@ impl RetroGamePad {
 
     pub fn update(
         gilrs: &mut Gilrs,
-        connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+        connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
         max_ports: &Arc<AtomicUsize>,
         listener: &DeviceStateListener,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         while let Some(Event { id, event, .. }) = gilrs.next_event() {
             match event {
                 gilrs::EventType::Connected => {
