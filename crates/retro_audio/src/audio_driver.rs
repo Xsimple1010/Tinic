@@ -3,8 +3,8 @@ use crate::{
     audios::{AudioMetadata, BufferCons, BufferProd},
 };
 use cpal::{
-    traits::{DeviceTrait, HostTrait, StreamTrait},
-    Device, Stream,
+    traits::{DeviceTrait, HostTrait, StreamTrait}, Device,
+    Stream,
 };
 use generics::{
     error_handle::ErrorHandle,
@@ -45,7 +45,7 @@ impl AudioDriver {
         let front_rb = SharedRb::<Heap<i16>>::new(600000);
         let (front_prod_buffer, front_cons) = front_rb.split();
 
-        // verifica se é necessario fazer resample do audio
+        // verifica se é necessário fazer resample do audio
         if front_sample_rate != back_sample_rate {
             let back_metadata = AudioMetadata {
                 channels: 2, // Será modificada pelo core nas callbacks
@@ -141,7 +141,7 @@ impl AudioDriver {
         let host = cpal::default_host();
         let device = host
             .default_output_device()
-            .ok_or_else(|| ErrorHandle::new("No frontput device"))?;
+            .ok_or_else(|| ErrorHandle::new("No front_input device"))?;
         let config = device
             .default_output_config()
             .map_err(|e| ErrorHandle::new(&e.to_string()))?;
