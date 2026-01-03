@@ -3412,7 +3412,7 @@ dependencies = [
 
 [[package]]
 name = "tinic"
-version = "0.1.2"
+version = "0.1.4"
 dependencies = [
  "generics",
  "libretro_sys",
