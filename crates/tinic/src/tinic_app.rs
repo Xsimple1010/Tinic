@@ -33,6 +33,11 @@ impl GameInstance {
     }
 }
 
+fn destroy_app(event_loop: &ActiveEventLoop, ctx: &TinicGameCtx) {
+    let _ = ctx.destroy_retro_ctx();
+    event_loop.exit();
+}
+
 impl ApplicationHandler<GameInstanceActions> for GameInstance {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if let Err(e) = self.ctx.create_window(event_loop) {
@@ -57,15 +62,11 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
             }
             GameInstanceActions::Pause => self.ctx.pause(),
             GameInstanceActions::Resume => self.ctx.resume(),
-            GameInstanceActions::Exit => {
-                event_loop.exit();
-                Ok(())
-            }
+            GameInstanceActions::Exit => Ok(()),
         };
 
         if let Err(e) = result {
-            let _ = self.ctx.destroy_retro_ctx();
-            event_loop.exit();
+            destroy_app(event_loop, &self.ctx)
         }
     }
 
@@ -77,8 +78,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
     ) {
         let result: Result<(), ErrorHandle> = match event {
             WindowEvent::CloseRequested => {
-                let _ = self.ctx.destroy_retro_ctx();
-                event_loop.exit();
+                destroy_app(event_loop, &self.ctx);
                 Ok(())
             }
             WindowEvent::RedrawRequested => self.ctx.draw_new_frame(),
@@ -109,15 +109,13 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
         };
 
         if let Err(e) = result {
-            let _ = self.ctx.destroy_retro_ctx();
-            event_loop.exit();
+            destroy_app(event_loop, &self.ctx);
         }
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         if let Err(e) = self.ctx.redraw_request() {
-            let _ = self.ctx.destroy_retro_ctx();
-            event_loop.exit();
+            destroy_app(event_loop, &self.ctx);
         }
     }
 

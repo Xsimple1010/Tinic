@@ -53,6 +53,10 @@ impl Tinic {
         })
     }
 
+    pub fn get_game_dispatchers(&self) -> GameInstanceDispatchers {
+        self.game_dispatchers.clone()
+    }
+
     pub fn create_game_instance(
         &mut self,
         game_info: TinicGameInfo,
