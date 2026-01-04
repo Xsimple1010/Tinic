@@ -11,6 +11,7 @@ mod tinic;
 mod tinic_app;
 mod tinic_app_ctx;
 
+pub use app_dispatcher::GameInstanceDispatchers;
 pub use generics::error_handle::ErrorHandle;
 pub use generics::retro_paths::RetroPaths;
 pub use retro_controllers::{
@@ -18,5 +19,5 @@ pub use retro_controllers::{
     RetroGamePad,
 };
 pub use retro_core::{args_manager, test_tools};
-pub use tinic::{Tinic, TinicPumpStatus};
-pub use tinic_app::GameInstance;
+pub use tinic::*;
+pub use tinic_app::*;

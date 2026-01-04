@@ -83,4 +83,16 @@ impl RetroPaths {
             infos: Arc::new(infos),
         })
     }
+    
+    pub fn from_base(base: String) -> Result<Self, ErrorHandle>  {
+        let sys = format!("{}/system", base);
+        let save = format!("{}/save", base);
+        let opt = format!("{}/opt", base);
+        let assets = format!("{}/assets", base);
+        let temps = format!("{}/temps", base);
+        let cores = format!("{}/cores", base);
+        let infos = format!("{}/infos", base);
+        
+        Self::new(sys, save, opt, assets, temps, cores, infos)
+    } 
 }

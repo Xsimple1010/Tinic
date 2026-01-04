@@ -4,7 +4,7 @@ use generics::error_handle::ErrorHandle;
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
-    event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy},
+    event_loop::{ActiveEventLoop, EventLoopProxy},
     keyboard::{KeyCode, PhysicalKey},
     window::WindowId,
 };
@@ -16,21 +16,12 @@ pub struct GameInstance {
 }
 
 impl GameInstance {
-    pub fn new(ctx: TinicGameCtx) -> (Self, EventLoop<GameInstanceActions>) {
-        let event_loop = EventLoop::<GameInstanceActions>::with_user_event()
-            .build()
-            .unwrap();
-
-        let proxy = event_loop.create_proxy();
-
-        (
-            Self {
-                ctx,
-                default_slot: 1,
-                proxy: proxy.clone(),
-            },
-            event_loop,
-        )
+    pub fn new(ctx: TinicGameCtx, proxy: EventLoopProxy<GameInstanceActions>) -> Self {
+        Self {
+            ctx,
+            default_slot: 1,
+            proxy,
+        }
     }
 
     pub fn create_dispatcher(&self) -> GameInstanceDispatchers {
@@ -86,6 +77,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
     ) {
         let result: Result<(), ErrorHandle> = match event {
             WindowEvent::CloseRequested => {
+                let _ = self.ctx.destroy_retro_ctx();
                 event_loop.exit();
                 Ok(())
             }
@@ -131,11 +123,5 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
 
     fn suspended(&mut self, _: &ActiveEventLoop) {
         self.ctx.suspend_window();
-    }
-
-    fn exiting(&mut self, _: &ActiveEventLoop) {
-        if let Err(e) = self.ctx.destroy_retro_ctx() {
-            println!("{:?}", e);
-        }
     }
 }
