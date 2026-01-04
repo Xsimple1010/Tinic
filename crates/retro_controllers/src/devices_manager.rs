@@ -7,12 +7,12 @@ use generics::{
 };
 use gilrs::Gilrs;
 use libretro_sys::binding_libretro;
-use libretro_sys::binding_libretro::{RETRO_DEVICE_ID_JOYPAD_MASK, retro_rumble_effect};
+use libretro_sys::binding_libretro::{retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK};
 use std::{
     fmt::Debug,
     sync::{
-        Arc,
         atomic::{AtomicUsize, Ordering},
+        Arc,
     },
 };
 use winit::keyboard::PhysicalKey;
@@ -26,7 +26,7 @@ pub struct DeviceRubble {
 
 pub type DeviceStateListener = ArcTMutex<Box<dyn DeviceListener>>;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct DevicesManager {
     gilrs: ArcTMutex<Gilrs>,
     connected_gamepads: ArcTMutex<Vec<RetroGamePad>>,
@@ -35,7 +35,7 @@ pub struct DevicesManager {
     listener: DeviceStateListener,
 }
 
-pub trait DeviceListener: Debug + Send {
+pub trait DeviceListener: Send {
     fn connected(&self, device: RetroGamePad);
     fn disconnected(&self, device: RetroGamePad);
     fn button_pressed(&self, button: String, device: RetroGamePad);
@@ -138,12 +138,14 @@ impl DevicesManager {
     }
 
     pub fn get_input_state(&self, port: i16, key_id: i16) -> i16 {
-        if let Some(keyboard) = &*self.keyboard.load_or(None) && keyboard.retro_port.eq(&port) {
+        if let Some(keyboard) = &*self.keyboard.load_or(None)
+            && keyboard.retro_port.eq(&port)
+        {
             return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
                 keyboard.get_key_pressed(key_id)
             } else {
                 keyboard.get_key_bitmasks()
-            }
+            };
         }
 
         for gamepad in &*self.connected_gamepads.load_or(Vec::new()) {
