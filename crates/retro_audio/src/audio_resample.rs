@@ -13,7 +13,7 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
 };
-use std::thread::{self, sleep, JoinHandle};
+use std::thread::{self, sleep};
 use std::time::Duration;
 
 #[derive(Clone)]
@@ -92,6 +92,8 @@ impl AudioResample {
     ) {
         let back_metadata = self.in_metadata.clone();
         let can_run_thread = self.can_run_thread.clone();
+
+        can_run_thread.store(true, Ordering::SeqCst);
 
         thread::spawn(move || {
             let mut resampler = Self::set_up_resampler(front_metadata.channels);
