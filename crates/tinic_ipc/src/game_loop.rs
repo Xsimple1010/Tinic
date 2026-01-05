@@ -1,4 +1,5 @@
 use crate::app_state::AppStateHandle;
+use crate::constants::THREAD_SLEEP_TIME_IN_SEC;
 use crate::io::stdout_writer::StdoutWriter;
 use std::sync::atomic::Ordering;
 use std::thread::sleep;
@@ -7,7 +8,7 @@ use tinic::{ErrorHandle, Tinic};
 
 pub fn game_loop(app_state: AppStateHandle, mut tinic: Tinic) -> Result<(), ErrorHandle> {
     loop {
-        sleep(Duration::from_millis(30));
+        sleep(Duration::from_secs(THREAD_SLEEP_TIME_IN_SEC));
 
         if !app_state.running.load(Ordering::SeqCst) {
             break;

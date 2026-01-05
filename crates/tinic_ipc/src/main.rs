@@ -1,4 +1,5 @@
 mod app_state;
+mod constants;
 mod device_listener;
 mod game_loop;
 mod io;
@@ -67,6 +68,6 @@ fn main() -> Result<(), ErrorHandle> {
 
     // App config
     StdinReader::start(app_state.clone());
-    
+
     game_loop(app_state, tinic)
 }
