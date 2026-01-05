@@ -9,6 +9,10 @@ use ringbuf::{
     SharedRb,
 };
 use rubato::{FastFixedOut, PolynomialDegree, Resampler};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
 use std::thread::{self, sleep, JoinHandle};
 use std::time::Duration;
 
@@ -17,7 +21,13 @@ pub struct AudioResample {
     back_buffer_prod: ArcTMutex<Option<BufferProd>>,
     in_metadata: ArcTMutex<Option<AudioMetadata>>,
     // saída (lida pelo CPAL)
-    thread_handler: ArcTMutex<Option<JoinHandle<()>>>,
+    can_run_thread: Arc<AtomicBool>,
+}
+
+impl Drop for AudioResample {
+    fn drop(&mut self) {
+        self.stop();
+    }
 }
 
 impl AudioResample {
@@ -25,7 +35,7 @@ impl AudioResample {
         Self {
             back_buffer_prod: TMutex::new(None),
             in_metadata: TMutex::new(None),
-            thread_handler: TMutex::new(None),
+            can_run_thread: Arc::new(AtomicBool::new(false)),
         }
     }
     pub fn init(
@@ -44,7 +54,8 @@ impl AudioResample {
     }
 
     pub fn stop(&self) {
-        self.thread_handler.store(None);
+        self.can_run_thread.store(false, Ordering::SeqCst);
+
         self.back_buffer_prod.store(None);
         self.in_metadata.store(None);
     }
@@ -80,11 +91,12 @@ impl AudioResample {
         front_metadata: AudioMetadata,
     ) {
         let back_metadata = self.in_metadata.clone();
+        let can_run_thread = self.can_run_thread.clone();
 
-        let join = thread::spawn(move || {
+        thread::spawn(move || {
             let mut resampler = Self::set_up_resampler(front_metadata.channels);
 
-            loop {
+            while can_run_thread.load(Ordering::SeqCst) {
                 let back_metadata = {
                     match back_metadata.try_load() {
                         Ok(metadata) => match metadata.clone() {
@@ -112,8 +124,6 @@ impl AudioResample {
                 sleep(Duration::from_millis(3));
             }
         });
-
-        self.thread_handler.store(Some(join));
     }
 
     fn make_resample(
