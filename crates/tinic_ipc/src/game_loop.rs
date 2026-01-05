@@ -1,10 +1,10 @@
 use crate::app_state::AppStateHandle;
+use crate::constants::THREAD_SLEEP_TIME_IN_MILLISECONDS;
 use crate::io::stdout_writer::StdoutWriter;
 use std::sync::atomic::Ordering;
 use std::thread::sleep;
 use std::time::Duration;
 use tinic::{ErrorHandle, Tinic};
-use crate::constants::THREAD_SLEEP_TIME_IN_MILLISECONDS;
 
 pub fn game_loop(app_state: AppStateHandle, mut tinic: Tinic) -> Result<(), ErrorHandle> {
     loop {
