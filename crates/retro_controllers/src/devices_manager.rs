@@ -1,4 +1,5 @@
 use crate::gamepad::retro_gamepad::RetroGamePad;
+use crate::gamepad::update_gamepad_state_handle::get_available_port;
 use crate::keyboard::Keyboard;
 use generics::{
     constants::DEFAULT_MAX_PORT,
@@ -7,7 +8,9 @@ use generics::{
 };
 use gilrs::Gilrs;
 use libretro_sys::binding_libretro;
-use libretro_sys::binding_libretro::{retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK};
+use libretro_sys::binding_libretro::{
+    retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK, RETRO_DEVICE_JOYPAD,
+};
 use std::{
     fmt::Debug,
     sync::{
@@ -88,13 +91,33 @@ impl DevicesManager {
                 });
             }
         };
-        Ok(Self {
+
+        let manage = Self {
             gilrs: TMutex::new(gilrs),
             connected_gamepads: TMutex::new(Vec::new()),
             max_ports: Arc::new(AtomicUsize::new(DEFAULT_MAX_PORT)),
             listener: TMutex::new(listener),
             keyboard: TMutex::new(None),
-        })
+        };
+
+        manage.pre_load_gamepads()?;
+
+        Ok(manage)
+    }
+
+    fn pre_load_gamepads(&self) -> Result<(), ErrorHandle> {
+        for (id, gamepad) in self.gilrs.try_load()?.gamepads() {
+            let port = get_available_port(&self.max_ports, &self.connected_gamepads);
+            let gamepad =
+                RetroGamePad::new(id, gamepad.name().to_string(), port, RETRO_DEVICE_JOYPAD);
+
+            self.connected_gamepads
+                .load_or(Vec::new())
+                .push(gamepad.clone());
+            self.listener.try_load()?.connected(gamepad);
+        }
+
+        Ok(())
     }
 
     pub fn update_state(&self) -> Result<(), ErrorHandle> {
