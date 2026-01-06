@@ -8,7 +8,7 @@ members = [
     "crates/generics",
     "crates/libretro_sys",
     "crates/tinic_super",
-    "crates/retro_audio", "crates/tinic_ipc",
+    "crates/retro_audio", "crates/tinic_ipc", "crates/tinic_ipc_protocol",
 ]
 default-members = ["crates/tinic", "crates/tinic_ipc"]
 
@@ -22,6 +22,7 @@ retro_audio = { path = "crates/retro_audio" }
 libretro_sys = { path = "crates/libretro_sys" }
 generics = { path = "crates/generics" }
 tinic_super = { path = "crates/tinic_super" }
+tinic_ipc_protocol = { path = "crates/tinic_ipc_protocol" }
 tinic = { path = "crates/tinic" }
 
 # Extern deps

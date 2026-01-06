@@ -1,15 +1,15 @@
 use crate::app_state::AppStateHandle;
 use crate::constants::THREAD_SLEEP_TIME_IN_MILLISECONDS;
-use crate::io::protocol::input::ProtocolInput;
 use std::io::BufRead;
 use std::sync::atomic::Ordering;
-use std::sync::mpsc::Receiver;
 use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
 use std::thread::sleep;
 use std::time::Duration;
 use tinic::TinicGameInfo;
+use tinic_ipc_protocol::input::ProtocolInput;
 
-pub struct StdinReader {}
+pub(crate) struct StdinReader;
 
 impl StdinReader {
     #[doc = "Cria uma thread de leitura de stdin e envia os comandos para o canal tx [tx: Sender<ProtocolInput>"]

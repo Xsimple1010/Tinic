@@ -1,0 +1,8 @@
+[package]
+name = "tinic_ipc_protocol"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tinic.workspace = true
+serde.workspace = true
