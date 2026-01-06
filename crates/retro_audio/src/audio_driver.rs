@@ -106,7 +106,10 @@ impl AudioDriver {
         let config = device.default_output_config().unwrap();
 
         let config = &config.into();
-        let error_callback = |err| eprintln!("erro no stream {err}");
+        let error_callback = |_err| {
+            #[cfg(feature = "debug-logs")]
+            eprintln!("erro no stream {_err}")
+        };
         let timeout = Some(Duration::from_millis(2));
         let data_callback = move |front: &mut [i16], _: &cpal::OutputCallbackInfo| {
             if cons.is_empty() {
