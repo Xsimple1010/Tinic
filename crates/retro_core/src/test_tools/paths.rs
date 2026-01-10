@@ -10,5 +10,6 @@ pub fn get_paths() -> Result<RetroPaths, ErrorHandle> {
         "retro_out_test/temps".to_string(),
         "retro_out_test/cores".to_string(),
         "retro_out_test/infos".to_string(),
+        "retro_out_test/databases".to_string(),
     )
 }
