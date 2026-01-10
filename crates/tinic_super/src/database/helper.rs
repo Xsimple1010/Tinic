@@ -1,7 +1,7 @@
 use crate::{
-    FileProgress,
     database::{game::Game, rdb::parse_rdb},
     download::download_file,
+    FileProgress,
 };
 use generics::{constants::RDB_BASE_URL, error_handle::ErrorHandle, retro_paths::RetroPaths};
 use std::path::{Path, PathBuf};
@@ -52,7 +52,7 @@ impl DatabaseHelper {
         None
     }
 
-    pub fn get_instaled_rdb(paths: &RetroPaths) -> Result<Vec<RDBDatabase>, ErrorHandle> {
+    pub fn get_installed_rdb(paths: &RetroPaths) -> Result<Vec<RDBDatabase>, ErrorHandle> {
         let database_dir = paths.databases.to_string();
 
         let read_dir = std::fs::read_dir(database_dir)?;
