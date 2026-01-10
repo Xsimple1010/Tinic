@@ -1,3 +1,5 @@
+use crate::error_handle::ErrorHandle;
+
 #[doc = "use para evitar o auto consumo de CPU pelas thread secundarias"]
 pub const THREAD_SLEEP_TIME: u64 = 16;
 pub const MAX_TIME_TO_AWAIT_THREAD_RESPONSE: u64 = 3;
@@ -15,5 +17,21 @@ pub const SAVE_EXTENSION_FILE: &str = "save";
 
 //URLS
 pub const CORE_INFOS_URL: &str = "https://buildbot.libretro.com/assets/frontend/info.zip";
-pub const CORES_URL: &str =
+pub const WINDOWS_CORES_URL: &str =
     "https://buildbot.libretro.com/stable/1.19.1/windows/x86_64/RetroArch_cores.7z";
+pub const LINUX_CORES_URL: &str =
+    "https://buildbot.libretro.com/stable/1.19.1/linux/x86_64/RetroArch_cores.7z";
+pub const RDB_BASE_URL: &str =
+    "https://raw.githubusercontent.com/libretro/libretro-database/master/rdb";
+
+pub fn cores_url() -> Result<&'static str, ErrorHandle> {
+    if cfg!(target_os = "windows") {
+        Ok(WINDOWS_CORES_URL)
+    } else if cfg!(target_os = "linux") {
+        Ok(LINUX_CORES_URL)
+    } else {
+        Err(ErrorHandle {
+            message: "Sistema operacional não suportado".to_string(),
+        })
+    }
+}
