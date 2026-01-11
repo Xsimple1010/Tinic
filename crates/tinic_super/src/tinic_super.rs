@@ -1,4 +1,4 @@
-use crate::art::{get_thumbnail_url, ThumbnailType};
+use crate::art::download_all_thumbnail_from_game;
 use crate::core_info::helper::CoreInfoHelper;
 use crate::core_info::model::CoreInfo;
 use crate::database::game::GameInfo;
@@ -36,11 +36,11 @@ impl TinicSuper {
             let on_progress = on_progress.clone();
             let database = core.database.clone();
 
-            tokio::spawn(async move {
+            let _ = tokio::spawn(async move {
                 let _ =
                     DatabaseHelper::download_db(&retro_path, &database, force_update, on_progress)
                         .await;
-            });
+            }).await;
         }
 
         Ok(())
@@ -54,7 +54,11 @@ impl TinicSuper {
         CoreInfoHelper::get_compatibility_core_infos(&rom_file.into(), &self.retro_paths)
     }
 
-    pub fn identifier_rom_file(&self, rom_file: &str, cores: &Vec<CoreInfo>) -> Option<(GameInfo, RDBDatabase)> {
+    pub fn identifier_rom_file(
+        &self,
+        rom_file: &str,
+        cores: &Vec<CoreInfo>,
+    ) -> Option<(GameInfo, RDBDatabase)> {
         cores.par_iter().find_map_any(|core| {
             DatabaseHelper::identifier_rom_file_with_any_rdb(
                 rom_file,
@@ -65,12 +69,12 @@ impl TinicSuper {
         })
     }
 
-    pub fn get_thumbnail(
+    pub async fn download_all_thumbnail_from_game(
         &self,
-        thumbnail_type: ThumbnailType,
         sys_name: &str,
         name: &str,
-    ) -> String {
-        get_thumbnail_url(thumbnail_type, sys_name, name)
+        on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+    ) {
+        download_all_thumbnail_from_game(sys_name, name, &self.retro_paths.arts, on_progress).await;
     }
 }

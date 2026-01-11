@@ -21,12 +21,12 @@ impl CoreInfoHelper {
         force_update: bool,
         on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
     ) -> Result<(), ErrorHandle> {
-        let temp_dir = retro_paths.temps.clone().to_string();
+        let temp_dir = PathBuf::from(&retro_paths.temps.to_string());
 
         download_file(
             CORE_INFOS_URL,
             "info.zip",
-            &temp_dir,
+            temp_dir.clone(),
             force_update,
             on_progress.clone(),
             |infos| {
@@ -45,7 +45,7 @@ impl CoreInfoHelper {
         download_file(
             core_url,
             "cores.7z",
-            &temp_dir,
+            temp_dir,
             force_update,
             on_progress,
             |_| {},
