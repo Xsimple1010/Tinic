@@ -2,9 +2,11 @@ use crate::art::download_all_thumbnail_from_game;
 use crate::core_info::helper::CoreInfoHelper;
 use crate::core_info::model::CoreInfo;
 use crate::event::TinicSuperEventListener;
+use crate::rdb_manager::game::GameInfo;
 use crate::rdb_manager::helper::RdbManager;
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::sync::Arc;
 
 pub struct TinicSuper {
@@ -47,6 +49,19 @@ impl TinicSuper {
 
     pub fn get_compatibility_core_infos(&self, rom_file: &str) -> Vec<CoreInfo> {
         CoreInfoHelper::get_compatibility_core_infos(&rom_file.into(), &self.retro_paths)
+    }
+
+    pub fn read_rdb_to_end<C: FnMut(Vec<GameInfo>) + Sync + Send + Copy>(
+        &self,
+        rdb_name: &Vec<String>,
+        callback: C,
+    ) -> Result<(), ErrorHandle> {
+        rdb_name.par_iter().for_each(|rdb_name| {
+            let rdb_path = format!("{}/{}.rdb", self.retro_paths.databases, rdb_name);
+            let _ = RdbManager::read_to_end(&rdb_path, callback);
+        });
+
+        Ok(())
     }
 
     pub fn has_core_installed(&self) -> bool {

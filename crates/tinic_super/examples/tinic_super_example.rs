@@ -34,10 +34,22 @@ async fn main() {
         tinic_super.try_update_core(true).await.unwrap();
     }
 
-    let rom = "/home/aderval/Downloads/RetroArch_cores/Super Mario World (USA) s.sfc";
+    let rom = "/home/aderval/Downloads/RetroArch_cores/Super Mario World (USA).sfc";
     let core_infos = { tinic_super.get_compatibility_core_infos(rom) };
 
-    tinic_super.install_cores_and_rdb(&core_infos, false).await.unwrap();
+    // tinic_super
+    //     .install_cores_and_rdb(&core_infos, false)
+    //     .await
+    //     .unwrap();
+
+    for core in core_infos {
+        tinic_super
+            .read_rdb_to_end(&core.database, |cores| {
+                // println!("{cores:?}");
+                // println!("=====")
+            })
+            .unwrap();
+    }
 
     tinic_super
         .download_all_thumbnail_from_game(
