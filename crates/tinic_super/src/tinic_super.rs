@@ -2,11 +2,9 @@ use crate::art::download_all_thumbnail_from_game;
 use crate::core_info::helper::CoreInfoHelper;
 use crate::core_info::model::CoreInfo;
 use crate::event::TinicSuperEventListener;
-use crate::rdb_manager::game::GameInfo;
-use crate::rdb_manager::helper::{RDBDatabase, RdbManager};
+use crate::rdb_manager::helper::RdbManager;
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
-use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use std::sync::Arc;
 
 pub struct TinicSuper {
@@ -24,7 +22,7 @@ impl TinicSuper {
         .await
     }
 
-    pub async fn install_cores(
+    pub async fn install_cores_and_rdb(
         &self,
         core_info: &Vec<CoreInfo>,
         force_update: bool,
@@ -38,19 +36,13 @@ impl TinicSuper {
             let database = core.database.clone();
 
             let _ = tokio::spawn(async move {
-                let _ = RdbManager::download_db(&retro_path, &database, force_update, on_progress)
-                    .await;
+                let _ =
+                    RdbManager::download(&retro_path, &database, force_update, on_progress).await;
             })
             .await;
         }
 
         Ok(())
-    }
-
-    pub async fn get_all_game_infos_from_rdb(
-        rdb_file: String,
-    ) -> Result<Vec<GameInfo>, ErrorHandle> {
-        RdbManager { rdb_file }.get_all_games()
     }
 
     pub fn get_compatibility_core_infos(&self, rom_file: &str) -> Vec<CoreInfo> {
@@ -59,19 +51,6 @@ impl TinicSuper {
 
     pub fn has_core_installed(&self) -> bool {
         CoreInfoHelper::has_core_installed(&self.retro_paths)
-    }
-
-    pub fn identifier_rom_file(&self, rom_file: &str) -> Option<(GameInfo, RDBDatabase)> {
-        let cores = self.get_compatibility_core_infos(rom_file);
-
-        cores.par_iter().find_map_any(|core| {
-            RdbManager::identifier_rom_file_with_any_rdb(
-                rom_file,
-                core,
-                &self.retro_paths.databases,
-            )
-            .unwrap_or_else(|_| None)
-        })
     }
 
     pub async fn download_all_thumbnail_from_game(&self, sys_name: &str, rom_name: &str) {

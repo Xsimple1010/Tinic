@@ -5,11 +5,11 @@ use rmp_serde::Deserializer;
 use serde::Deserialize;
 use std::io::Cursor;
 
-pub fn parse_rdb<C>(rdb_file: &str, mut callback: C) -> Result<(), ErrorHandle>
+pub fn read_to_end_of_rdb<C>(rdb_path: &str, mut callback: C) -> Result<(), ErrorHandle>
 where
-    C: FnMut(GameInfo) -> bool,
+    C: FnMut(Vec<GameInfo>),
 {
-    let file = std::fs::read(rdb_file)?;
+    let file = std::fs::read(rdb_path)?;
     let data = file.as_slice();
 
     if data.len() < RDB_HEADER_SIZE {
@@ -19,11 +19,15 @@ where
     let cursor = Cursor::new(&data[RDB_HEADER_SIZE..]);
     let mut de = Deserializer::new(cursor);
 
+    let mut game_out: Vec<GameInfo> = Vec::new();
+
     loop {
         match GameInfo::deserialize(&mut de) {
             Ok(game) => {
-                if callback(game) {
-                    break;
+                game_out.push(game);
+
+                if game_out.len() >= 50 {
+                    callback(std::mem::take(&mut game_out));
                 }
             }
             Err(rmp_serde::decode::Error::InvalidMarkerRead(e))
@@ -41,15 +45,6 @@ where
     }
 
     Ok(())
-}
-
-pub fn parse_all_rdb_to_vec(rdb_dir: &String) -> Result<Vec<GameInfo>, ErrorHandle> {
-    let mut games = Vec::new();
-    parse_rdb(rdb_dir, |game| {
-        games.push(game);
-        false
-    })?;
-    Ok(games)
 }
 
 pub fn debug_rdb(data: &[u8]) {
