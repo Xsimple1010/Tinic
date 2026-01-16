@@ -43,6 +43,6 @@ impl CoreInfoHelper {
     }
 
     pub async fn download_core(&self, force_update: bool) -> Result<(), ErrorHandle> {
-        download_core(&self.retro_paths, force_update, self.event_listener.clone()).await
+        try_update_core_infos(&self.retro_paths, force_update, self.event_listener.clone()).await
     }
 }
