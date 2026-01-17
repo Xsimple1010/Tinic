@@ -1,4 +1,4 @@
-use crate::rdb_manager::game::GameInfo;
+use crate::rdb_manager::game_model::GameInfo;
 
 pub trait TinicSuperEventListener: Send + Sync {
     fn downloading(&self, file_name: String, percent: f32);

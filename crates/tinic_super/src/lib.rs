@@ -9,4 +9,5 @@ pub mod tinic_super;
 mod tools;
 
 pub use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
+pub use rdb_manager::game_identifier::GameIdentifier;
 pub use tools::download::FileProgress;
