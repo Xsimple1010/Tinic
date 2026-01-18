@@ -1,6 +1,6 @@
-use crate::core_info::has_core_installed::this_core_is_installed;
-use crate::core_info::model::CoreInfo;
-use crate::core_info::read_file::read_info_file_blocking;
+use crate::cores::installed::this_core_is_installed;
+use crate::infos::model::CoreInfo;
+use crate::infos::read_file::read_info_file_blocking;
 use generics::retro_paths::RetroPaths;
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
@@ -27,7 +27,8 @@ pub async fn get_compatibility_core_infos(
                 let entry = entry.ok()?;
                 let mut info = read_info_file_blocking(&entry.path()).ok()?;
 
-                this_core_is_installed(&core_dir, &mut info).ok()?;
+                let is_installed = this_core_is_installed(&core_dir, &mut info.file_name).ok()?;
+                info.is_installed = is_installed;
 
                 if info.supported_extensions.contains(&extension) {
                     Some(info)
