@@ -1,8 +1,9 @@
 use crate::rdb_manager::crc32::crc32_file;
 use generics::error_handle::ErrorHandle;
 use std::path::PathBuf;
-use tokio::fs::File;
+use tokio::fs::{File, read_dir};
 
+#[derive(Debug)]
 pub struct GameIdentifier {
     pub path: PathBuf,
     pub rom_name: String,
@@ -29,5 +30,21 @@ impl GameIdentifier {
             size,
             rom_name,
         })
+    }
+
+    pub async fn from_dir(dir: PathBuf) -> Result<Vec<Self>, ErrorHandle> {
+        let mut read_dir = read_dir(dir).await?;
+        let mut out = Vec::new();
+
+        while let Some(dir_entry) = read_dir.next_entry().await? {
+            if dir_entry.metadata().await?.is_dir() {
+                continue;
+            }
+
+            let ident = GameIdentifier::new(dir_entry.path()).await?;
+            out.push(ident);
+        }
+
+        Ok(out)
     }
 }
