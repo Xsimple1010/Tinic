@@ -48,7 +48,7 @@ mod test {
 
     async fn setup(base_path: &str) -> (TinicSuper, String) {
         let work_dir = create_work_dir_path(base_path);
-        tokio::fs::remove_dir_all(&work_dir).await.unwrap();
+        let _ = tokio::fs::remove_dir_all(&work_dir).await;
         let retro_paths = RetroPaths::from_base(&work_dir).unwrap();
         (
             TinicSuper::new(retro_paths, Arc::new(TinicSuperListener)),
@@ -65,7 +65,7 @@ mod test {
         let (tinic_super, work_dir) = setup("tinic_super..install_core").await;
 
         tinic_super
-            .core_info_helper
+            .info_helper
             .download_blocking(false)
             .await
             .unwrap();
@@ -75,7 +75,7 @@ mod test {
 
         // get_infos
         {
-            let infos = tinic_super.core_info_helper.get_infos().await;
+            let infos = tinic_super.info_helper.get_infos().await;
             assert_eq!(infos.len(), 294);
             info = infos
                 .into_iter()
@@ -88,7 +88,7 @@ mod test {
             let path = info.path.clone();
 
             let new_info = tinic_super
-                .core_info_helper
+                .info_helper
                 .read_file(&path)
                 .await
                 .expect("info não foi encontrada verifique o caminho do arquivo");
@@ -103,7 +103,7 @@ mod test {
             let rom = PathBuf::from("./mario.smc");
 
             let infos = tinic_super
-                .core_info_helper
+                .info_helper
                 .get_compatibility_core_infos(&rom)
                 .await;
 
@@ -115,17 +115,48 @@ mod test {
 
     #[tokio::test]
     async fn rdb_helper() {
-        let (tinic_super, work_dir) = setup("tinic_super..download_required_files").await;
+        let (tinic_super, work_dir) = setup("tinic_super..rdb_helper").await;
 
         tinic_super.rdb_helper.download(false).await.unwrap();
 
         // read_rdb
         {
-            let rdb_names =
-                HashSet::from(["snes9x_libretro".to_string(), "snes9x_libretro".to_string()]);
+            let rdb_names = HashSet::from(["snes9x_libretro".to_string()]);
 
             tinic_super.rdb_helper.read_rdbs(rdb_names).await;
         }
+
+        clean_up(&work_dir).await;
+    }
+
+    #[tokio::test]
+    async fn core_helper() {
+        let (tinic_super, work_dir) = setup("tinic_super..core_helper").await;
+        tinic_super
+            .core_helper
+            .download_blocking(false)
+            .await
+            .unwrap();
+
+        let cores_file_created = PathBuf::from(&work_dir)
+            .join("temps")
+            .join("cores.7z")
+            .exists();
+        assert!(cores_file_created, "o arquivo 'cores.7z' não foi salvo!");
+
+        tinic_super
+            .core_helper
+            .install_blocking(vec!["snes9x_libretro".to_string()])
+            .await;
+
+        let core_created = PathBuf::from(&work_dir)
+            .join("cores")
+            .join("snes9x_libretro.so")
+            .exists();
+        assert!(
+            core_created,
+            "o arquivo 'snes9x_libretro.so' não foi salvo!"
+        );
 
         clean_up(&work_dir).await;
     }
