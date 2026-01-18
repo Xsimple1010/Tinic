@@ -21,8 +21,7 @@ pub async fn try_update_core_infos(
         force_update,
         event_listener.clone(),
     )
-    .await
-    .map_err(|e| ErrorHandle::new(&e.to_string()))?;
+    .await?;
 
     let info_out_dir = retro_paths.infos.to_string();
     let event_listener_2 = event_listener.clone();
@@ -32,9 +31,7 @@ pub async fn try_update_core_infos(
     });
 
     let core_url = cores_url()?;
-    download_file(core_url, "cores.7z", temp_dir, force_update, event_listener)
-        .await
-        .map_err(|e| ErrorHandle::new(&e.to_string()))?;
+    download_file(core_url, "cores.7z", temp_dir, force_update, event_listener).await?;
 
     Ok(())
 }
