@@ -42,5 +42,11 @@ pub async fn get_compatibility_core_infos(
     })
     .await;
 
-    res.ok().flatten().unwrap_or_default()
+    match res.ok().flatten() {
+        Some(mut cores) => {
+            cores.sort_by_key(|info| info.core_name.clone());
+            cores
+        }
+        None => Vec::with_capacity(0),
+    }
 }
