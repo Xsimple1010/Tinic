@@ -37,11 +37,15 @@ impl InfoHelper {
     }
 
     pub async fn read_file(&self, file_path: &PathBuf) -> Result<CoreInfo, ErrorHandle> {
-        read_info_file(file_path).await
+        read_info_file(file_path, &mut self.retro_paths.cores.to_string().into()).await
     }
 
     pub async fn get_infos(&self) -> Vec<CoreInfo> {
-        get_all_core_infos(&self.retro_paths.infos.to_string()).await
+        get_all_core_infos(
+            &self.retro_paths.infos.to_string(),
+            &mut self.retro_paths.cores.to_string().into(),
+        )
+        .await
     }
 
     pub async fn get_compatibility_core_infos(&self, rom_path: &PathBuf) -> Vec<CoreInfo> {

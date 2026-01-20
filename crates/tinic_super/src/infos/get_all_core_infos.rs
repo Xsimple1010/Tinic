@@ -2,15 +2,15 @@ use crate::infos::model::CoreInfo;
 use crate::infos::read_file::read_info_file;
 use std::path::PathBuf;
 
-pub async fn get_all_core_infos(dir: &String) -> Vec<CoreInfo> {
-    let path = PathBuf::from(dir);
+pub async fn get_all_core_infos(info_dir: &String, cores_dir: &mut PathBuf) -> Vec<CoreInfo> {
+    let path = PathBuf::from(info_dir);
 
     let mut read_dir = tokio::fs::read_dir(path).await.unwrap();
 
     let mut infos = Vec::new();
 
     while let Ok(Some(entry)) = read_dir.next_entry().await {
-        match read_info_file(&entry.path()).await {
+        match read_info_file(&entry.path(), cores_dir).await {
             Ok(info) => infos.push(info),
             Err(_) => continue,
         };
