@@ -98,3 +98,13 @@ pub async fn get_installed_cores(cores_dir: &String) -> Result<HashSet<String>, 
 
     Ok(out)
 }
+
+pub fn has_installed(dir: PathBuf) -> Result<bool, ErrorHandle> {
+    let dir_entry = std::fs::read_dir(dir)?;
+
+    if dir_entry.count() > 1 {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
