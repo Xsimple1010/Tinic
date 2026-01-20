@@ -2,6 +2,7 @@ use crate::event::TinicSuperEventListener;
 use crate::infos::download::download_info;
 use crate::infos::get_all_core_infos::get_all_core_infos;
 use crate::infos::get_compatibility_core_infos::get_compatibility_core_infos;
+use crate::infos::has_installed::has_installed;
 use crate::infos::model::CoreInfo;
 use crate::infos::read_file::read_info_file;
 use generics::error_handle::ErrorHandle;
@@ -45,5 +46,9 @@ impl InfoHelper {
 
     pub async fn get_compatibility_core_infos(&self, rom_path: &PathBuf) -> Vec<CoreInfo> {
         get_compatibility_core_infos(rom_path, &self.retro_paths).await
+    }
+
+    pub fn has_infos_installed(&self) -> bool {
+        has_installed(PathBuf::from(self.retro_paths.infos.to_string())).unwrap_or(false)
     }
 }
