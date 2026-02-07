@@ -26,8 +26,9 @@ async fn main() -> Result<(), ErroHandle> {
     let mut tinic = Tinic::new(Box::new(event))?;
 
     if let Some(core) = &args.core {
-        let d = tinic.make_context(&core, &args.rom, paths::get_paths().unwrap())?;
-        tinic.run(d)?;
+        let tinic_app = tinic.build(&core, &args.rom, paths::get_paths()?)?;
+
+        tinic.run(tinic_app)?;
     }
     Ok(())
 }
