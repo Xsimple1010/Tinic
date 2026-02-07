@@ -3,10 +3,7 @@ use std::{
     thread,
 };
 
-use retro_ab::{
-    core::{self, RetroContext},
-    retro_sys::retro_log_level,
-};
+use retro_ab::core::{self, RetroContext};
 use retro_ab_av::{context::RetroAvCtx, Event, EventPump, Keycode};
 use retro_ab_gamepad::retro_gamepad::RetroGamePad;
 
@@ -37,12 +34,16 @@ pub fn init_game_loop(
                                         Ok(retro_av_) => {
                                             retro_av = Some(retro_av_);
                                         }
-                                        Err(e) => println!("{:?}", e),
+                                        Err(e) => {
+                                            println!("{:?}", e);
+                                            break 'running;
+                                        }
                                     }
                                 }
                             }
                             Err(e) => {
-                                println!("{:?}", e)
+                                println!("{:?}", e);
+                                break 'running;
                             }
                         }
                     }
@@ -60,11 +61,13 @@ pub fn init_game_loop(
                     StackCommand::SaveState => {} //ainda e preciso adicionar isso em retro_ab
                     StackCommand::Pause => _pause = true,
                     StackCommand::Resume => _pause = false,
-                    StackCommand::Reset => {
-                        if core::reset(&core_ctx).is_err() {
+                    StackCommand::Reset => match core::reset(&core_ctx) {
+                        Ok(..) => {}
+                        Err(e) => {
+                            println!("{:?}", e);
                             break 'running;
                         }
-                    }
+                    },
                     StackCommand::UpdateControllers => {
                         for gamepad in &*gamepads.lock().unwrap() {
                             if gamepad.retro_port >= 0 {
@@ -76,7 +79,10 @@ pub fn init_game_loop(
 
                                 match result {
                                     Ok(..) => {}
-                                    Err(e) => println!("{:?}", e),
+                                    Err(e) => {
+                                        println!("{:?}", e);
+                                        break 'running;
+                                    }
                                 }
                             }
                         }
@@ -93,11 +99,10 @@ pub fn init_game_loop(
                             }
                         }
                     }
-                    Err(e) => match e.level {
-                        retro_log_level::RETRO_LOG_ERROR => break 'running,
-                        retro_log_level::RETRO_LOG_WARN => {}
-                        _ => println!("{:?}", e),
-                    },
+                    Err(e) => {
+                        println!("{:?}", e);
+                        break 'running;
+                    }
                 };
             }
 
