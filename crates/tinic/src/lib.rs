@@ -13,6 +13,6 @@ pub use retro_core::{args_manager, test_tools};
 
 pub use retro_controllers::{
     devices_manager::{Device, DeviceState, DeviceStateListener},
-    RetroController,
+    GamepadKeyMap, RetroController,
 };
 pub use tinic::Tinic;
