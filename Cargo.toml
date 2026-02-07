@@ -15,14 +15,13 @@ default-members = ["crates/tinic"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-retro_core = { path = "crates/retro_core", features = ["core_full_logs"] }
+retro_core = { path = "crates/retro_core", features = ["core_full_logs", "hw"] }
 retro_controllers = { path = "crates/retro_controllers" }
 retro_video = { path = "crates/retro_video" }
 retro_audio = { path = "crates/retro_audio" }
 libretro_sys = { path = "crates/libretro_sys" }
 generics = { path = "crates/generics" }
 tinic_super = { path = "crates/tinic_super" }
-tokio = { version = "1.44.2", features = ["full"] }
 reqwest = "0.12.12"
 zip = "2.6.1"
 sevenz-rust = "0.6.1"

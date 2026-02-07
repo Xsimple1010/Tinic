@@ -1,6 +1,6 @@
 use generics::error_handle::ErrorHandle;
 use retro_controllers::RetroGamePad;
-use tinic::{self, DeviceListener, Tinic, args_manager::RetroArgs, test_tools::paths};
+use tinic::{self, args_manager::RetroArgs, test_tools::paths, DeviceListener, Tinic};
 use winit::platform::pump_events::PumpStatus;
 
 #[derive(Debug, Default)]
@@ -20,8 +20,7 @@ impl DeviceListener for DeviceEventHandle {
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), ErrorHandle> {
+fn main() -> Result<(), ErrorHandle> {
     let args = RetroArgs::new()?;
 
     let event = DeviceEventHandle::default();

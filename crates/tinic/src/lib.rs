@@ -10,8 +10,6 @@ mod tinic;
 mod tinic_app;
 mod tinic_app_ctx;
 
-pub use tokio;
-
 pub use generics::retro_paths::RetroPaths;
 pub use retro_controllers::{
     devices_manager::{DeviceListener, DeviceStateListener}, RetroController,
