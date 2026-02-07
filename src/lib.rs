@@ -50,7 +50,6 @@ fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
                 GamePadState::ButtonPressed(b) => {
                     println!("{:?}", b);
                 }
-                _ => {}
             }
             listener(state, _gamepad);
         };

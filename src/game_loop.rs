@@ -17,7 +17,7 @@ pub fn init_game_loop(
     stack: Arc<RetroStack>,
 ) {
     thread::spawn(move || {
-        let mut _pause = false;
+        let mut _pause_request_new_frames = false;
         let mut retro_av: Option<(RetroAvCtx, EventPump)> = None;
 
         'running: loop {
@@ -65,8 +65,18 @@ pub fn init_game_loop(
                     StackCommand::GameQuit => break 'running,
                     StackCommand::LoadState => {} //ainda e preciso adicionar isso em retro_ab
                     StackCommand::SaveState => {} //ainda e preciso adicionar isso em retro_ab
-                    StackCommand::Pause => _pause = true,
-                    StackCommand::Resume => _pause = false,
+                    StackCommand::Pause => {
+                        if let Ok(mut controller) = controller_ctx.lock() {
+                            controller.resume_thread_events();
+                            _pause_request_new_frames = true
+                        }
+                    }
+                    StackCommand::Resume => {
+                        if let Ok(mut controller) = controller_ctx.lock() {
+                            controller.pause_thread_events();
+                            _pause_request_new_frames = false
+                        }
+                    }
                     StackCommand::Reset => {
                         if let Err(e) = core::reset(&core_ctx) {
                             println!("{:?}", e);
@@ -95,7 +105,7 @@ pub fn init_game_loop(
                 }
             }
 
-            if !_pause {
+            if !_pause_request_new_frames {
                 match core::run(&core_ctx) {
                     Ok(..) => {
                         if let Some((av_ctx, _)) = &mut retro_av {
@@ -135,7 +145,17 @@ pub fn init_game_loop(
                             keycode: Some(Keycode::F3),
                             ..
                         } => {
-                            _pause = !_pause;
+                            if _pause_request_new_frames {
+                                if let Ok(mut controller) = controller_ctx.lock() {
+                                    controller.pause_thread_events();
+                                    _pause_request_new_frames = false
+                                }
+                            } else {
+                                if let Ok(mut controller) = controller_ctx.lock() {
+                                    controller.resume_thread_events();
+                                    _pause_request_new_frames = true
+                                }
+                            }
                         }
                         Event::KeyDown {
                             keycode: Some(Keycode::F5),
