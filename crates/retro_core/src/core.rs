@@ -27,7 +27,6 @@ pub struct CoreWrapper {
     pub initialized: AtomicBool,
     pub game_loaded: AtomicBool,
     pub support_no_game: AtomicBool,
-    pub language: Mutex<retro_language>,
     pub av_info: Arc<AvInfo>,
     pub system: System,
     pub paths: RetroPaths,
@@ -65,8 +64,6 @@ impl CoreWrapper {
             options,
             callbacks,
             retro_ctx_associated,
-            //TODO:precisa modificado de acordo com o idioma selecionado no sistema operacional!
-            language: Mutex::new(retro_language::RETRO_LANGUAGE_PORTUGUESE_BRAZIL),
         });
 
         core_env::configure(core.clone());

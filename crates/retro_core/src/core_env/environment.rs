@@ -115,7 +115,7 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                 #[cfg(feature = "core_ev_logs")]
                 println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
 
-                *(data as *mut retro_language) = *core_ctx.language.lock().unwrap();
+                *(data as *mut retro_language) = retro_language::RETRO_LANGUAGE_PORTUGUESE_BRAZIL;
 
                 true
             }
@@ -132,8 +132,8 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                 println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
 
                 let raw_subsystem = *(data as *mut [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]);
-
                 core_ctx.system.get_subsystem(raw_subsystem);
+
                 true
             }
             RETRO_ENVIRONMENT_GET_PERF_INTERFACE => {
