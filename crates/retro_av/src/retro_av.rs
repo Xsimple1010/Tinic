@@ -18,7 +18,7 @@ pub struct RetroAv {
 impl RetroAv {
     #[doc = "cria uma nova instancia de RetroAv. sempre mantenha a instancia dentro da thread onde foi criada!"]
     pub fn new() -> Result<Self, ErrorHandle> {
-        let sync = RetroSync::new(0.0012);
+        let sync = RetroSync::new(0.00015);
         let video = RetroVideo::new();
         let audio = RetroAudio::new(sync.sync_data.clone())?;
 
