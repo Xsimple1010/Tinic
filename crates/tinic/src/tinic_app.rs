@@ -4,28 +4,28 @@ use generics::error_handle::ErrorHandle;
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
-    event_loop::{ActiveEventLoop, EventLoopProxy},
+    event_loop::ActiveEventLoop,
     keyboard::{KeyCode, PhysicalKey},
     window::WindowId,
 };
 
 pub struct GameInstance {
     ctx: TinicGameCtx,
-    proxy: EventLoopProxy<GameInstanceActions>,
+    game_dispatchers: GameInstanceDispatchers,
     pub default_slot: usize,
 }
 
 impl GameInstance {
-    pub fn new(ctx: TinicGameCtx, proxy: EventLoopProxy<GameInstanceActions>) -> Self {
+    pub fn new(ctx: TinicGameCtx, game_dispatchers: GameInstanceDispatchers) -> Self {
         Self {
             ctx,
             default_slot: 1,
-            proxy,
+            game_dispatchers,
         }
     }
 
     pub fn create_dispatcher(&self) -> GameInstanceDispatchers {
-        GameInstanceDispatchers::new(self.proxy.clone())
+        self.game_dispatchers.clone()
     }
 
     pub fn change_default_slot(&mut self, slot: usize) {
