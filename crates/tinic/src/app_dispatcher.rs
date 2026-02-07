@@ -13,6 +13,8 @@ pub enum GameInstanceActions {
     Exit,
 }
 
+type GameInstanceActionsClosed = EventLoopClosed<GameInstanceActions>;
+
 #[derive(Debug, Clone)]
 pub struct GameInstanceDispatchers {
     proxy: EventLoopProxy<GameInstanceActions>,
@@ -25,38 +27,38 @@ impl GameInstanceDispatchers {
 }
 
 impl GameInstanceDispatchers {
-    pub fn exit(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+    pub fn exit(&self) -> Result<(), GameInstanceActionsClosed> {
         self.proxy.send_event(GameInstanceActions::Exit)
     }
 
-    pub fn pause(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+    pub fn pause(&self) -> Result<(), GameInstanceActionsClosed> {
         self.proxy.send_event(GameInstanceActions::Pause)
     }
 
-    pub fn resume(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+    pub fn resume(&self) -> Result<(), GameInstanceActionsClosed> {
         self.proxy.send_event(GameInstanceActions::Resume)
     }
 
-    pub fn load_state(&self, slot: usize) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+    pub fn load_state(&self, slot: usize) -> Result<(), GameInstanceActionsClosed> {
         self.proxy.send_event(GameInstanceActions::LoadState(slot))
     }
 
-    pub fn save_state(&self, slot: usize) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+    pub fn save_state(&self, slot: usize) -> Result<(), GameInstanceActionsClosed> {
         self.proxy.send_event(GameInstanceActions::SaveState(slot))
     }
 
-    pub fn disable_keybaord(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+    pub fn disable_keybaord(&self) -> Result<(), GameInstanceActionsClosed> {
         self.proxy.send_event(GameInstanceActions::DisableKeybaord)
     }
 
-    pub fn enable_keybaord(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+    pub fn enable_keybaord(&self) -> Result<(), GameInstanceActionsClosed> {
         self.proxy.send_event(GameInstanceActions::EnableKeybaord)
     }
 
     pub fn change_default_slot(
         &self,
         slot: usize,
-    ) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+    ) -> Result<(), GameInstanceActionsClosed> {
         self.proxy
             .send_event(GameInstanceActions::ChangeDefaultSlot(slot))
     }
@@ -64,7 +66,7 @@ impl GameInstanceDispatchers {
     pub fn connect_device(
         &self,
         device: RetroGamePad,
-    ) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+    ) -> Result<(), GameInstanceActionsClosed> {
         self.proxy
             .send_event(GameInstanceActions::ConnectDevice(device))
     }
