@@ -5,12 +5,13 @@ extern crate retro_controllers;
 extern crate retro_core;
 extern crate retro_video;
 
+mod app;
 mod app_dispatcher;
 mod device_listener;
 mod tinic;
-mod tinic_app;
 mod tinic_app_ctx;
 
+pub use app::listener::WindowListener;
 pub use app_dispatcher::GameInstanceDispatchers;
 pub use generics::error_handle::ErrorHandle;
 pub use generics::retro_paths::RetroPaths;
@@ -20,4 +21,3 @@ pub use retro_controllers::{
 };
 pub use retro_core::{args_manager, test_tools};
 pub use tinic::*;
-pub use tinic_app::*;

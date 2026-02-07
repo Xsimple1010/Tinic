@@ -2,7 +2,6 @@ use crate::app_dispatcher::GameInstanceDispatchers;
 use retro_controllers::devices_manager::DeviceListener;
 use retro_controllers::RetroGamePad;
 
-#[derive(Debug)]
 pub struct DeviceHandle {
     pub extern_listener: Box<dyn DeviceListener>,
     pub game_dispatchers: GameInstanceDispatchers,
@@ -24,8 +23,8 @@ impl DeviceListener for DeviceHandle {
             .is_err()
         {
             let msg = format!(
-                "O {} foi possível configurar o seu: {}", device.name,
-                device.name
+                "O {} foi possível configurar o seu: {}",
+                device.name, device.name
             );
             println!("{msg}")
         }
