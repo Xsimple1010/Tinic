@@ -6,7 +6,6 @@ mod av_info;
 mod environment;
 mod managers;
 mod retro_context;
-//arquivo principal!
 mod retro_core;
 mod retro_perf;
 mod tools;

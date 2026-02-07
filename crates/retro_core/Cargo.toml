@@ -5,6 +5,9 @@ edition = "2021"
 
 [features]
 core_logs = []
+core_ev_logs = []
+core_full_logs = ["core_ev_logs", "core_logs"]
+hw = []
 
 [dependencies]
 sdl2.workspace = true
