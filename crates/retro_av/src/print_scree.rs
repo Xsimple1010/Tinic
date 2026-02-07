@@ -17,8 +17,6 @@ impl PrintScree {
         out_path: &mut PathBuf,
         file_name: &str,
     ) -> Result<PathBuf, ErroHandle> {
-        println!("av_info.video -> {:?}", av_info.video);
-
         match &*av_info.video.pixel_format.read().unwrap() {
             retro_pixel_format::RETRO_PIXEL_FORMAT_XRGB8888 => {
                 PrintScree::_from_xrgb8888(raw_texture, out_path, file_name)

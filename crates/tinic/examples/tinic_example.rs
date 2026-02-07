@@ -1,8 +1,6 @@
 use generics::erro_handle::ErroHandle;
 use std::io;
-use tinic::{
-    self, args_manager::RetroArgs, test_tools::paths::get_paths, Device, DeviceState, Tinic,
-};
+use tinic::{self, args_manager::RetroArgs, Device, DeviceState, Tinic};
 
 fn device_state_listener(state: DeviceState, device: Device) {
     println!("{:?} - {:?}", device.name, state);
@@ -12,7 +10,7 @@ fn device_state_listener(state: DeviceState, device: Device) {
 async fn main() -> Result<(), ErroHandle> {
     let args = RetroArgs::new()?;
 
-    let mut tinic = Tinic::new(device_state_listener, get_paths()?)?;
+    let mut tinic = Tinic::new(device_state_listener)?;
 
     if let Some(core) = &args.core {
         tinic.load_game(&core, &args.rom).await?;
