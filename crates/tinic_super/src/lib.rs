@@ -91,7 +91,7 @@ mod test {
         // read_file
         {
             let info = info.as_ref().expect("core info not found");
-            let path = info.path.clone();
+            let path = info.info_path.clone();
 
             let new_info = tinic_super
                 .info_helper
@@ -102,6 +102,10 @@ mod test {
             assert_eq!(new_info.file_name, info.file_name);
             assert_eq!(new_info.description, info.description);
             assert_eq!(new_info.database, info.database);
+            assert_eq!(new_info.core_path, info.core_path);
+            assert_eq!(new_info.core_path, info.core_path);
+
+            println!("{:?}", new_info.core_path);
         }
 
         // get_compatibility_core_infos

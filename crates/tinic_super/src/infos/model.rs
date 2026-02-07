@@ -4,7 +4,8 @@ use std::{collections::HashSet, path::PathBuf};
 pub struct CoreInfo {
     pub file_name: String,
     pub is_installed: bool,
-    pub path: PathBuf,
+    pub core_path: PathBuf,
+    pub info_path: PathBuf,
 
     // Informações de Software
     pub display_name: String,

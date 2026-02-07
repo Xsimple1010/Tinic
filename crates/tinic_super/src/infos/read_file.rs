@@ -1,8 +1,34 @@
 use crate::infos::model::CoreInfo;
 use generics::error_handle::ErrorHandle;
-use std::path::PathBuf;
+use std::{ffi::OsStr, path::PathBuf};
 
-pub async fn read_info_file(file_path: &PathBuf) -> Result<CoreInfo, ErrorHandle> {
+fn create_and_join_core_name(file_name: Option<&OsStr>) -> Result<String, ErrorHandle> {
+    let file_name = match file_name {
+        Some(file_name) => file_name.to_str().ok_or(ErrorHandle {
+            message: "Nome do arquivo inválido".to_string(),
+        })?,
+        None => {
+            return Err(ErrorHandle {
+                message: "Nome do arquivo não fornecido".to_string(),
+            });
+        }
+    };
+
+    if cfg!(target_os = "windows") {
+        Ok(format!("{}.dll", file_name))
+    } else if cfg!(target_os = "linux") {
+        Ok(format!("{}.so", file_name))
+    } else {
+        return Err(ErrorHandle {
+            message: "Sistema operacional não suportado".to_string(),
+        });
+    }
+}
+
+pub async fn read_info_file(
+    file_path: &PathBuf,
+    core_dir: &mut PathBuf,
+) -> Result<CoreInfo, ErrorHandle> {
     use tokio::fs::File;
     use tokio::io::{AsyncBufReadExt, BufReader};
 
@@ -10,7 +36,11 @@ pub async fn read_info_file(file_path: &PathBuf) -> Result<CoreInfo, ErrorHandle
     let reader = BufReader::new(file);
     let mut lines = reader.lines();
     let mut info = CoreInfo::default();
-    info.path = file_path.clone();
+
+    info.info_path = file_path.clone();
+
+    let core_name = create_and_join_core_name(file_path.file_prefix())?;
+    info.core_path = core_dir.join(core_name);
 
     while let Ok(Some(mut line)) = lines.next_line().await {
         set_info_value(&mut line, &mut info);
@@ -30,7 +60,7 @@ pub fn read_info_file_blocking(file_path: &PathBuf) -> Result<CoreInfo, ErrorHan
     let reader = BufReader::new(file);
     let mut lines = reader.lines();
     let mut info = CoreInfo::default();
-    info.path = file_path.clone();
+    info.core_path = file_path.clone();
 
     while let Some(Ok(mut line)) = lines.next() {
         set_info_value(&mut line, &mut info);
