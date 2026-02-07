@@ -5,7 +5,7 @@ use crate::common::events::{DeviceEvents, WindowEvents};
 
 pub fn create_tinic() -> Result<Tinic, ErrorHandle> {
     let mut tinic = Tinic::new()?;
-    // definir os listerners é obriga
+    // definir os listeners é obriga
     tinic.set_controle_listener(Box::new(DeviceEvents))?;
     tinic.set_window_listener(Box::new(WindowEvents));
     Ok(tinic)
