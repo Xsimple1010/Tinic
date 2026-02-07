@@ -166,13 +166,13 @@ pub unsafe fn env_cb_av(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_PIXEL_FORMAT -> ok");
 
-            let pixel_format = core_ctx
-                .av_info
-                .video
-                .pixel_format
-                .load_or_spaw_err("The pixel format has not been defined")?;
-
-            *(data as *mut retro_pixel_format) = *pixel_format;
+            core_ctx.av_info.video.pixel_format.store_or_else(
+                *(data as *mut retro_pixel_format),
+                |p| {
+                    let mut _pixel = *p.into_inner();
+                    _pixel = retro_pixel_format::RETRO_PIXEL_FORMAT_UNKNOWN;
+                },
+            );
 
             Ok(true)
         }
