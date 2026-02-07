@@ -105,10 +105,10 @@ impl ThreadState {
 
         match retro_core.save_state(slot) {
             Ok(saved_path) => {
-                let mut img_path: PathBuf = PathBuf::new();
+                let mut img_path: PathBuf = saved_path.clone();
                 img_path.set_extension(SAVE_IMAGE_EXTENSION_FILE);
 
-                if let Ok(path) = retro_av.video.print_screen(saved_path.parent().unwrap()) {
+                if let Ok(path) = retro_av.video.print_screen(&img_path) {
                     img_path = path;
                 };
 
