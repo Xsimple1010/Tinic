@@ -22,8 +22,10 @@ use crate::{
     },
     tools::ffi_tools::make_c_string,
 };
-use ::std::os::raw;
-use std::sync::atomic::Ordering;
+use std::{
+    ffi::{c_char, c_uint},
+    sync::atomic::Ordering,
+};
 use std::{os::raw::c_void, ptr::addr_of, sync::Arc};
 
 #[derive(Clone, Copy, Debug)]
@@ -33,7 +35,7 @@ pub struct RetroEnvCallbacks {
     pub audio_sample_batch_callback: fn(data: *const i16, frames: usize) -> usize,
     pub input_poll_callback: fn(),
     pub input_state_callback: fn(port: i16, device: i16, index: i16, id: i16) -> i16,
-    pub rumble_callback: fn(port: raw::c_uint, effect: retro_rumble_effect, strength: u16) -> bool,
+    pub rumble_callback: fn(port: c_uint, effect: retro_rumble_effect, strength: u16) -> bool,
     #[doc = " Called when a context has been created or when it has been reset.\n An OpenGL context is only valid after context_reset() has been called.\n\n When context_reset is called, OpenGL resources in the libretro\n implementation are guaranteed to be invalid.\n\n It is possible that context_reset is called multiple times during an\n application lifecycle.\n If context_reset is called without any notification (context_destroy),\n the OpenGL context was lost and resources should just be recreated\n without any attempt to \"free\" old resources."]
     pub context_reset: fn(),
     #[doc = " Set by frontend.\n Can return all relevant functions, including glClear on Windows."]
@@ -59,139 +61,115 @@ pub fn delete_local_core_ctx() {
     }
 }
 
-unsafe extern "C" fn core_log(_level: retro_log_level, _log: *const raw::c_char) {
+unsafe extern "C" fn core_log(_level: retro_log_level, _log: *const c_char) {
     #[cfg(feature = "core_logs")]
     println!("[{:?}]: {:?}", _level, get_str_from_ptr(_log));
 }
 
-pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -> bool {
-    //outro vao aqui
-    return match cmd {
-        RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME -> ok");
+pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> bool {
+    return match &*addr_of!(CORE_CONTEXT) {
+        Some(core_ctx) => {
+            return match cmd {
+                RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME -> ok");
 
-            return match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
                     core_ctx
                         .support_no_game
                         .store(*(data as *mut bool), Ordering::SeqCst);
 
                     true
                 }
-                None => false,
-            };
-        }
-        RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY -> ok");
+                RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY -> ok");
 
-            match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
                     let sys_dir = make_c_string(&core_ctx.paths.system).unwrap();
 
-                    binding_log_interface::set_directory(data, sys_dir.as_ptr())
+                    binding_log_interface::set_directory(data, sys_dir.as_ptr());
+
+                    true
                 }
-                _ => return false,
-            }
+                RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY -> ok");
 
-            return true;
-        }
-        RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY -> ok");
-
-            return match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
                     let save_dir = make_c_string(&core_ctx.paths.save).unwrap();
 
                     binding_log_interface::set_directory(data, save_dir.as_ptr());
 
                     true
                 }
-                _ => false,
-            };
-        }
-        RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY -> ok");
+                RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY -> ok");
 
-            match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
                     let assents_dir = make_c_string(&core_ctx.paths.assets).unwrap();
 
-                    binding_log_interface::set_directory(data, assents_dir.as_ptr())
+                    binding_log_interface::set_directory(data, assents_dir.as_ptr());
+
+                    true
                 }
-                _ => return false,
-            }
+                RETRO_ENVIRONMENT_GET_LANGUAGE => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
 
-            return true;
-        }
-        RETRO_ENVIRONMENT_GET_LANGUAGE => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
-
-            return match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
                     *(data as *mut retro_language) = *core_ctx.language.lock().unwrap();
 
                     true
                 }
-                None => false,
-            };
-        }
-        RETRO_ENVIRONMENT_GET_LOG_INTERFACE => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_GET_LOG_INTERFACE -> ok");
+                RETRO_ENVIRONMENT_GET_LOG_INTERFACE => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_GET_LOG_INTERFACE -> ok");
 
-            binding_log_interface::configure_log_interface(Some(core_log), data);
+                    binding_log_interface::configure_log_interface(Some(core_log), data);
 
-            return true;
-        }
-        RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
+                    true
+                }
+                RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
 
-            return match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
                     let raw_subsystem =
                         *(data as *mut [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]);
 
                     core_ctx.system.get_subsystem(raw_subsystem);
                     true
                 }
-                None => false,
-            };
-        }
-        RETRO_ENVIRONMENT_GET_PERF_INTERFACE => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_GET_PERF_INTERFACE -> ok");
+                RETRO_ENVIRONMENT_GET_PERF_INTERFACE => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_GET_PERF_INTERFACE -> ok");
 
-            let mut perf = *(data as *mut retro_perf_callback);
+                    let mut perf = *(data as *mut retro_perf_callback);
 
-            perf.get_time_usec = Some(get_features_get_time_usec);
-            perf.get_cpu_features = Some(get_cpu_features);
-            perf.get_perf_counter = Some(core_get_perf_counter);
-            perf.perf_register = Some(core_perf_register);
-            perf.perf_start = Some(core_perf_start);
-            perf.perf_stop = Some(core_perf_stop);
-            perf.perf_log = Some(core_perf_log);
+                    perf.get_time_usec = Some(get_features_get_time_usec);
+                    perf.get_cpu_features = Some(get_cpu_features);
+                    perf.get_perf_counter = Some(core_get_perf_counter);
+                    perf.perf_register = Some(core_perf_register);
+                    perf.perf_start = Some(core_perf_start);
+                    perf.perf_stop = Some(core_perf_stop);
+                    perf.perf_log = Some(core_perf_log);
 
-            return true;
-        }
-        _ => {
-            if env_cb_av(cmd, data) | env_cb_gamepad_io(cmd, data) || env_cb_option(cmd, data) {
-                return true;
+                    true
+                }
+                _ => {
+                    if env_cb_av(&core_ctx, cmd, data) | env_cb_gamepad_io(&core_ctx, cmd, data)
+                        || env_cb_option(&core_ctx, cmd, data)
+                    {
+                        return true;
+                    }
+
+                    if cmd != RETRO_ENVIRONMENT_GET_VARIABLE
+                        && cmd != RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS
+                    {
+                        println!("new core cmd -> {:?}", cmd);
+                    }
+
+                    false
+                }
             }
-
-            if cmd != RETRO_ENVIRONMENT_GET_VARIABLE
-                && cmd != RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS
-            {
-                println!("new core cmd -> {:?}", cmd);
-            }
-
-            false
         }
+        None => false,
     };
 }
 

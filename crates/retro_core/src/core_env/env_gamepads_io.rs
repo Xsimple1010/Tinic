@@ -1,12 +1,14 @@
-use crate::core_env::environment::CORE_CONTEXT;
-use generics::constants::MAX_CORE_CONTROLLER_INFO_TYPES;
-use libretro_sys::binding_libretro::{
-    retro_controller_info, retro_rumble_effect, retro_rumble_interface,
-    RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE,
-    RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
+use crate::{
+    core::CoreWrapper,
+    core_env::environment::CORE_CONTEXT,
+    generics::constants::MAX_CORE_CONTROLLER_INFO_TYPES,
+    libretro_sys::binding_libretro::{
+        retro_controller_info, retro_rumble_effect, retro_rumble_interface,
+        RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE,
+        RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
+    },
 };
-use sdl2::libc::c_uint;
-use std::{os::raw::c_void, ptr::addr_of};
+use std::{ffi::c_uint, os::raw::c_void, ptr::addr_of, sync::Arc};
 
 unsafe extern "C" fn rumble_callback(
     port: c_uint,
@@ -42,7 +44,11 @@ pub unsafe extern "C" fn input_state_callback(
     }
 }
 
-pub unsafe fn env_cb_gamepad_io(cmd: c_uint, data: *mut c_void) -> bool {
+pub unsafe fn env_cb_gamepad_io(
+    core_ctx: &Arc<CoreWrapper>,
+    cmd: c_uint,
+    data: *mut c_void,
+) -> bool {
     return match cmd {
         RETRO_ENVIRONMENT_GET_INPUT_BITMASKS => {
             #[cfg(feature = "core_ev_logs")]
@@ -53,17 +59,12 @@ pub unsafe fn env_cb_gamepad_io(cmd: c_uint, data: *mut c_void) -> bool {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_CONTROLLER_INFO -> ok");
 
-            return match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
-                    let raw_ctr_infos =
-                        *(data as *mut [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES]);
+            let raw_ctr_infos =
+                *(data as *mut [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES]);
 
-                    core_ctx.system.get_ports(raw_ctr_infos);
+            core_ctx.system.get_ports(raw_ctr_infos);
 
-                    true
-                }
-                _ => false,
-            };
+            true
         }
         RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS => {
             #[cfg(feature = "core_ev_logs")]

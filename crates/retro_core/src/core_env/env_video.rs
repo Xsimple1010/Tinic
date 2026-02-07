@@ -1,22 +1,23 @@
+use crate::core::CoreWrapper;
 #[cfg(feature = "hw")]
-use crate::libretro_sys::binding_libretro::{
-    retro_hw_context_type, retro_hw_render_callback, retro_proc_address_t,
-    RETRO_ENVIRONMENT_EXPERIMENTAL, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
-    RETRO_ENVIRONMENT_SET_HW_RENDER,
-};
-use libretro_sys::{
+use crate::libretro_sys::{
     binding_libretro::{
-        retro_game_geometry, retro_pixel_format, RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE,
-        RETRO_ENVIRONMENT_SET_GEOMETRY, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
-        RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
+        retro_hw_context_type, retro_hw_render_callback, retro_proc_address_t,
+        RETRO_ENVIRONMENT_EXPERIMENTAL, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
+        RETRO_ENVIRONMENT_SET_HW_RENDER, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
     },
     binding_log_interface,
 };
+use libretro_sys::binding_libretro::{
+    retro_game_geometry, retro_pixel_format, RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE,
+    RETRO_ENVIRONMENT_SET_GEOMETRY, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
+};
 #[cfg(feature = "hw")]
-use std::mem;
+use std::{ffi::c_char, mem};
 use std::{
-    ffi::{c_char, c_uint, c_void},
+    ffi::{c_uint, c_void},
     ptr::addr_of,
+    sync::Arc,
 };
 
 use super::environment::CORE_CONTEXT;
@@ -103,7 +104,7 @@ unsafe extern "C" fn context_destroy() {
     }
 }
 
-pub unsafe fn env_cb_av(cmd: c_uint, data: *mut c_void) -> bool {
+pub unsafe fn env_cb_av(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut c_void) -> bool {
     return match cmd {
         RETRO_ENVIRONMENT_SET_GEOMETRY => {
             #[cfg(feature = "core_ev_logs")]
@@ -115,28 +116,18 @@ pub unsafe fn env_cb_av(cmd: c_uint, data: *mut c_void) -> bool {
                 return false;
             }
 
-            return match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
-                    core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr);
+            core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr);
 
-                    true
-                }
-                _ => false,
-            };
+            true
         }
         RETRO_ENVIRONMENT_SET_PIXEL_FORMAT => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_PIXEL_FORMAT -> ok");
 
-            return match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
-                    *core_ctx.av_info.video.pixel_format.write().unwrap() =
-                        *(data as *mut retro_pixel_format);
+            *core_ctx.av_info.video.pixel_format.write().unwrap() =
+                *(data as *mut retro_pixel_format);
 
-                    true
-                }
-                None => false,
-            };
+            true
         }
         RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE => {
             #[cfg(feature = "core_ev_logs")]
@@ -151,15 +142,9 @@ pub unsafe fn env_cb_av(cmd: c_uint, data: *mut c_void) -> bool {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER");
 
-            return match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
-                    *(data as *mut retro_hw_context_type) =
-                        core_ctx.av_info.video.graphic_api.context_type;
+            *(data as *mut retro_hw_context_type) = core_ctx.av_info.video.graphic_api.context_type;
 
-                    true
-                }
-                _ => false,
-            };
+            true
         }
         #[cfg(feature = "hw")]
         RETRO_ENVIRONMENT_SET_HW_RENDER | RETRO_ENVIRONMENT_EXPERIMENTAL => {
@@ -178,14 +163,11 @@ pub unsafe fn env_cb_av(cmd: c_uint, data: *mut c_void) -> bool {
                 Some(get_proc_address),
             );
 
-            return match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => core_ctx
-                    .av_info
-                    .video
-                    .graphic_api
-                    .try_update_from_raw(data as *mut retro_hw_render_callback),
-                _ => false,
-            };
+            core_ctx
+                .av_info
+                .video
+                .graphic_api
+                .try_update_from_raw(data as *mut retro_hw_render_callback)
         }
 
         _ => false,
