@@ -4,19 +4,23 @@ use rmp_serde::Deserializer;
 use serde::Deserialize;
 use std::io::Cursor;
 
-pub fn parse_rdb(rdb_file: String) -> Result<Vec<Game>, ErrorHandle> {
-    let file = std::fs::read(rdb_file).unwrap();
+pub fn parse_rdb<C>(rdb_file: &String, mut callback: C) -> Result<(), ErrorHandle>
+where
+    C: FnMut(Game) -> bool,
+{
+    let file = std::fs::read(rdb_file)?;
     let data = file.as_slice();
 
     let cursor = Cursor::new(&data[0x10..]);
     let mut de = Deserializer::new(cursor);
-    let mut games = Vec::new();
 
     loop {
         match Game::deserialize(&mut de) {
             Ok(game) => {
-                games.push(game);
-            }
+                if callback(game) {
+                    break;
+                }
+            },
             Err(rmp_serde::decode::Error::InvalidMarkerRead(e))
             | Err(rmp_serde::decode::Error::InvalidDataRead(e)) => {
                 println!("Invalid marker read: {}", e);
@@ -31,6 +35,15 @@ pub fn parse_rdb(rdb_file: String) -> Result<Vec<Game>, ErrorHandle> {
         }
     }
 
+    Ok(())
+}
+
+pub fn parse_all_rdb_to_vec(rdb_dir: &String) -> Result<Vec<Game>, ErrorHandle> {
+    let mut games = Vec::new();
+    parse_rdb(rdb_dir, |game| {
+        games.push(game);
+        false
+    })?;
     Ok(games)
 }
 

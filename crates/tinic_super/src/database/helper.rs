@@ -1,13 +1,13 @@
-use crate::{
-    database::{game::Game, rdb::parse_rdb},
-    download::download_file,
-    FileProgress,
-};
-use generics::{constants::RDB_BASE_URL, error_handle::ErrorHandle, retro_paths::RetroPaths};
+use crate::database::game::Game;
+use crate::database::rdb::{parse_all_rdb_to_vec, parse_rdb};
+use crate::download::download_file;
+use crate::FileProgress;
+use generics::constants::RDB_BASE_URL;
+use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
 use std::path::{Path, PathBuf};
 
 pub struct DatabaseHelper {
-    games: Vec<Game>,
+    pub rdb_file: String,
 }
 
 #[derive(Debug)]
@@ -17,39 +17,45 @@ pub struct RDBDatabase {
 }
 
 impl DatabaseHelper {
-    pub fn new(rdb_file: String) -> Result<Self, ErrorHandle> {
-        Ok(Self {
-            games: parse_rdb(rdb_file)?,
-        })
+    pub fn get_all_games(self) -> Result<Vec<Game>, ErrorHandle> {
+        parse_all_rdb_to_vec(&self.rdb_file)
     }
 
-    pub fn get_all_games(self) -> Vec<Game> {
-        self.games
-    }
+    pub fn search_by_crc(&self, src: u32) -> Result<Option<Game>, ErrorHandle> {
+        let mut out_game = None;
 
-    pub fn search_by_crc(&self, src: u32) -> Option<&Game> {
-        for game in &self.games {
-            if game.crc32.eq(&Some(src)) {
-                return Some(game);
+        let _ = parse_rdb(&self.rdb_file, |game| {
+            if game.crc32 == Some(src) {
+                out_game = Some(game);
+
+                true
+            } else {
+                false
             }
-        }
+        });
 
-        None
+        Ok(out_game)
     }
 
-    pub fn search_by_name(&self, name: String) -> Option<&Game> {
-        for game in &self.games {
-            let c_name = match &game.name {
+    pub fn search_by_name(&self, name: &String) -> Result<Vec<Game>, ErrorHandle> {
+        let mut out_game: Vec<Game> = Vec::new();
+
+        parse_rdb(&self.rdb_file, |game| {
+            // println!("{game:?}");
+
+            let game_name = match &game.name {
                 Some(name) => name,
-                None => return None,
+                None => return false,
             };
 
-            if name.contains(c_name) {
-                return Some(game);
+            if game_name.to_lowercase().contains(name) {
+                out_game.push(game);
             }
-        }
 
-        None
+            false
+        })?;
+
+        Ok(out_game)
     }
 
     pub fn get_installed_rdb(paths: &RetroPaths) -> Result<Vec<RDBDatabase>, ErrorHandle> {
@@ -62,10 +68,9 @@ impl DatabaseHelper {
         for dir_entry in read_dir {
             let entry = dir_entry?;
 
-            let name = entry
-                .file_name()
-                .into_string()
-                .map_err(|_| ErrorHandle::new(&format!("cant create a String from: OsString")))?;
+            let name = entry.file_name().into_string().map_err(|_| {
+                ErrorHandle::new(&"cant create a String from: OsString".to_string())
+            })?;
 
             out.push(RDBDatabase {
                 name,
