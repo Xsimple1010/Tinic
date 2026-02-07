@@ -52,10 +52,10 @@ pub async fn install_core(
 }
 
 pub fn this_core_is_installed(
-    cores_dir: &Arc<String>,
+    cores_dir: &PathBuf,
     info_to_search: &String,
 ) -> Result<bool, ErrorHandle> {
-    let entries = std::fs::read_dir(cores_dir.to_string())?;
+    let entries = std::fs::read_dir(cores_dir)?;
 
     for dir_entry in entries {
         let entry = dir_entry?;

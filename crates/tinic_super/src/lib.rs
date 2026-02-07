@@ -104,8 +104,6 @@ mod test {
             assert_eq!(new_info.database, info.database);
             assert_eq!(new_info.core_path, info.core_path);
             assert_eq!(new_info.core_path, info.core_path);
-
-            println!("{:?}", new_info.core_path);
         }
 
         // get_compatibility_core_infos

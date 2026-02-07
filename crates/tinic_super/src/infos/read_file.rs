@@ -27,7 +27,7 @@ fn create_and_join_core_name(file_name: Option<&OsStr>) -> Result<String, ErrorH
 
 pub async fn read_info_file(
     file_path: &PathBuf,
-    core_dir: &mut PathBuf,
+    core_dir: &PathBuf,
 ) -> Result<CoreInfo, ErrorHandle> {
     use tokio::fs::File;
     use tokio::io::{AsyncBufReadExt, BufReader};
@@ -51,7 +51,10 @@ pub async fn read_info_file(
     Ok(info)
 }
 
-pub fn read_info_file_blocking(file_path: &PathBuf) -> Result<CoreInfo, ErrorHandle> {
+pub fn read_info_file_blocking(
+    file_path: &PathBuf,
+    core_dir: &PathBuf,
+) -> Result<CoreInfo, ErrorHandle> {
     use std::fs::File;
     use std::io::BufRead;
     use std::io::BufReader;
@@ -60,7 +63,10 @@ pub fn read_info_file_blocking(file_path: &PathBuf) -> Result<CoreInfo, ErrorHan
     let reader = BufReader::new(file);
     let mut lines = reader.lines();
     let mut info = CoreInfo::default();
-    info.core_path = file_path.clone();
+    info.info_path = file_path.clone();
+
+    let core_name = create_and_join_core_name(file_path.file_prefix())?;
+    info.core_path = core_dir.join(core_name);
 
     while let Some(Ok(mut line)) = lines.next() {
         set_info_value(&mut line, &mut info);
