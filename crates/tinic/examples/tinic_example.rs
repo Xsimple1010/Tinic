@@ -1,6 +1,6 @@
 use tinic::{
-    self, args_manager::RetroArgs, test_tools::paths, DeviceListener, ErrorHandle, RetroGamePad,
-    Tinic, TinicPumpStatus,
+    self, args_manager::RetroArgs, DeviceListener, ErrorHandle, RetroGamePad, Tinic,
+    TinicGameInfo,
 };
 
 #[derive(Debug, Default)]
@@ -27,16 +27,14 @@ fn main() -> Result<(), ErrorHandle> {
     let mut tinic = Tinic::new(Box::new(event))?;
 
     if let Some(core) = &args.core {
-        let mut game_instance = tinic.build(core.clone(), args.rom, paths::get_paths()?)?;
-        // tinic.run(game_instance)?;
+        let game_info = TinicGameInfo {
+            core: core.clone(),
+            rom: args.rom,
+            sys_dir: "/home/aderval/Downloads/RetroArch_cores".to_string(),
+        };
 
-        loop {
-            let status = tinic.pop_event(&mut game_instance);
-
-            if let TinicPumpStatus::Exit(_) = status {
-                break;
-            }
-        }
+        let mut game_instance = tinic.create_game_instance(game_info)?;
+        tinic.run(game_instance)?;
     }
     Ok(())
 }

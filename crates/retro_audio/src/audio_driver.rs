@@ -106,7 +106,9 @@ impl AudioDriver {
         let config = device.default_output_config().unwrap();
 
         let config = &config.into();
-        let error_callback = |err| eprintln!("erro no stream {}", err);
+        let error_callback = |err| {
+            // eprintln!("erro no stream {}", err)
+        };
         let timeout = Some(Duration::from_millis(2));
         let data_callback = move |front: &mut [i16], _: &cpal::OutputCallbackInfo| {
             if cons.is_empty() {
@@ -115,7 +117,7 @@ impl AudioDriver {
             }
 
             let len = front.len().min(cons.occupied_len());
-            println!("clap len: {}", front.len());
+            // println!("clap len: {}", front.len());
             let mut buffer = vec![0; len];
             cons.pop_slice(&mut buffer);
 
