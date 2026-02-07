@@ -6,7 +6,7 @@ use crate::{
 };
 use generics::{
     retro_paths::RetroPaths,
-    types::{ArcTMuxte, TMutex},
+    types::{ArcTMutex, TMutex},
 };
 use retro_controllers::devices_manager::Device;
 use std::{path::PathBuf, sync::Arc};
@@ -18,7 +18,7 @@ use winit::{
 
 pub struct Tinic {
     pub controller: Arc<RetroController>,
-    proxy: ArcTMuxte<Option<EventLoopProxy<GameInstanceActions>>>,
+    proxy: ArcTMutex<Option<EventLoopProxy<GameInstanceActions>>>,
     event_loop: Option<EventLoop<GameInstanceActions>>,
 }
 
@@ -101,7 +101,7 @@ impl Tinic {
 #[derive(Debug)]
 struct DeviceHandle {
     listener: Box<dyn DeviceListener>,
-    proxy: ArcTMuxte<Option<EventLoopProxy<GameInstanceActions>>>,
+    proxy: ArcTMutex<Option<EventLoopProxy<GameInstanceActions>>>,
 }
 
 impl DeviceListener for DeviceHandle {
@@ -121,11 +121,11 @@ impl DeviceListener for DeviceHandle {
         self.listener.connected(device);
     }
 
-    fn disconnected(&self, device: retro_controllers::devices_manager::Device) {
+    fn disconnected(&self, device: Device) {
         self.listener.disconnected(device);
     }
 
-    fn button_pressed(&self, button: String, device: retro_controllers::devices_manager::Device) {
+    fn button_pressed(&self, button: String, device: Device) {
         self.listener.button_pressed(button, device);
     }
 }

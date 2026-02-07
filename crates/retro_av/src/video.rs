@@ -1,7 +1,7 @@
 use crate::{print_scree::PrintScree, retro_gl::window::RetroGlWindow};
 use generics::{
     error_handle::ErrorHandle,
-    types::{ArcTMuxte, TMutex},
+    types::{ArcTMutex, TMutex},
 };
 use libretro_sys::binding_libretro::retro_hw_context_type::{
     RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
@@ -52,8 +52,8 @@ pub trait RetroVideoAPi {
 }
 
 pub struct RetroVideo {
-    window_ctx: ArcTMuxte<Option<Box<dyn RetroVideoAPi>>>,
-    texture: ArcTMuxte<RawTextureData>,
+    window_ctx: ArcTMutex<Option<Box<dyn RetroVideoAPi>>>,
+    texture: ArcTMutex<RawTextureData>,
 }
 
 impl RetroVideo {
@@ -130,8 +130,8 @@ impl RetroVideo {
 }
 
 pub struct RetroVideoCb {
-    texture: ArcTMuxte<RawTextureData>,
-    window_ctx: ArcTMuxte<Option<Box<dyn RetroVideoAPi>>>,
+    texture: ArcTMutex<RawTextureData>,
+    window_ctx: ArcTMutex<Option<Box<dyn RetroVideoAPi>>>,
 }
 
 impl RetroVideoEnvCallbacks for RetroVideoCb {
@@ -153,6 +153,13 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
         Ok(())
     }
 
+    fn context_reset(&self) -> Result<(), ErrorHandle> {
+        if let Some(win) = &mut *self.window_ctx.try_load()? {
+            win.context_reset();
+        }
+        Ok(())
+    }
+
     fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErrorHandle> {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
             win.get_proc_address(proc_name);
@@ -164,13 +171,6 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
     fn context_destroy(&self) -> Result<(), ErrorHandle> {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
             win.context_destroy();
-        }
-        Ok(())
-    }
-
-    fn context_reset(&self) -> Result<(), ErrorHandle> {
-        if let Some(win) = &mut *self.window_ctx.try_load()? {
-            win.context_reset();
         }
         Ok(())
     }

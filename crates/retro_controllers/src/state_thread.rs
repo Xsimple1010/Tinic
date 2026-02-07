@@ -1,6 +1,6 @@
 use crate::devices_manager::DevicesManager;
 use generics::types::TMutex;
-use generics::{constants::THREAD_SLEEP_TIME, types::ArcTMuxte};
+use generics::{constants::THREAD_SLEEP_TIME, types::ArcTMutex};
 use std::sync::Arc;
 use std::{
     thread::{self, sleep},
@@ -9,7 +9,7 @@ use std::{
 
 #[derive(Debug)]
 pub struct EventThread {
-    event_thread_can_run: ArcTMuxte<bool>,
+    event_thread_can_run: ArcTMutex<bool>,
 }
 
 impl EventThread {
@@ -40,7 +40,7 @@ impl EventThread {
     fn create_update_devices_state_thread(
         &self,
         devices: Arc<DevicesManager>,
-        event_thread_is_enabled: ArcTMuxte<bool>,
+        event_thread_is_enabled: ArcTMutex<bool>,
     ) {
         thread::spawn(move || {
             while *event_thread_is_enabled.load_or(false) {

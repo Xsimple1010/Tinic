@@ -3,7 +3,7 @@ use super::{
     update_gamepad_state_handle::{connect_handle, disconnect_handle, pressed_button_handle},
 };
 use crate::devices_manager::{DeviceStateListener, DevicesRequiredFunctions};
-use generics::{error_handle::ErrorHandle, types::ArcTMuxte};
+use generics::{error_handle::ErrorHandle, types::ArcTMutex};
 use gilrs::{Event, GamepadId, Gilrs};
 use std::sync::{atomic::AtomicUsize, Arc};
 use uuid::Uuid;
@@ -52,7 +52,7 @@ impl RetroGamePad {
 
     pub fn update(
         gilrs: &mut Gilrs,
-        connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+        connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
         max_ports: &Arc<AtomicUsize>,
         listener: &DeviceStateListener,
     ) -> Result<(), ErrorHandle> {

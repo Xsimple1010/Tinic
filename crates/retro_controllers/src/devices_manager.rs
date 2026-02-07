@@ -2,7 +2,7 @@ use crate::gamepad::retro_gamepad::RetroGamePad;
 use generics::{
     constants::DEFAULT_MAX_PORT,
     error_handle::ErrorHandle,
-    types::{ArcTMuxte, TMutex},
+    types::{ArcTMutex, TMutex},
 };
 use gilrs::Gilrs;
 use libretro_sys::binding_libretro::{retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK};
@@ -55,12 +55,12 @@ impl Device {
     }
 }
 
-pub type DeviceStateListener = ArcTMuxte<Box<dyn DeviceListener>>;
+pub type DeviceStateListener = ArcTMutex<Box<dyn DeviceListener>>;
 
 #[derive(Debug, Clone)]
 pub struct DevicesManager {
-    gilrs: ArcTMuxte<Gilrs>,
-    connected_gamepads: ArcTMuxte<Vec<RetroGamePad>>,
+    gilrs: ArcTMutex<Gilrs>,
+    connected_gamepads: ArcTMutex<Vec<RetroGamePad>>,
     max_ports: Arc<AtomicUsize>,
     listener: DeviceStateListener,
 }

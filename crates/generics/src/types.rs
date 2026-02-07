@@ -1,7 +1,7 @@
 use crate::error_handle::ErrorHandle;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
-pub type ArcTMuxte<T> = Arc<TMutex<T>>;
+pub type ArcTMutex<T> = Arc<TMutex<T>>;
 
 #[derive(Debug)]
 pub struct TMutex<T> {
@@ -9,7 +9,7 @@ pub struct TMutex<T> {
 }
 
 impl<T> TMutex<T> {
-    pub fn new(value: T) -> ArcTMuxte<T> {
+    pub fn new(value: T) -> ArcTMutex<T> {
         Arc::new(Self {
             value: Mutex::new(value),
         })

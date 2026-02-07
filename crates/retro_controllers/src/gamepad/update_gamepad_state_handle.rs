@@ -1,6 +1,6 @@
 use super::{gamepad_key_map::GamepadKeyMap, retro_gamepad::RetroGamePad};
 use crate::devices_manager::{Device, DeviceStateListener};
-use generics::{constants::INVALID_CONTROLLER_PORT, error_handle::ErrorHandle, types::ArcTMuxte};
+use generics::{constants::INVALID_CONTROLLER_PORT, error_handle::ErrorHandle, types::ArcTMutex};
 use gilrs::{Button, GamepadId, Gilrs};
 use libretro_sys::binding_libretro::RETRO_DEVICE_JOYPAD;
 use std::sync::{
@@ -12,7 +12,7 @@ use std::sync::{
 //portas suportas pelo Core ja estão sendo usadas.
 fn get_available_port(
     max_ports: &Arc<AtomicUsize>,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
 ) -> i16 {
     let mut connected_gamepads = connected_gamepads.load_or(Vec::new());
 
@@ -33,7 +33,7 @@ fn get_available_port(
 
 pub fn remove(
     id: GamepadId,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
 ) -> Result<Option<RetroGamePad>, ErrorHandle> {
     let list = &mut connected_gamepads.try_load()?;
 
@@ -51,7 +51,7 @@ pub fn remove(
 pub fn connect_handle(
     gamepad_id: GamepadId,
     gilrs: &mut Gilrs,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
     max_ports: &Arc<AtomicUsize>,
     listener: &DeviceStateListener,
 ) -> Result<(), ErrorHandle> {
@@ -78,7 +78,7 @@ pub fn connect_handle(
 
 pub fn disconnect_handle(
     id: GamepadId,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
     listener: &DeviceStateListener,
 ) -> Result<(), ErrorHandle> {
     if let Some(gamepad) = remove(id, connected_gamepads)? {
@@ -93,7 +93,7 @@ pub fn disconnect_handle(
 pub fn pressed_button_handle(
     button: &Button,
     gamepad_id: GamepadId,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
     listener: &DeviceStateListener,
 ) -> Result<(), ErrorHandle> {
     for gamepad in &mut *connected_gamepads.load_or(Vec::new()) {

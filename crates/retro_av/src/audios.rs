@@ -1,6 +1,6 @@
 use generics::{
     error_handle::ErrorHandle,
-    types::{ArcTMuxte, TMutex},
+    types::{ArcTMutex, TMutex},
 };
 use retro_core::{av_info::AvInfo, RetroAudioEnvCallbacks};
 use rodio::{buffer::SamplesBuffer, OutputStream, OutputStreamHandle, Sink};
@@ -20,7 +20,7 @@ pub struct RetroAudio {
     _stream_handle: OutputStreamHandle,
     _stream: OutputStream,
     sink: Sink,
-    buffer: ArcTMuxte<UnsafeCell<AudioNewFrame>>,
+    buffer: ArcTMutex<UnsafeCell<AudioNewFrame>>,
 }
 
 impl RetroAudio {
@@ -83,10 +83,21 @@ impl RetroAudio {
 }
 
 pub struct RetroAudioCb {
-    buffer: ArcTMuxte<UnsafeCell<AudioNewFrame>>,
+    buffer: ArcTMutex<UnsafeCell<AudioNewFrame>>,
 }
 
 impl RetroAudioEnvCallbacks for RetroAudioCb {
+    fn audio_sample_callback(&self, left: i16, right: i16) -> Result<(), ErrorHandle> {
+        let mut buffer = self.buffer.try_load()?;
+        let buffer = buffer.get_mut();
+
+        buffer.data = [left, right].as_ptr();
+        buffer.frames = 1;
+        buffer.channel = 2;
+
+        Ok(())
+    }
+
     fn audio_sample_batch_callback(
         &self,
         data: *const i16,
@@ -100,16 +111,5 @@ impl RetroAudioEnvCallbacks for RetroAudioCb {
         buffer.channel = 2;
 
         Ok(frames)
-    }
-
-    fn audio_sample_callback(&self, left: i16, right: i16) -> Result<(), ErrorHandle> {
-        let mut buffer = self.buffer.try_load()?;
-        let buffer = buffer.get_mut();
-
-        buffer.data = [left, right].as_ptr();
-        buffer.frames = 1;
-        buffer.channel = 2;
-
-        Ok(())
     }
 }
