@@ -160,7 +160,7 @@ impl RomTools {
         // Only read file into memory if the core doesn't need the full path
         if !*sys_info.need_full_path {
             // Validate file size
-            let file_size = InputValidator::validate_file_size(&path, MAX_ROM_SIZE_MB)?;
+            let file_size = InputValidator::validate_file_size(path, MAX_ROM_SIZE_MB)?;
 
             // Additional safety check before reading large files into memory
             if file_size > 100 * 1024 * 1024 {

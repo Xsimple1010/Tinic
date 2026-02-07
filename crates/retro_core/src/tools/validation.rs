@@ -73,14 +73,13 @@ impl InputValidator {
             })?
         } else {
             // If it doesn't exist, validate parent exists and is accessible
-            if let Some(parent) = path_buf.parent() {
-                if parent.exists() && !parent.is_dir() {
+            if let Some(parent) = path_buf.parent()
+                && parent.exists() && !parent.is_dir() {
                     return Err(ErrorHandle::new(&format!(
                         "Parent path exists but is not a directory: {}",
                         parent.display()
                     )));
                 }
-            }
             path_buf
         };
 
