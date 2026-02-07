@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub enum MainStackCommand {
-    GameLoaded(bool, Option<Arc<OptionManager>>),
+    GameLoaded(Option<Arc<OptionManager>>),
 }
 
 #[derive(Debug, Clone)]

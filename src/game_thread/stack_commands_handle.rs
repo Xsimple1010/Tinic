@@ -101,14 +101,14 @@ pub fn stack_commands_handle(
                             }
                         }
 
-                        channel.set_game_is_loaded(true, Some(retro_ab.core().options.clone()));
+                        channel.set_game_is_loaded(Some(retro_ab.core().options.clone()));
 
                         core_ctx.replace(retro_ab);
                         av_ctx.replace(av);
                     }
                     Err(e) => {
                         println!("{:?}", e);
-                        channel.set_game_is_loaded(false, None);
+                        channel.set_game_is_loaded(None);
                         need_stop = true;
                         break;
                     }
@@ -152,6 +152,20 @@ pub fn stack_commands_handle(
                     let _ = ctx
                         .core()
                         .connect_controller(device.retro_port as u32, device.retro_type);
+                }
+            }
+
+            //VIDEO
+            EnableFullScreen => {
+                if let Some((av_ctx, _)) = av_ctx {
+                    av_ctx.video.full_screen();
+                    *use_full_screen = true;
+                }
+            }
+            DisableFullScreen => {
+                if let Some((av_ctx, _)) = av_ctx {
+                    av_ctx.video.disable_full_screen();
+                    *use_full_screen = false;
                 }
             }
         }

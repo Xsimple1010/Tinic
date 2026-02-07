@@ -75,10 +75,10 @@ impl ThreadChannel {
             for index in 0..commands.len() {
                 if let Some(command) = commands.get(index) {
                     return match command {
-                        GameLoaded(loaded, options) => {
+                        GameLoaded(options) => {
                             self.main_stack.remove_index(index);
                             core_options = options.clone();
-                            rom_loaded = loaded.clone();
+                            rom_loaded = options.is_none();
 
                             true
                         }
@@ -92,11 +92,11 @@ impl ThreadChannel {
         (rom_loaded, core_options)
     }
 
-    pub fn set_game_is_loaded(&self, state: bool, options: Option<Arc<OptionManager>>) {
-        self.main_stack.push(GameLoaded(state, options))
+    pub fn set_game_is_loaded(&self, options: Option<Arc<OptionManager>>) {
+        self.main_stack.push(GameLoaded(options))
     }
 
-    //################### OUTAS AÇÕES MAIS GENÉRICAS COM DO CORE FICAM AQUI! #######################
+    // ################### OUTAS AÇÕES MAIS GENÉRICAS DO CORE FICAM AQUI! ###########################
     pub fn save_state(&self, slot: usize) {
         self.game_stack.push(GameStackCommand::SaveState(slot));
     }
