@@ -15,7 +15,7 @@ pub struct TinicSuper {
 }
 
 impl TinicSuper {
-    pub async fn try_update_core<CP>(&self, force_update: bool) -> Result<(), ErrorHandle> {
+    pub async fn try_update_core(&self, force_update: bool) -> Result<(), ErrorHandle> {
         CoreInfoHelper::try_update_core_infos(
             &self.retro_paths,
             force_update,
