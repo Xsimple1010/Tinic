@@ -4,7 +4,8 @@ use crate::channel::ThreadChannel;
 use crate::thread_stack::game_stack::{
     GameStack,
     GameStackCommand::{
-        DeviceConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState,
+        DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, LoadState, Pause, Quit,
+        Reset, Resume, SaveState,
     },
 };
 use crate::thread_stack::model_stack::{ModelStackManager, RetroStackFn};
@@ -67,6 +68,7 @@ pub fn stack_commands_handle(
     controller_ctx: &Arc<Mutex<RetroAbController>>,
     av_ctx: &mut Option<(RetroAvCtx, EventPump)>,
     pause_request_new_frames: &mut bool,
+    use_full_screen: &mut bool,
 ) -> bool {
     let mut need_stop = false;
 

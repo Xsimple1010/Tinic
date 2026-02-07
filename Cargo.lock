@@ -750,9 +750,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.15.1"
+version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a9bfc1af68b1726ea47d3d5109de126281def866b33970e10fbab11b5dafab3"
+checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
 
 [[package]]
 name = "heck"
@@ -966,9 +966,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.164"
+version = "0.2.165"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "433bfe06b8c75da9b2e3fbea6e5329ff87748f0b144ef75306e674c3f6f7c13f"
+checksum = "fcb4d3d38eab6c5239a362fa8bae48c03baf980a6e7079f063942d563ef3533e"
 
 [[package]]
 name = "libfuzzer-sys"
@@ -1524,7 +1524,7 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 [[package]]
 name = "retro_ab"
 version = "0.1.0"
-source = "git+https://github.com/Xsimple1010/retro_ab_rs.git#ef6d2fa986f60c4cf7c1ddb0f78e1366460b645a"
+source = "git+https://github.com/Xsimple1010/retro_ab_rs.git#999949d11612dd8d68de6a48cab6fff112b7f6fa"
 dependencies = [
  "bindgen",
  "cc",
@@ -1536,7 +1536,7 @@ dependencies = [
 [[package]]
 name = "retro_ab_av"
 version = "0.1.1"
-source = "git+https://github.com/Xsimple1010/retro_ab_av.git#6c1301e7989aa4add436e4c712ee88c6d21a2e38"
+source = "git+https://github.com/Xsimple1010/retro_ab_av.git#30c9b9035e3d546d2bafedd3885df5f2c8d881c3"
 dependencies = [
  "cfg_aliases 0.1.1",
  "gl_generator",
@@ -1874,9 +1874,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-core"
-version = "0.1.32"
+version = "0.1.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c06d3da6113f116aaee68e4d601191614c9053067f9ab7f6edbcb161237daa54"
+checksum = "e672c95779cf947c5311f83787af4fa8fffd12fb27e4993211a84bdfd9610f9c"
 
 [[package]]
 name = "unicode-ident"

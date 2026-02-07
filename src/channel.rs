@@ -126,4 +126,11 @@ impl ThreadChannel {
     }
 
     //######################### AÇÕES RELACIONAS AO VIDEO FIRAM AQUI! ##############################
+    pub fn enable_full_screen(&self) {
+        self.game_stack.push(GameStackCommand::EnableFullScreen);
+    }
+
+    pub fn disable_full_screen(&self) {
+        self.game_stack.push(GameStackCommand::DisableFullScreen);
+    }
 }

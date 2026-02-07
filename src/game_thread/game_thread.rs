@@ -74,6 +74,7 @@ impl GameThread {
 
         thread::spawn(move || {
             let mut pause_request_new_frames = false;
+            let mut use_full_screen_mode = false;
             let mut retro_ab: Option<RetroAB> = None;
             let mut av_ctx: Option<(RetroAvCtx, EventPump)> = None;
 
@@ -89,6 +90,7 @@ impl GameThread {
                     &controller_ctx,
                     &mut av_ctx,
                     &mut pause_request_new_frames,
+                    &mut use_full_screen_mode,
                 ) {
                     break;
                 }
@@ -102,7 +104,12 @@ impl GameThread {
                         }
                     }
 
-                    game_window_handle(event_pump, &channel, pause_request_new_frames);
+                    game_window_handle(
+                        event_pump,
+                        &channel,
+                        pause_request_new_frames,
+                        use_full_screen_mode,
+                    );
                 }
             }
 

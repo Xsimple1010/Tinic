@@ -6,6 +6,7 @@ pub fn game_window_handle(
     event_pump: &mut EventPump,
     channel: &Arc<ThreadChannel>,
     pause_request_new_frames: bool,
+    use_full_screen: bool,
 ) {
     for event in event_pump.poll_iter() {
         match event {
@@ -36,6 +37,17 @@ pub fn game_window_handle(
                 keycode: Some(Keycode::F5),
                 ..
             } => channel.reset_game(),
+
+            Event::KeyDown {
+                keycode: Some(Keycode::F11),
+                ..
+            } => {
+                if use_full_screen {
+                    channel.disable_full_screen()
+                } else {
+                    channel.enable_full_screen()
+                }
+            }
             _ => {}
         }
     }

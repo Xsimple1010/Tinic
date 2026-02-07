@@ -15,6 +15,8 @@ pub enum GameStackCommand {
     LoadState(Slot),
     Pause,
     Resume,
+    EnableFullScreen,
+    DisableFullScreen,
     DeviceConnected(Device),
     Quit,
     Reset,
