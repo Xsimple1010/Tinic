@@ -60,3 +60,41 @@ impl<T: Clone> ModelStackManager<T> {
         })
     }
 }
+
+#[cfg(test)]
+mod retro_stack_test {
+    use super::ModelStackManager;
+    use crate::thread_stack::{game_stack::GameStackCommand, model_stack::RetroStackFn};
+    use std::thread;
+
+    #[test]
+    fn clear() {
+        let stack = ModelStackManager::new();
+
+        stack.push(GameStackCommand::Quit);
+
+        let stack_2 = stack.clone();
+
+        let _ = thread::spawn(move || {
+            let commands = stack_2.read_and_clear();
+            assert_eq!(commands.len(), 1);
+
+            let cmd = commands.first().unwrap().clone();
+            assert_eq!(cmd, GameStackCommand::Quit)
+        })
+        .join();
+
+        assert_eq!(stack.read().is_empty(), true);
+    }
+
+    #[test]
+    fn push_and_read() {
+        let stack = ModelStackManager::new();
+
+        stack.push(GameStackCommand::Quit);
+
+        let commands = stack.read();
+        assert_eq!(commands.len(), 1);
+        assert_eq!(commands.first().unwrap().clone(), GameStackCommand::Quit);
+    }
+}
