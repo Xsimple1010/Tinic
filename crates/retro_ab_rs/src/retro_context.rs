@@ -4,11 +4,10 @@ use crate::{core::CoreWrapper, environment::RetroEnvCallbacks};
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
-use std::ptr::addr_of;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
-static mut CONTEXTS: Vec<Arc<RetroContext>> = Vec::new();
+static CONTEXTS: Mutex<Vec<Arc<RetroContext>>> = Mutex::new(Vec::new());
 
 pub type RetroCtxIns = Arc<RetroContext>;
 
@@ -39,8 +38,16 @@ impl RetroContext {
 
         context.core.init()?;
 
-        unsafe {
-            CONTEXTS.push(Arc::clone(&context));
+        match &mut CONTEXTS.lock() {
+            Ok(ctx) => {
+                ctx.push(context.clone());
+            }
+            Err(e) => {
+                return Err(ErroHandle {
+                    level: RETRO_LOG_ERROR,
+                    message: e.to_string(),
+                })
+            }
         }
 
         Ok(context)
@@ -49,8 +56,8 @@ impl RetroContext {
     pub fn is_valid(&self) -> bool {
         let mut is_valide = false;
 
-        unsafe {
-            for ctx in &*addr_of!(CONTEXTS) {
+        if let Ok(contexts) = &CONTEXTS.lock() {
+            for ctx in contexts.iter() {
                 if ctx.id.eq(&self.id) {
                     is_valide = true;
                     break;
@@ -62,19 +69,28 @@ impl RetroContext {
     }
 
     pub fn delete(&self) -> Result<(), ErroHandle> {
-        unsafe {
-            let position = CONTEXTS.partition_point(|ctx| ctx.id == self.id);
+        match &mut CONTEXTS.lock() {
+            Ok(ctxs) => {
+                let position = ctxs.partition_point(|ctx| ctx.id == self.id);
 
-            if !CONTEXTS.is_empty() {
-                CONTEXTS.remove(position - 1);
+                if !ctxs.is_empty() {
+                    ctxs.remove(position - 1);
+                }
+                Ok(())
             }
-        };
-
-        Ok(())
+            Err(e) => Err(ErroHandle {
+                level: RETRO_LOG_ERROR,
+                message: e.to_string(),
+            }),
+        }
     }
 
     pub fn get_num_contexts() -> usize {
-        unsafe { CONTEXTS.len() }
+        if let Ok(contexts) = &CONTEXTS.lock() {
+            contexts.len()
+        } else {
+            0
+        }
     }
 
     #[doc = "
@@ -83,8 +99,8 @@ impl RetroContext {
         Use isso com moderação, pois pode quasar muita confusão no código.
     "]
     pub fn get_from_id(id: &Uuid) -> Result<RetroCtxIns, ErroHandle> {
-        unsafe {
-            for ctx in CONTEXTS.iter() {
+        if let Ok(contexts) = &CONTEXTS.lock() {
+            for ctx in contexts.iter() {
                 if ctx.id.eq(id) {
                     return Ok(ctx.clone());
                 }
