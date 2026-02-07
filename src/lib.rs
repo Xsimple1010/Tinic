@@ -10,11 +10,12 @@ mod retro_stack;
 mod stack_handle;
 
 use game_loop::init_game_loop;
-use retro_ab::core::{RetroContext, RetroEnvCallbacks};
+use retro_ab::core::RetroEnvCallbacks;
 use retro_ab::retro_sys::retro_rumble_effect;
 use retro_ab_av::{audio_sample_batch_callback, audio_sample_callback, video_refresh_callback};
 use retro_ab_gamepad::context::{input_poll_callback, input_state_callback, GamepadContext};
 use retro_stack::{RetroStack, StackCommand};
+use std::ptr::addr_of;
 use std::sync::{Arc, Mutex};
 
 pub use retro_ab::args_manager;
@@ -30,7 +31,6 @@ lazy_static! {
 
 pub struct Tinic {
     pub controller_ctx: Arc<Mutex<GamepadContext>>,
-    pub core_ctx: Option<Arc<RetroContext>>,
 }
 
 fn rumble_callback(
@@ -43,7 +43,7 @@ fn rumble_callback(
 
 fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
     unsafe {
-        if let Some(listener) = &GAMEPAD_LISTENER {
+        if let Some(listener) = &*addr_of!(GAMEPAD_LISTENER) {
             match &state {
                 GamePadState::Connected | GamePadState::Disconnected => {
                     STACK.push(StackCommand::GamepadConnected(_gamepad.clone()));
@@ -74,7 +74,6 @@ impl Tinic {
         Self {
             //TODO:o numero máximo de portas deve ser alterado no futuro
             controller_ctx,
-            core_ctx: None,
         }
     }
 
