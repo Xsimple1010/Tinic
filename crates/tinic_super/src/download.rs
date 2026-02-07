@@ -1,3 +1,4 @@
+use crate::event::TinicSuperEventListener;
 use futures_util::StreamExt;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -10,17 +11,13 @@ pub enum FileProgress {
     Extract(String),
 }
 
-pub async fn download_file<CA>(
+pub async fn download_file(
     url: &str,
     file_name: &str,
     mut dest: PathBuf,
     force_update: bool,
-    on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
-    on_downloaded: CA,
-) -> Result<(), tokio::io::Error>
-where
-    CA: Fn(PathBuf),
-{
+    event_listener: Arc<dyn TinicSuperEventListener>,
+) -> Result<PathBuf, tokio::io::Error> {
     if !dest.exists() {
         fs::create_dir_all(&dest).await?;
     }
@@ -40,9 +37,8 @@ where
     let need_update = !dest.exists();
 
     if !need_update && !force_update {
-        on_progress(FileProgress::Download(file_name.to_string(), 100.0));
-        on_downloaded(dest);
-        return Ok(());
+        event_listener.download_completed(file_name.to_string());
+        return Ok(dest);
     }
 
     let mut file = File::create(&dest).await?;
@@ -59,14 +55,11 @@ where
 
         if total_size > 0 {
             let progress = (downloaded as f32 / total_size as f32) * 100.0;
-            on_progress(FileProgress::Download(
-                file_name.to_string(),
-                progress.min(100.0),
-            ));
+            event_listener.downloading(file_name.to_string(), progress.min(100.0));
         }
     }
 
-    on_downloaded(dest);
+    event_listener.download_completed(file_name.to_string());
 
-    Ok(())
+    Ok(dest)
 }

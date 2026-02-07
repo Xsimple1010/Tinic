@@ -1,3 +1,4 @@
+use crate::event::TinicSuperEventListener;
 use crate::FileProgress;
 use sevenz_rust::Error;
 use std::io::BufWriter;
@@ -12,12 +13,10 @@ use zip::ZipArchive;
 pub fn extract_zip_file(
     file_path: PathBuf,
     out_dir: String,
-    on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+    event_listener: Arc<dyn TinicSuperEventListener>,
 ) -> zip::result::ZipResult<()> {
     let file = File::open(file_path)?;
     let mut archive = ZipArchive::new(file)?;
-
-    let on_progress = on_progress;
 
     // 2️⃣ extrair com progresso global
     for i in 0..archive.len() {
@@ -46,7 +45,7 @@ pub fn extract_zip_file(
 
             outfile.write_all(&buffer[..n])?;
 
-            on_progress(FileProgress::Extract(file.name().to_string()));
+            event_listener.extract_file(file.name().to_string());
         }
     }
 

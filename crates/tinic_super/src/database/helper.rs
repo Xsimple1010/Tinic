@@ -3,7 +3,7 @@ use crate::database::crc32::crc32_file;
 use crate::database::game::GameInfo;
 use crate::database::rdb::{parse_all_rdb_to_vec, parse_rdb};
 use crate::download::download_file;
-use crate::FileProgress;
+use crate::event::TinicSuperEventListener;
 use generics::constants::RDB_BASE_URL;
 use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
@@ -158,7 +158,7 @@ impl DatabaseHelper {
         paths: &RetroPaths,
         rdbs: &Vec<String>,
         force_update: bool,
-        on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+        event_listener: Arc<dyn TinicSuperEventListener>,
     ) -> Result<(), ErrorHandle> {
         if rdbs.is_empty() {
             return Err(ErrorHandle::new("dbs is empty"));
@@ -179,27 +179,13 @@ impl DatabaseHelper {
             }
 
             let url = format!("{RDB_BASE_URL}/{rdb_name}");
-            let temps_dir = PathBuf::from(paths.temps.to_string());
+            let databases_dir = PathBuf::from(paths.databases.to_string());
             download_file(
                 &url,
                 &rdb_name,
-                temps_dir,
+                databases_dir,
                 force_update,
-                on_progress.clone(),
-                |temp_path| {
-                    let db_dir = PathBuf::from(paths.databases.to_string());
-
-                    let final_path = db_dir.join(
-                        Path::new(&temp_path)
-                            .file_name()
-                            .ok_or_else(|| ErrorHandle::new("invalid temp file name"))
-                            .unwrap(),
-                    );
-
-                    let _ = std::fs::copy(&temp_path, &final_path)
-                        .and_then(|_| std::fs::remove_file(&temp_path))
-                        .map_err(|e| ErrorHandle::new(&e.to_string()));
-                },
+                event_listener.clone(),
             )
             .await
             .map_err(|e| ErrorHandle::new(&e.to_string()))?;

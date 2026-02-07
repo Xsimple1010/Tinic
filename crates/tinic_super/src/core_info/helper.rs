@@ -1,6 +1,7 @@
 use crate::core_info::model::CoreInfo;
 use crate::download::download_file;
 use crate::download::FileProgress;
+use crate::event::TinicSuperEventListener;
 use crate::extract_files::{extract_7zip_file, extract_zip_file, SevenZipBeforeExtractionAction};
 use generics::constants::{cores_url, CORE_INFOS_URL};
 use generics::error_handle::ErrorHandle;
@@ -19,39 +20,31 @@ impl CoreInfoHelper {
     pub async fn try_update_core_infos(
         retro_paths: &RetroPaths,
         force_update: bool,
-        on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+        event_listener: Arc<dyn TinicSuperEventListener>,
     ) -> Result<(), ErrorHandle> {
         let temp_dir = PathBuf::from(&retro_paths.temps.to_string());
 
-        download_file(
+        let path = download_file(
             CORE_INFOS_URL,
             "info.zip",
             temp_dir.clone(),
             force_update,
-            on_progress.clone(),
-            |infos| {
-                extract_zip_file(
-                    infos,
-                    retro_paths.infos.clone().to_string(),
-                    on_progress.clone(),
-                )
-                .unwrap();
-            },
+            event_listener.clone(),
         )
         .await
         .map_err(|e| ErrorHandle::new(&e.to_string()))?;
 
-        let core_url = cores_url()?;
-        download_file(
-            core_url,
-            "cores.7z",
-            temp_dir,
-            force_update,
-            on_progress,
-            |_| {},
+        extract_zip_file(
+            path,
+            retro_paths.infos.clone().to_string(),
+            event_listener.clone(),
         )
-        .await
-        .map_err(|e| ErrorHandle::new(&e.to_string()))?;
+        .unwrap();
+
+        let core_url = cores_url()?;
+        download_file(core_url, "cores.7z", temp_dir, force_update, event_listener)
+            .await
+            .map_err(|e| ErrorHandle::new(&e.to_string()))?;
 
         Ok(())
     }

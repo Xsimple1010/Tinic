@@ -1,5 +1,5 @@
 use crate::download::download_file;
-use crate::FileProgress;
+use crate::event::TinicSuperEventListener;
 use generics::constants::THUMBNAIL_BASE_URL;
 use generics::error_handle::ErrorHandle;
 use std::fmt::{Display, Formatter};
@@ -33,20 +33,22 @@ pub async fn download_thumbnail(
     url: &str,
     name: &str,
     dest: PathBuf,
-    on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+    event_listener: Arc<dyn TinicSuperEventListener>,
 ) -> Result<(), ErrorHandle> {
     let file_name = format!("{name}.png");
 
-    download_file(url, &file_name, dest, false, on_progress, |_| {})
+    let _ = download_file(url, &file_name, dest, false, event_listener)
         .await
-        .map_err(|e| ErrorHandle::new(&e.to_string()))
+        .map_err(|e| ErrorHandle::new(&e.to_string()))?;
+
+    Ok(())
 }
 
 pub async fn download_all_thumbnail_from_game(
     sys_name: &str,
     name: &str,
     dest: &str,
-    on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+    on_progress: Arc<dyn TinicSuperEventListener>,
 ) {
     let box_art = get_thumbnail_url(ThumbnailType::Box, sys_name, name);
     let snap_art = get_thumbnail_url(ThumbnailType::Snap, sys_name, name);
