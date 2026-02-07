@@ -21,6 +21,7 @@ use retro_controllers::{
     input_poll_callback, input_state_callback, rumble_callback, RetroController,
 };
 use retro_core::{core::RetroEnvCallbacks, RetroCore};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 fn teste() {
@@ -127,14 +128,19 @@ pub fn stack_commands_handle(
                 if let Some(ctx) = retro_core {
                     match ctx.core().save_state(slot) {
                         Ok(saved_path) => {
-                            if let Some((_av, _)) = retro_av {
-                                // let d = av.video.print_screen();
+                            let mut img_path: PathBuf = PathBuf::new();
+
+                            if let Some((av, _)) = retro_av {
+                                if let Ok(path) = av
+                                    .video
+                                    .print_screen(saved_path.parent().unwrap(), &slot.to_string())
+                                {
+                                    img_path = path;
+                                };
                             }
 
-                            channel_notify.notify_main_stack(GameStateSaved(Some((
-                                saved_path,
-                                "img".to_owned(),
-                            ))));
+                            channel_notify
+                                .notify_main_stack(GameStateSaved(Some((saved_path, img_path))));
                         }
 
                         Err(e) => {

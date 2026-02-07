@@ -10,7 +10,7 @@ use retro_core::core::AvInfo;
 use sdl2::Sdl;
 use std::{
     ffi::{c_uint, c_void},
-    path::PathBuf,
+    path::{Path, PathBuf},
     ptr::{addr_of, addr_of_mut, null},
     sync::Arc,
 };
@@ -130,7 +130,7 @@ impl RetroVideo {
         }
     }
 
-    pub fn print_screen(&self, out_path: &str, file_name: &str) -> Result<(), ErroHandle> {
+    pub fn print_screen(&self, out_path: &Path, file_name: &str) -> Result<PathBuf, ErroHandle> {
         unsafe {
             PrintScree::take(
                 &*addr_of!(RAW_TEX_POINTER),

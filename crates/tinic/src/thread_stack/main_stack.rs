@@ -1,9 +1,10 @@
 use crate::thread_stack::model_stack::{ModelStackManager, RetroStackFn};
 use retro_core::option_manager::OptionManager;
+use std::path::PathBuf;
 use std::sync::Arc;
 
-pub type SavePath = String;
-pub type SaveImg = String;
+pub type SavePath = PathBuf;
+pub type SaveImg = PathBuf;
 
 #[derive(Clone, Debug)]
 pub enum MainStackCommand {

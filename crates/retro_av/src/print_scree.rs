@@ -16,25 +16,27 @@ impl PrintScree {
         av_info: &Arc<AvInfo>,
         out_path: &mut PathBuf,
         file_name: &str,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<PathBuf, ErroHandle> {
+        println!("av_info.video -> {:?}", av_info.video);
+
         match &*av_info.video.pixel_format.read().unwrap() {
             retro_pixel_format::RETRO_PIXEL_FORMAT_XRGB8888 => {
                 PrintScree::_from_xrgb8888(raw_texture, out_path, file_name)
             }
             // retro_pixel_format::RETRO_PIXEL_FORMAT_0RGB1555 => ,
             // retro_pixel_format::RETRO_PIXEL_FORMAT_RGB565 => ,
-            _ => {
-                return Err(ErroHandle {
-                    level: RETRO_LOG_ERROR,
-                    message: "Formato de pixel desconhecido".to_string(),
-                })
-            }
+            _ => Err(ErroHandle {
+                level: RETRO_LOG_ERROR,
+                message: "Formato de pixel desconhecido".to_string(),
+            }),
         }
-
-        Ok(())
     }
 
-    fn _from_xrgb8888(raw_texture: &RawTextureData, out_path: &mut PathBuf, file_name: &str) {
+    fn _from_xrgb8888(
+        raw_texture: &RawTextureData,
+        out_path: &mut PathBuf,
+        file_name: &str,
+    ) -> Result<PathBuf, ErroHandle> {
         let buffer: &[u8] = unsafe {
             std::slice::from_raw_parts(
                 raw_texture.data as *const u8,
@@ -43,7 +45,10 @@ impl PrintScree {
         };
 
         if buffer.len() != (raw_texture.width * raw_texture.height) as usize * 4 {
-            return;
+            return Err(ErroHandle {
+                level: RETRO_LOG_ERROR,
+                message: "Tamanho do buffer video esta errado".to_string(),
+            });
         }
 
         // Crie um buffer de imagem a partir do buffer de textura, ignorando o componente X
@@ -59,10 +64,13 @@ impl PrintScree {
         let img: RgbImage =
             ImageBuffer::from_raw(raw_texture.width, raw_texture.height, img_buffer).unwrap();
 
-        out_path.push(file_name.to_owned() + SAVE_IMAGE_EXTENSION_FILE);
+        let file_name = format!("{}{}", file_name, SAVE_IMAGE_EXTENSION_FILE);
+        out_path.push(file_name);
 
         img.save(Path::new(out_path))
             .map_err(|e| e.to_string())
-            .unwrap()
+            .unwrap();
+
+        Ok(out_path.clone())
     }
 }
