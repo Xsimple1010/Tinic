@@ -18,7 +18,7 @@ pub fn init_game_loop(
     gamepads: Arc<Mutex<Vec<RetroGamePad>>>,
     stack: Arc<RetroStack>,
 ) {
-    let th = thread::spawn(move || {
+    thread::spawn(move || {
         core::load_game(&core_ctx, rom_path.as_str()).expect("msg");
 
         let (mut av_ctx, mut event_pump) = RetroAvCtx::new(core_ctx.core.av_info.clone())
@@ -98,7 +98,6 @@ pub fn init_game_loop(
             }
         }
 
-        core::de_init(core_ctx).expect("ds");
+        core::de_init(core_ctx).expect("erro ao tentar parar o núcleo");
     });
-    th.join().expect("erro na thread");
 }

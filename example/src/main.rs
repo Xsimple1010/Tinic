@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, io};
 use tinic::{self, args_manager, test_tools, Tinic};
 
 fn main() -> Result<(), String> {
@@ -19,6 +19,35 @@ fn main() -> Result<(), String> {
         rom_path.to_string(),
         test_tools::paths::get_paths(),
     )?;
+
+    'running: loop {
+        println!("Para interagir digite o numero de um dos comandos disponíveis!");
+        println!("0: sair");
+        println!("1: save state");
+        println!("2: load state");
+        println!("3: pause");
+        println!("4: resume");
+
+        let mut command = String::new();
+
+        match io::stdin().read_line(&mut command) {
+            Ok(..) => {
+                if command.starts_with("0") {
+                    tinic.quit_game();
+                    break 'running;
+                } else if command.starts_with("1") {
+                    tinic.save_state();
+                } else if command.starts_with("2") {
+                    tinic.load_state();
+                } else if command.starts_with("3") {
+                    tinic.pause();
+                } else if command.starts_with("4") {
+                    tinic.resume();
+                }
+            }
+            Err(..) => println!("erro ao ler o comando!"),
+        }
+    }
 
     Ok(())
 }

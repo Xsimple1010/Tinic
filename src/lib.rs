@@ -44,13 +44,20 @@ impl Tinic {
                 video_refresh_callback,
             },
         )?;
-        core::init(&core_ctx).expect("msg");
-        self.core_ctx = Some(core_ctx.clone());
 
-        let gamepads = self.controller_ctx.search();
-        self.stack.push(StackCommand::UpdateControllers);
+        match core::init(&core_ctx) {
+            Ok(..) => {
+                self.core_ctx = Some(core_ctx.clone());
 
-        init_game_loop(rom_path, core_ctx, gamepads, self.stack.clone());
+                let gamepads = self.controller_ctx.search();
+                self.stack.push(StackCommand::UpdateControllers);
+
+                init_game_loop(rom_path, core_ctx, gamepads, self.stack.clone());
+            }
+            Err(e) => {
+                return Err(e.message);
+            }
+        }
 
         Ok(())
     }
