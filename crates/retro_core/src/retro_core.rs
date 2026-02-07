@@ -223,7 +223,7 @@ impl RetroCore {
             SaveInfo {
                 slot,
                 library_name: &self.system.info.library_name,
-                rom_name: &self.rom_name.read()?,
+                rom_name: &*self.rom_name.read()?,
                 save_dir: &self.paths.save,
                 buffer_size: unsafe { self.raw.retro_serialize_size() },
             },
@@ -249,7 +249,7 @@ impl RetroCore {
             SaveInfo {
                 slot,
                 library_name: &self.system.info.library_name,
-                rom_name: &self.rom_name.read()?,
+                rom_name: &*self.rom_name.read()?,
                 save_dir: &self.paths.save,
                 buffer_size: unsafe { self.raw.retro_serialize_size() },
             },

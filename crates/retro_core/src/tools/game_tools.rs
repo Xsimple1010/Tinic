@@ -65,9 +65,9 @@ fn get_save_path(save_info: &SaveInfo) -> Result<PathBuf, ErroHandle> {
 pub struct RomTools;
 
 pub struct SaveInfo<'a> {
-    pub save_dir: &'a str,
-    pub library_name: &'a str,
-    pub rom_name: &'a str,
+    pub save_dir: &'a String,
+    pub library_name: &'a String,
+    pub rom_name: &'a String,
     pub slot: usize,
     pub buffer_size: usize,
 }
@@ -153,7 +153,7 @@ impl RomTools {
         Ok(save_path)
     }
 
-    pub fn load_save_state<CA>(save_info: SaveInfo, load_data: CA) -> Result<(), ErroHandle>
+    pub fn load_save_state<CA>(save_info: SaveInfo, send_to_core: CA) -> Result<(), ErroHandle>
     where
         CA: FnOnce(&mut Vec<u8>, usize) -> bool,
     {
@@ -172,7 +172,7 @@ impl RomTools {
             return Ok(());
         }
 
-        if !load_data(&mut data, buffer_size) {
+        if !send_to_core(&mut data, buffer_size) {
             println!("o core nao pode carregar o state escolhido");
         }
 
