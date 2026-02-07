@@ -40,3 +40,7 @@ pub fn cores_url() -> Result<&'static str, ErrorHandle> {
         })
     }
 }
+
+// TEST
+pub const TEST_CORE_PATH: &str = "tests/assets/240pTestSuite.nes";
+pub const TEST_ROM_PATH: &str = "tests/assets/mesen_libretro.so";

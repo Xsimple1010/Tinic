@@ -1,5 +1,5 @@
 /target
-*/**/tinic_test_workspace
+*/**/test_workspace
 *.so
 *.dll
 *.sqlite
