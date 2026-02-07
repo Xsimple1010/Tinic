@@ -2,6 +2,7 @@ use crate::{
     generics::erro_handle::ErroHandle,
     retro_controllers::{devices_manager::DeviceListener, RetroController},
     tinic_app::{TinicApp, TinicAppActions},
+    tinic_app_ctx::TinicAppCtx,
 };
 use generics::{
     retro_paths::RetroPaths,
@@ -35,12 +36,14 @@ impl Tinic {
         rom_path: &String,
         retro_paths: RetroPaths,
     ) -> Result<TinicApp, ErroHandle> {
-        let app = TinicApp::new(
+        let ctx = TinicAppCtx::new(
             retro_paths,
             core_path.clone(),
             rom_path.clone(),
             self.controller.clone(),
         )?;
+
+        let app = TinicApp::new(ctx);
 
         Ok(app)
     }
