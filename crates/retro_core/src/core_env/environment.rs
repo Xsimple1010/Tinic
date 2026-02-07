@@ -8,13 +8,14 @@ use crate::{
     },
     libretro_sys::{
         binding_libretro::{
-            retro_language, retro_log_level, retro_perf_callback, retro_rumble_effect,
+            retro_language::{self, RETRO_LANGUAGE_PORTUGUESE_BRAZIL},
+            retro_log_level, retro_perf_callback, retro_rumble_effect,
             RETRO_ENVIRONMENT_GET_LANGUAGE, RETRO_ENVIRONMENT_GET_LOG_INTERFACE,
             RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, RETRO_ENVIRONMENT_GET_PERF_INTERFACE,
             RETRO_ENVIRONMENT_GET_VARIABLE, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
             RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
         },
-        binding_log_interface,
+        binding_log_interface::configure_log_interface,
     },
     retro_perf::{
         core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
@@ -82,7 +83,7 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                 #[cfg(feature = "core_ev_logs")]
                 println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
 
-                *(data as *mut retro_language) = retro_language::RETRO_LANGUAGE_PORTUGUESE_BRAZIL;
+                *(data as *mut retro_language) = RETRO_LANGUAGE_PORTUGUESE_BRAZIL;
 
                 true
             }
@@ -90,7 +91,7 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                 #[cfg(feature = "core_ev_logs")]
                 println!("RETRO_ENVIRONMENT_GET_LOG_INTERFACE -> ok");
 
-                binding_log_interface::configure_log_interface(Some(core_log), data);
+                configure_log_interface(Some(core_log), data);
 
                 true
             }
@@ -130,7 +131,8 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                 true
             }
             _ => {
-                if env_cb_av(core_ctx, cmd, data) | env_cb_gamepad_io(core_ctx, cmd, data)
+                if env_cb_av(core_ctx, cmd, data)
+                    || env_cb_gamepad_io(core_ctx, cmd, data)
                     || env_cb_option(core_ctx, cmd, data)
                     || env_cb_directory(core_ctx, cmd, data)
                 {

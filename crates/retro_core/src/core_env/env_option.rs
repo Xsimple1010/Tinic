@@ -49,7 +49,7 @@ pub unsafe fn env_cb_option(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut
 
             core_ctx
                 .options
-                .change_visibility(get_str_from_ptr(option.key).as_str(), option.visible);
+                .change_visibility(&get_str_from_ptr(option.key), option.visible);
 
             true
         }
@@ -68,6 +68,11 @@ pub unsafe fn env_cb_option(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut
         RETRO_ENVIRONMENT_SET_VARIABLES => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_VARIABLES -> needed");
+            false
+        }
+        RETRO_ENVIRONMENT_SET_VARIABLE => {
+            #[cfg(feature = "core_ev_logs")]
+            println!("RETRO_ENVIRONMENT_SET_VARIABLE -> needed");
             false
         }
         RETRO_ENVIRONMENT_GET_VARIABLE => {
@@ -89,7 +94,7 @@ pub unsafe fn env_cb_option(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut
             let raw_variable = *(data as *const retro_variable);
             let key = get_str_from_ptr(raw_variable.key);
 
-            match core_ctx.options.get_opt_value(&key) {
+            match options_manager.get_opt_value(&key) {
                 Some(value) => {
                     let new_value = make_c_string(&value).unwrap();
 
@@ -100,12 +105,6 @@ pub unsafe fn env_cb_option(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut
                 _ => false,
             }
         }
-        RETRO_ENVIRONMENT_SET_VARIABLE => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_SET_VARIABLE -> needed");
-            false
-        }
-
         _ => false,
     }
 }
