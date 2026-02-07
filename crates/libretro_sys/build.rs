@@ -1,7 +1,7 @@
 use std::{env, path::PathBuf};
 
 fn libretro_tool() {
-    // let out_path = PathBuf::from("./src/binding");
+    // let out_path = PathBuf::from("./src");
 
     // Compile the C library
     cc::Build::new()
@@ -10,9 +10,9 @@ fn libretro_tool() {
 
     // // Generate bindings
     // let bindings = bindgen::Builder::default()
-    //     .header("src/libretro/log_interface.h")
+    //     .header("./src/libretro/log_interface.h")
     //     .allowlist_function(
-    //         "configure_log_interface|set_variable_value_as_null|set_new_value_variable|set_directory",
+    //         "configure_log_interface|set_hw_callback|set_new_value_variable|set_directory",
     //     )
     //     .allowlist_item("rs_cb_t")
     //     .clang_arg("-fparse-all-comments")
@@ -21,9 +21,9 @@ fn libretro_tool() {
     //     })
     //     .generate()
     //     .expect("Unable to generate bindings");
-    //
+
     // // Write the bindings to the $OUT_DIR/bindings.rs file.
-    //
+
     // bindings
     //     .write_to_file(out_path.join("binding_log_interface.rs"))
     //     .expect("Couldn't write bindings!");

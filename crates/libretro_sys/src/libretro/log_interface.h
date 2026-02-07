@@ -15,3 +15,10 @@ bool set_new_value_variable(void *data, const char *new_value);
 
 // enviar um diretório para o núcleo. pode ser usando nas callbacks RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY e RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY
 void set_directory(void *data, const char *new_directory);
+
+void set_hw_callback(
+    void *data,
+    retro_hw_context_reset_t context_reset,
+    retro_hw_get_current_framebuffer_t get_current_framebuffer,
+    retro_hw_context_reset_t context_destroy,
+    retro_hw_get_proc_address_t get_proc_address);

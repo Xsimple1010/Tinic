@@ -67,3 +67,18 @@ void set_directory(void *data, const char *new_directory)
         *dir = NULL;
     }
 }
+
+void set_hw_callback(
+    void *data,
+    retro_hw_context_reset_t context_reset,
+    retro_hw_get_current_framebuffer_t get_current_framebuffer,
+    retro_hw_context_reset_t context_destroy,
+    retro_hw_get_proc_address_t get_proc_address)
+{
+    struct retro_hw_render_callback *hw = (struct retro_hw_render_callback *)data;
+
+    hw->context_reset = context_reset;
+    hw->context_destroy = context_destroy;
+    hw->get_current_framebuffer = get_current_framebuffer;
+    hw->get_proc_address = get_proc_address;
+}

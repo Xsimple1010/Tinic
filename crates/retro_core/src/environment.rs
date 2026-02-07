@@ -519,16 +519,17 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
             #[cfg(feature = "core_logs")]
             println!("RETRO_ENVIRONMENT_SET_HW_RENDER");
 
-            let mut data = *(data as *mut retro_hw_render_callback);
+            if data.is_null() {
+                return false;
+            }
 
-            match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => {
-                    core_ctx
-                        .av_info
-                        .video
-                        .graphic_api
-                        .depth
-                        .store(data.depth, Ordering::SeqCst);
+            libretro_sys::binding_log_interface::set_hw_callback(
+                data,
+                Some(context_reset),
+                Some(get_current_frame_buffer),
+                Some(context_destroy),
+                Some(get_proc_address),
+            );
 
                     core_ctx
                         .av_info
