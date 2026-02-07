@@ -1,6 +1,6 @@
 use crate::{
     game_thread::game_thread_handle::GameThread,
-    generics::{erro_handle::ErroHandle, retro_paths::RetroPaths, types::TMutex},
+    generics::{erro_handle::ErroHandle, retro_paths::RetroPaths},
     libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR,
     retro_controllers::{
         devices_manager::{Device, DeviceListener},
@@ -14,7 +14,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 pub struct Tinic {
-    pub controller: Arc<TMutex<RetroController>>,
+    pub controller: Arc<RetroController>,
     pub core_options: Option<Arc<OptionManager>>,
     game_thread: Arc<GameThread>,
     retro_paths: Option<RetroPaths>,
@@ -33,7 +33,7 @@ impl Tinic {
             game_thread: game_thread.clone(),
             extern_listener: listener,
         };
-        let controller = TMutex::new(RetroController::new(Box::new(tinic_device_handle))?);
+        let controller = Arc::new(RetroController::new(Box::new(tinic_device_handle))?);
 
         Ok(Self {
             game_thread,

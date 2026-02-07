@@ -92,7 +92,7 @@ impl DevicesManager {
         })
     }
 
-    pub fn update_state(&mut self) -> Result<(), ErroHandle> {
+    pub fn update_state(&self) -> Result<(), ErroHandle> {
         RetroGamePad::update(
             &mut *self.gilrs.try_load()?,
             &self.connected_gamepads,

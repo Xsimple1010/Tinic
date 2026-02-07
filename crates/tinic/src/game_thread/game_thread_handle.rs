@@ -2,7 +2,6 @@ use super::game_thread_channel::GameThreadChannel;
 use super::stack_commands_handle::stack_commands_handle;
 use super::{game_thread_state::ThreadState, game_window_handle::game_window_handle};
 use generics::erro_handle::ErroHandle;
-use generics::types::ArcTMuxte;
 use retro_controllers::RetroController;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::{sync::Arc, thread};
@@ -21,7 +20,7 @@ impl GameThread {
         }
     }
 
-    pub fn start(&self, controller_ctx: ArcTMuxte<RetroController>) -> Result<(), ErroHandle> {
+    pub fn start(&self, controller_ctx: Arc<RetroController>) -> Result<(), ErroHandle> {
         if self.is_running.load(Ordering::SeqCst) {
             return Ok(());
         }
@@ -36,7 +35,7 @@ impl GameThread {
         self.is_running.load(Ordering::SeqCst)
     }
 
-    fn spawn_game_thread(&self, controller_ctx: ArcTMuxte<RetroController>) {
+    fn spawn_game_thread(&self, controller_ctx: Arc<RetroController>) {
         let is_running = self.is_running.clone();
         let controller_ctx = controller_ctx.clone();
         let channel_notify = self.channel.get_notify();

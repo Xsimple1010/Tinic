@@ -3,6 +3,7 @@ use generics::erro_handle::ErroHandle;
 use generics::types::TMutex;
 use generics::{constants::THREAD_SLEEP_TIME, types::ArcTMuxte};
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
+use std::sync::Arc;
 use std::{
     thread::{self, sleep},
     time::Duration,
@@ -20,11 +21,11 @@ impl EventThread {
         }
     }
 
-    pub fn stop(&mut self) {
+    pub fn stop(&self) {
         self.event_thread_can_run.store(false);
     }
 
-    pub fn resume(&mut self, devices: ArcTMuxte<DevicesManager>) -> Result<(), ErroHandle> {
+    pub fn resume(&self, devices: Arc<DevicesManager>) -> Result<(), ErroHandle> {
         let event_thread_can_run = *self.event_thread_can_run.load_or(false);
 
         if event_thread_can_run {
@@ -77,8 +78,8 @@ impl EventThread {
     /// *rom* em execução! Use o terceiro parâmetro 'event-thread-is-enabled' para encerar a
     /// execução da thread quando não precisar mais dela.
     fn create_update_devices_state_thread(
-        &mut self,
-        devices: ArcTMuxte<DevicesManager>,
+        &self,
+        devices: Arc<DevicesManager>,
         event_thread_is_enabled: ArcTMuxte<bool>,
     ) {
         thread::spawn(move || {
@@ -86,7 +87,7 @@ impl EventThread {
                 //WITHOUT THIS, WI HAVE A HIGH CPU UTILIZATION!
                 sleep(Duration::from_millis(THREAD_SLEEP_TIME));
 
-                devices.try_load().unwrap().update_state().unwrap();
+                devices.update_state().unwrap();
             }
         });
     }

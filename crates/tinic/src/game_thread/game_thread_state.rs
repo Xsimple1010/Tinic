@@ -3,7 +3,6 @@ use crate::thread_stack::main_stack::MainStackCommand::{
     self, GameLoaded, GameStateSaved, SaveStateLoaded,
 };
 use generics::constants::SAVE_IMAGE_EXTENSION_FILE;
-use generics::types::ArcTMuxte;
 use generics::{constants::THREAD_SLEEP_TIME, erro_handle::ErroHandle, retro_paths::RetroPaths};
 use libretro_sys::{
     binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE,
@@ -33,7 +32,7 @@ pub struct ThreadState {
     pub pause_request_new_frames: bool,
     pub use_full_screen_mode: bool,
     pub event_pump: Option<EventPump>,
-    controller_ctx: ArcTMuxte<RetroController>,
+    controller_ctx: Arc<RetroController>,
     retro_core: Option<RetroCoreIns>,
     retro_av: Option<RetroAv>,
 }
@@ -64,18 +63,15 @@ impl ThreadState {
             }
         };
 
-        if let Ok(mut ctr) = self.controller_ctx.try_load() {
-            ctr.stop_thread_events();
+        self.controller_ctx.stop_thread_events();
 
-            //Pode ser que essa não seja a primeira vez que um game está sendo
-            //executada. Então por garantia o ideal é conectar todos os devices
-            //que ja existem agora! E depois os próximos conforme forem chegando.
-            for gamepad in ctr.get_list()? {
-                self.channel_notify
-                    .notify_game_stack(DeviceConnected(Device::from_gamepad(&gamepad)))
-            }
+        //Pode ser que essa não seja a primeira vez que um game está sendo
+        //executada. Então por garantia o ideal é conectar todos os devices
+        //que ja existem agora! E depois os próximos conforme forem chegando.
+        for gamepad in self.controller_ctx.get_list()? {
+            self.channel_notify
+                .notify_game_stack(DeviceConnected(Device::from_gamepad(&gamepad)))
         }
-
         Ok(())
     }
 
@@ -122,17 +118,15 @@ impl ThreadState {
     }
 
     pub fn pause(&mut self) -> Result<(), ErroHandle> {
-        self.controller_ctx.try_load()?.resume_thread_events()?;
+        self.controller_ctx.resume_thread_events()?;
         self.pause_request_new_frames = true;
 
         Ok(())
     }
 
-    pub fn resume(&mut self) -> Result<(), ErroHandle> {
-        self.controller_ctx.try_load()?.stop_thread_events();
+    pub fn resume(&mut self) {
+        self.controller_ctx.stop_thread_events();
         self.pause_request_new_frames = false;
-
-        Ok(())
     }
 
     pub fn reset(&self) -> Result<(), ErroHandle> {
@@ -166,7 +160,7 @@ impl ThreadState {
 impl ThreadState {
     pub fn new(
         channel_notify: GameThreadGenericNotify,
-        controller_ctx: ArcTMuxte<RetroController>,
+        controller_ctx: Arc<RetroController>,
         is_running: Arc<AtomicBool>,
     ) -> Self {
         Self {
@@ -215,7 +209,7 @@ impl ThreadState {
 
         //configura as callbacks para o core
         let (video_cb, audio_cb) = retro_av.get_core_cb();
-        let controller_cb = self.controller_ctx.try_load()?.get_core_cb();
+        let controller_cb = self.controller_ctx.get_core_cb();
 
         let callbacks = RetroEnvCallbacks {
             controller: Box::new(controller_cb),
@@ -269,9 +263,7 @@ impl Drop for ThreadState {
 
         //Para garantir que essa thread será fechada dando a posse da leitura dos inputs para a
         //thread de inputs novamente.
-        if let Ok(mut ctr) = self.controller_ctx.try_load() {
-            let _ = ctr.resume_thread_events();
-        }
+        let _ = self.controller_ctx.resume_thread_events();
 
         //retro-core nao implementa drop então chamar de_init() depois de terminar de usar é necessário.
         if let Some(core) = self.retro_core.take() {

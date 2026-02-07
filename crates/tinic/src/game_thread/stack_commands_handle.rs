@@ -13,7 +13,7 @@ pub fn stack_commands_handle(state: &mut ThreadState) -> Result<(), ErroHandle> 
             SaveState(slot) => state.save_state(slot)?,
             LoadState(slot) => state.load_state(slot)?,
             Pause => state.pause()?,
-            Resume => state.resume()?,
+            Resume => state.resume(),
             Reset => state.reset()?,
             EnableFullScreen => state.enable_full_screen()?,
             DisableFullScreen => state.disable_full_screen()?,
