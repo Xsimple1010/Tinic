@@ -25,11 +25,9 @@ reqwest = "0.12.12"
 zip = "2.2.2"
 sevenz-rust = "0.6.1"
 gilrs = "0.11.0"
-pc-keyboard = "0.8.0"
 image = "0.25.5"
 rodio = "0.20.1"
 raw-cpuid = "11.3.0"
-# sdl2 = { version = "0.37.0", features = ["bundled"] }
 uuid = { features = ["v4"], version = "1.12.1" }
 bindgen = "0.71.1"
 libloading = "0.8.6"
