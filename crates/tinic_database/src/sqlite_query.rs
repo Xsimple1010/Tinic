@@ -34,7 +34,7 @@ pub fn get_create_game_table_query() -> &'static str {
     CREATE INDEX IF NOT EXISTS idx_game_console_name ON game_info (console_name);
     CREATE INDEX IF NOT EXISTS idx_game_last_played ON game_info (last_played_at DESC);
 
-    CREATE UNIQUE INDEX IF NOT EXISTS ux_game_crc_console ON game_info (crc32, console_name);
+    CREATE INDEX IF NOT EXISTS ux_game_crc_console ON game_info (crc32, console_name);
     "
 }
 

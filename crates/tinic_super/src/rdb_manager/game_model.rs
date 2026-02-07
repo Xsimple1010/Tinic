@@ -19,6 +19,7 @@ pub struct GameInfo {
     pub serial: Option<String>,
     pub rumble: bool,
     pub rdb_name: String,
+    pub last_played_at: i64,
 }
 
 #[derive(Deserialize)]
