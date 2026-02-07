@@ -126,11 +126,10 @@ impl DeviceListener for DeviceHandle {
     fn disconnected(&self, device: RetroGamePad) {
         let mut invalid_proxy = false;
 
-        if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref() {
-            if dispatcher.enable_keyboard().is_err() {
+        if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref()
+            && dispatcher.enable_keyboard().is_err() {
                 invalid_proxy = true;
             }
-        }
 
         if invalid_proxy {
             self.dispatcher.store(None);

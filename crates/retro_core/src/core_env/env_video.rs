@@ -2,19 +2,19 @@ use super::environment::CORE_CONTEXT;
 #[cfg(feature = "hw")]
 use crate::libretro_sys::{
     binding_libretro::{
-        RETRO_ENVIRONMENT_EXPERIMENTAL, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
-        RETRO_ENVIRONMENT_SET_HW_RENDER, retro_hw_context_type, retro_hw_render_callback,
-        retro_proc_address_t,
+        retro_hw_context_type, retro_hw_render_callback,
+        retro_proc_address_t, RETRO_ENVIRONMENT_EXPERIMENTAL, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
+        RETRO_ENVIRONMENT_SET_HW_RENDER,
     },
     binding_log_interface,
 };
 use crate::{
-    RetroCoreIns,
     libretro_sys::binding_libretro::{
-        RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE, RETRO_ENVIRONMENT_SET_GEOMETRY,
-        RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, retro_game_geometry, retro_pixel_format,
+        retro_game_geometry, retro_pixel_format,
+        RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE, RETRO_ENVIRONMENT_SET_GEOMETRY, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
     },
     tools::validation::InputValidator,
+    RetroCoreIns,
 };
 use generics::error_handle::ErrorHandle;
 #[cfg(feature = "hw")]
@@ -26,15 +26,15 @@ use std::{
 
 pub unsafe extern "C" fn audio_sample_callback(left: i16, right: i16) {
     unsafe {
-        if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-            if let Err(e) = core_ctx.callbacks.audio.audio_sample_callback(
+        if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT)
+            && let Err(e) = core_ctx.callbacks.audio.audio_sample_callback(
                 left,
                 right,
                 core_ctx.av_info.clone(),
-            ) {
-                println!("{:?}", e);
-                let _ = core_ctx.de_init();
-            }
+            )
+        {
+            println!("{:?}", e);
+            let _ = core_ctx.de_init();
         }
     }
 }
@@ -64,20 +64,19 @@ pub unsafe extern "C" fn audio_sample_batch_callback(data: *const i16, frames: u
 
 pub unsafe extern "C" fn video_refresh_callback(
     data: *const c_void,
-    width: c_uint,
-    height: c_uint,
+    width: ::std::os::raw::c_uint,
+    height: ::std::os::raw::c_uint,
     pitch: usize,
 ) {
     unsafe {
-        if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-            if let Err(e) = core_ctx
+        if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT)
+            && let Err(e) = core_ctx
                 .callbacks
                 .video
                 .video_refresh_callback(data, width, height, pitch)
-            {
-                println!("{:?}", e);
-                let _ = core_ctx.de_init();
-            }
+        {
+            println!("{:?}", e);
+            let _ = core_ctx.de_init();
         }
     }
 }

@@ -145,7 +145,7 @@ impl AudioResample {
 
         let waves_out = resampler.process(&waves_in, None).unwrap();
 
-        Self::waves_to_frontbuffer(&waves_out, front_buffer_prod);
+        Self::waves_to_front_buffer(&waves_out, front_buffer_prod);
     }
 
     fn samples_to_waves(samples: &[i16], channels: u16) -> Vec<Vec<f64>> {
@@ -170,7 +170,7 @@ impl AudioResample {
         vec![left, right]
     }
 
-    fn waves_to_frontbuffer(waves: &Vec<Vec<f64>>, front_buffer: &mut BufferProd) {
+    fn waves_to_front_buffer(waves: &[Vec<f64>], front_buffer: &mut BufferProd) {
         let left = &waves[0];
         let right = &waves[1];
 

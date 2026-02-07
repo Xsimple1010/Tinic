@@ -143,7 +143,7 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
         }
 
         if let Some(win) = &mut *self.window_ctx.try_load()? {
-            win.draw_new_frame(&*texture);
+            win.draw_new_frame(&texture);
         }
 
         Ok(())
