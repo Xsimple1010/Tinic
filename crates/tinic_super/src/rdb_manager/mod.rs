@@ -1,4 +1,7 @@
-mod crc32;
-pub mod game;
+// mod crc32;
+pub mod crc32;
+mod download;
+pub mod game_identifier;
+pub mod game_model;
 pub mod helper;
-pub mod rdb;
+pub mod rdb_parser;

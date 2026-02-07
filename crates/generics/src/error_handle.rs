@@ -1,7 +1,9 @@
+use sqlite::Error;
 use std::{
     ffi::NulError,
     sync::{MutexGuard, PoisonError, RwLockReadGuard, RwLockWriteGuard},
 };
+
 #[derive(Debug)]
 pub struct ErrorHandle {
     pub message: String,
@@ -57,6 +59,14 @@ impl From<NulError> for ErrorHandle {
     fn from(value: NulError) -> Self {
         ErrorHandle {
             message: "Erro ao tentar criar um cString: ".to_string() + value.to_string().as_str(),
+        }
+    }
+}
+
+impl From<Error> for ErrorHandle {
+    fn from(value: Error) -> Self {
+        Self {
+            message: value.to_string(),
         }
     }
 }

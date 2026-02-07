@@ -1,5 +1,5 @@
 use serde::de::{MapAccess, Visitor};
-use serde::{de, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, de};
 use std::fmt;
 
 #[derive(Debug, Default)]

@@ -1,11 +1,10 @@
 use crate::event::TinicSuperEventListener;
-use crate::FileProgress;
 use sevenz_rust::Error;
 use std::collections::HashMap;
 use std::io::BufWriter;
 use std::sync::Arc;
 use std::{
-    fs::{create_dir_all, File},
+    fs::{File, create_dir_all},
     io::{Read, Write},
     path::PathBuf,
 };
@@ -56,11 +55,16 @@ pub fn extract_zip_file(
 pub enum SevenZipBeforeExtractionAction {
     Extract,
     Jump,
+    Stop,
 }
 
-pub fn extract_7zip_file<CP>(src_path: PathBuf, dest: String, before_extraction: CP)
-where
-    CP: Fn(FileProgress) -> SevenZipBeforeExtractionAction + Copy,
+pub fn extract_7zip_file<CP>(
+    src_path: PathBuf,
+    dest: String,
+    event_listener: Arc<dyn TinicSuperEventListener>,
+    mut before_extraction: CP,
+) where
+    CP: FnMut(String, &Arc<dyn TinicSuperEventListener>) -> SevenZipBeforeExtractionAction,
 {
     let dest_path = PathBuf::from(dest);
     let mut used_names = HashMap::<String, usize>::new();
@@ -89,7 +93,7 @@ where
             };
             *count += 1;
 
-            let action = before_extraction(FileProgress::Extract(final_name.clone()));
+            let action = before_extraction(final_name.clone(), &event_listener);
 
             match action {
                 SevenZipBeforeExtractionAction::Jump => {
@@ -98,12 +102,16 @@ where
                     Ok(true)
                 }
                 SevenZipBeforeExtractionAction::Extract => {
-                    let file_path = dest_path.join(final_name);
+                    let file_path = dest_path.join(final_name.clone());
                     let file = File::create(&file_path)?;
                     let mut writer = BufWriter::new(file);
                     std::io::copy(reader, &mut writer)?;
+
+                    event_listener.extract_file(final_name);
+
                     Ok(true)
                 }
+                SevenZipBeforeExtractionAction::Stop => Ok(false),
             }
         },
     );

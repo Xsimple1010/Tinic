@@ -1,5 +1,5 @@
-use crate::download::download_file;
 use crate::event::TinicSuperEventListener;
+use crate::tools::download::download_file;
 use generics::constants::THUMBNAIL_BASE_URL;
 use generics::error_handle::ErrorHandle;
 use std::fmt::{Display, Formatter};

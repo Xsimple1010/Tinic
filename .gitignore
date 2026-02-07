@@ -1,4 +1,4 @@
 /target
-/retro_out_test
+*/**/tinic_test_workspace
 *.so
 *.dll
