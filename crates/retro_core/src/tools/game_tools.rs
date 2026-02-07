@@ -44,7 +44,7 @@ fn valid_rom_extension(ctx: &CoreWrapper, path: &Path) -> Result<(), ErroHandle>
 fn get_save_path(ctx: &CoreWrapper, slot: usize) -> Result<PathBuf, ErroHandle> {
     let mut path = PathBuf::from(ctx.paths.save.to_string());
 
-    path.push(&*ctx.system.info.library_name.as_str());
+    path.push(ctx.system.info.library_name.as_str());
     path.push(&*ctx.rom_name.lock().unwrap());
 
     if !path.exists() {

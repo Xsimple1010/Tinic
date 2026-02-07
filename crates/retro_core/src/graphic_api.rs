@@ -63,7 +63,7 @@ impl GraphicApi {
     /// # Safety
     ///
     /// Garanta que o ponteiro *hw_raw_ptr* é valido antes de envia para essa função.
-    pub fn try_update_from_raw(&self, hw_raw_ptr: *const retro_hw_render_callback) -> bool {
+    pub unsafe fn try_update_from_raw(&self, hw_raw_ptr: *const retro_hw_render_callback) -> bool {
         if hw_raw_ptr.is_null() {
             return false;
         }

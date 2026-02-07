@@ -49,7 +49,7 @@ pub unsafe fn env_cb_gamepad_io(
     cmd: c_uint,
     data: *mut c_void,
 ) -> bool {
-    return match cmd {
+    match cmd {
         RETRO_ENVIRONMENT_GET_INPUT_BITMASKS => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_INPUT_BITMASKS -> ok");
@@ -69,7 +69,7 @@ pub unsafe fn env_cb_gamepad_io(
         RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS -> ok");
-            return false;
+            false
         }
         RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE => {
             #[cfg(feature = "core_ev_logs")]
@@ -78,9 +78,9 @@ pub unsafe fn env_cb_gamepad_io(
             let mut rumble_raw = *(data as *mut retro_rumble_interface);
             rumble_raw.set_rumble_state = Some(rumble_callback);
 
-            return true;
+            true
         }
 
         _ => false,
-    };
+    }
 }

@@ -1,3 +1,5 @@
+#[cfg(feature = "core_logs")]
+use crate::tools::ffi_tools::get_str_from_ptr;
 use crate::{
     core::CoreWrapper,
     core_env::{
@@ -67,110 +69,107 @@ unsafe extern "C" fn core_log(_level: retro_log_level, _log: *const c_char) {
 }
 
 pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> bool {
-    return match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => {
-            return match cmd {
-                RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME => {
-                    #[cfg(feature = "core_ev_logs")]
-                    println!("RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME -> ok");
+    match &*addr_of!(CORE_CONTEXT) {
+        Some(core_ctx) => match cmd {
+            RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME => {
+                #[cfg(feature = "core_ev_logs")]
+                println!("RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME -> ok");
 
-                    core_ctx
-                        .support_no_game
-                        .store(*(data as *mut bool), Ordering::SeqCst);
+                core_ctx
+                    .support_no_game
+                    .store(*(data as *mut bool), Ordering::SeqCst);
 
-                    true
-                }
-                RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY => {
-                    #[cfg(feature = "core_ev_logs")]
-                    println!("RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY -> ok");
-
-                    let sys_dir = make_c_string(&core_ctx.paths.system).unwrap();
-
-                    binding_log_interface::set_directory(data, sys_dir.as_ptr());
-
-                    true
-                }
-                RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY => {
-                    #[cfg(feature = "core_ev_logs")]
-                    println!("RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY -> ok");
-
-                    let save_dir = make_c_string(&core_ctx.paths.save).unwrap();
-
-                    binding_log_interface::set_directory(data, save_dir.as_ptr());
-
-                    true
-                }
-                RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY => {
-                    #[cfg(feature = "core_ev_logs")]
-                    println!("RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY -> ok");
-
-                    let assents_dir = make_c_string(&core_ctx.paths.assets).unwrap();
-
-                    binding_log_interface::set_directory(data, assents_dir.as_ptr());
-
-                    true
-                }
-                RETRO_ENVIRONMENT_GET_LANGUAGE => {
-                    #[cfg(feature = "core_ev_logs")]
-                    println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
-
-                    *(data as *mut retro_language) = *core_ctx.language.lock().unwrap();
-
-                    true
-                }
-                RETRO_ENVIRONMENT_GET_LOG_INTERFACE => {
-                    #[cfg(feature = "core_ev_logs")]
-                    println!("RETRO_ENVIRONMENT_GET_LOG_INTERFACE -> ok");
-
-                    binding_log_interface::configure_log_interface(Some(core_log), data);
-
-                    true
-                }
-                RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO => {
-                    #[cfg(feature = "core_ev_logs")]
-                    println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
-
-                    let raw_subsystem =
-                        *(data as *mut [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]);
-
-                    core_ctx.system.get_subsystem(raw_subsystem);
-                    true
-                }
-                RETRO_ENVIRONMENT_GET_PERF_INTERFACE => {
-                    #[cfg(feature = "core_ev_logs")]
-                    println!("RETRO_ENVIRONMENT_GET_PERF_INTERFACE -> ok");
-
-                    let mut perf = *(data as *mut retro_perf_callback);
-
-                    perf.get_time_usec = Some(get_features_get_time_usec);
-                    perf.get_cpu_features = Some(get_cpu_features);
-                    perf.get_perf_counter = Some(core_get_perf_counter);
-                    perf.perf_register = Some(core_perf_register);
-                    perf.perf_start = Some(core_perf_start);
-                    perf.perf_stop = Some(core_perf_stop);
-                    perf.perf_log = Some(core_perf_log);
-
-                    true
-                }
-                _ => {
-                    if env_cb_av(&core_ctx, cmd, data) | env_cb_gamepad_io(&core_ctx, cmd, data)
-                        || env_cb_option(&core_ctx, cmd, data)
-                    {
-                        return true;
-                    }
-
-                    if cmd != RETRO_ENVIRONMENT_GET_VARIABLE
-                        && cmd != RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS
-                    {
-                        println!("new core cmd -> {:?}", cmd);
-                    }
-
-                    false
-                }
+                true
             }
-        }
+            RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY => {
+                #[cfg(feature = "core_ev_logs")]
+                println!("RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY -> ok");
+
+                let sys_dir = make_c_string(&core_ctx.paths.system).unwrap();
+
+                binding_log_interface::set_directory(data, sys_dir.as_ptr());
+
+                true
+            }
+            RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY => {
+                #[cfg(feature = "core_ev_logs")]
+                println!("RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY -> ok");
+
+                let save_dir = make_c_string(&core_ctx.paths.save).unwrap();
+
+                binding_log_interface::set_directory(data, save_dir.as_ptr());
+
+                true
+            }
+            RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY => {
+                #[cfg(feature = "core_ev_logs")]
+                println!("RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY -> ok");
+
+                let assents_dir = make_c_string(&core_ctx.paths.assets).unwrap();
+
+                binding_log_interface::set_directory(data, assents_dir.as_ptr());
+
+                true
+            }
+            RETRO_ENVIRONMENT_GET_LANGUAGE => {
+                #[cfg(feature = "core_ev_logs")]
+                println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
+
+                *(data as *mut retro_language) = *core_ctx.language.lock().unwrap();
+
+                true
+            }
+            RETRO_ENVIRONMENT_GET_LOG_INTERFACE => {
+                #[cfg(feature = "core_ev_logs")]
+                println!("RETRO_ENVIRONMENT_GET_LOG_INTERFACE -> ok");
+
+                binding_log_interface::configure_log_interface(Some(core_log), data);
+
+                true
+            }
+            RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO => {
+                #[cfg(feature = "core_ev_logs")]
+                println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
+
+                let raw_subsystem = *(data as *mut [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]);
+
+                core_ctx.system.get_subsystem(raw_subsystem);
+                true
+            }
+            RETRO_ENVIRONMENT_GET_PERF_INTERFACE => {
+                #[cfg(feature = "core_ev_logs")]
+                println!("RETRO_ENVIRONMENT_GET_PERF_INTERFACE -> ok");
+
+                let mut perf = *(data as *mut retro_perf_callback);
+
+                perf.get_time_usec = Some(get_features_get_time_usec);
+                perf.get_cpu_features = Some(get_cpu_features);
+                perf.get_perf_counter = Some(core_get_perf_counter);
+                perf.perf_register = Some(core_perf_register);
+                perf.perf_start = Some(core_perf_start);
+                perf.perf_stop = Some(core_perf_stop);
+                perf.perf_log = Some(core_perf_log);
+
+                true
+            }
+            _ => {
+                if env_cb_av(core_ctx, cmd, data) | env_cb_gamepad_io(core_ctx, cmd, data)
+                    || env_cb_option(core_ctx, cmd, data)
+                {
+                    return true;
+                }
+
+                if cmd != RETRO_ENVIRONMENT_GET_VARIABLE
+                    && cmd != RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS
+                {
+                    println!("new core cmd -> {:?}", cmd);
+                }
+
+                false
+            }
+        },
         None => false,
-    };
+    }
 }
 
 //TODO: novos teste para "fn core_environment"

@@ -1,16 +1,18 @@
-use crate::core::CoreWrapper;
 #[cfg(feature = "hw")]
 use crate::libretro_sys::{
     binding_libretro::{
         retro_hw_context_type, retro_hw_render_callback, retro_proc_address_t,
         RETRO_ENVIRONMENT_EXPERIMENTAL, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
-        RETRO_ENVIRONMENT_SET_HW_RENDER, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
+        RETRO_ENVIRONMENT_SET_HW_RENDER,
     },
     binding_log_interface,
 };
-use libretro_sys::binding_libretro::{
-    retro_game_geometry, retro_pixel_format, RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE,
-    RETRO_ENVIRONMENT_SET_GEOMETRY, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
+use crate::{
+    core::CoreWrapper,
+    libretro_sys::binding_libretro::{
+        retro_game_geometry, retro_pixel_format, RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE,
+        RETRO_ENVIRONMENT_SET_GEOMETRY, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
+    },
 };
 #[cfg(feature = "hw")]
 use std::{ffi::c_char, mem};
@@ -105,7 +107,7 @@ unsafe extern "C" fn context_destroy() {
 }
 
 pub unsafe fn env_cb_av(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut c_void) -> bool {
-    return match cmd {
+    match cmd {
         RETRO_ENVIRONMENT_SET_GEOMETRY => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_GEOMETRY -> ok");
@@ -171,5 +173,5 @@ pub unsafe fn env_cb_av(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut c_v
         }
 
         _ => false,
-    };
+    }
 }

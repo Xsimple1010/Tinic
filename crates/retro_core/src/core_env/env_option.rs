@@ -21,7 +21,7 @@ use crate::{
 };
 
 pub unsafe fn env_cb_option(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut c_void) -> bool {
-    return match cmd {
+    match cmd {
         RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION -> ok");
@@ -54,7 +54,7 @@ pub unsafe fn env_cb_option(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut
             true
         }
         RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK => {
-            // #[cfg(feature = "core_ev_logs")]
+            #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK -> need");
             false
         }
@@ -89,7 +89,7 @@ pub unsafe fn env_cb_option(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut
             let raw_variable = *(data as *const retro_variable);
             let key = get_str_from_ptr(raw_variable.key);
 
-            return match core_ctx.options.get_opt_value(&key) {
+            match core_ctx.options.get_opt_value(&key) {
                 Some(value) => {
                     let new_value = make_c_string(&value).unwrap();
 
@@ -98,7 +98,7 @@ pub unsafe fn env_cb_option(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut
                     true
                 }
                 _ => false,
-            };
+            }
         }
         RETRO_ENVIRONMENT_SET_VARIABLE => {
             #[cfg(feature = "core_ev_logs")]
@@ -107,5 +107,5 @@ pub unsafe fn env_cb_option(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut
         }
 
         _ => false,
-    };
+    }
 }
