@@ -17,7 +17,7 @@ use crate::video::RawTextureData;
 use generics::erro_handle::ErroHandle;
 use glutin::prelude::GlDisplay;
 use retro_core::av_info::{AvInfo, Geometry};
-use std::{cell::UnsafeCell, ffi::CString, mem::size_of, sync::atomic::Ordering};
+use std::{ffi::CString, mem::size_of, sync::atomic::Ordering};
 use std::{rc::Rc, sync::Arc};
 
 pub struct Render {

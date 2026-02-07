@@ -16,6 +16,7 @@ use glutin::{
 use glutin_winit::{DisplayBuilder, GlWindow};
 use raw_window_handle::HasWindowHandle;
 use retro_core::av_info::{AvInfo, Geometry};
+use winit::window::Fullscreen;
 
 pub struct RetroGlWindow {
     renderer: Render,
@@ -78,7 +79,9 @@ impl RetroVideoAPi for RetroGlWindow {
         todo!("get_proc_address ainda nao foi criado")
     }
 
-    fn full_screen(&mut self) {}
+    fn set_full_screen(&mut self, mode: Fullscreen) {
+        self.window.set_fullscreen(Some(mode));
+    }
 
     fn context_destroy(&mut self) {
         todo!("context_destroy ainda nao foi criado")

@@ -7,11 +7,7 @@ use retro_controllers::RetroController;
 use retro_core::{graphic_api::GraphicApi, RetroCore, RetroCoreIns, RetroEnvCallbacks};
 use std::{path::PathBuf, sync::Arc};
 use winit::{
-    application::ApplicationHandler,
-    event::WindowEvent,
-    event_loop::ActiveEventLoop,
-    keyboard::{KeyCode, PhysicalKey},
-    window::WindowId,
+    application::ApplicationHandler, event::WindowEvent, event_loop::ActiveEventLoop, keyboard::{KeyCode, PhysicalKey}, monitor::VideoModeHandle, window::{Fullscreen, WindowId}
 };
 
 pub struct TinicApp {
@@ -21,6 +17,7 @@ pub struct TinicApp {
     controller: Arc<RetroController>,
     retro_av: RetroAv,
     retro_core: Option<RetroCoreIns>,
+    current_full_creen_mode: Fullscreen,
 }
 
 impl TinicApp {
@@ -37,6 +34,7 @@ impl TinicApp {
             retro_av: RetroAv::new().unwrap(),
             retro_core: None,
             controller,
+            current_full_creen_mode: Fullscreen::Exclusive()
         }
     }
 }
@@ -94,6 +92,7 @@ impl ApplicationHandler for TinicApp {
                 PhysicalKey::Code(KeyCode::F5) => self.reset(),
                 PhysicalKey::Code(KeyCode::F1) => self.save_state(1),
                 PhysicalKey::Code(KeyCode::F2) => self.load_state(1),
+                PhysicalKey::Code(KeyCode::F11) => self.toggle_full_screen_mode(),
                 _ => Ok(()),
             },
             _ => Ok(()),
@@ -166,5 +165,14 @@ impl TinicApp {
 
     fn print_screen(&self, out_path: &PathBuf) -> Result<(), ErroHandle> {
         self.retro_av.print_screen(out_path)
+    }
+
+    fn toggle_full_screen_mode(&mut self) -> Result<(), ErroHandle> {
+
+        let mode = match self.current_full_creen_mode {
+
+        }
+
+        self.retro_av.set_full_screen(mode)
     }
 }

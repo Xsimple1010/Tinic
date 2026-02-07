@@ -7,6 +7,7 @@ use retro_core::av_info::AvInfo;
 use std::path::Path;
 use std::sync::Arc;
 use winit::event_loop::ActiveEventLoop;
+use winit::window::Fullscreen;
 
 pub struct RetroAv {
     video: RetroVideo,
@@ -64,6 +65,10 @@ impl RetroAv {
         } else {
             Ok(())
         }
+    }
+
+    pub fn set_full_screen(&mut self, mode: Fullscreen) -> Result<(), ErroHandle> {
+        self.video.set_full_screen(mode)
     }
 
     pub fn sync(&mut self) -> bool {

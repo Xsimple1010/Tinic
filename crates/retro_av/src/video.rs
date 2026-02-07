@@ -17,7 +17,7 @@ use std::{
     ptr::null,
     sync::Arc,
 };
-use winit::event_loop::ActiveEventLoop;
+use winit::{event_loop::ActiveEventLoop, window::Fullscreen};
 
 pub struct RawTextureData {
     pub data: UnsafeCell<*const c_void>,
@@ -50,7 +50,7 @@ pub trait RetroVideoAPi {
 
     fn get_proc_address(&self, proc_name: &str) -> *const ();
 
-    fn full_screen(&mut self);
+    fn set_full_screen(&mut self, mode: Fullscreen);
 
     fn context_destroy(&mut self);
 
@@ -120,7 +120,10 @@ impl RetroVideo {
         )
     }
 
-    pub fn full_screen(&self) -> Result<(), ErroHandle> {
+    pub fn set_full_screen(&mut self, mode: Fullscreen) -> Result<(), ErroHandle> {
+        if let Some(win) = &mut *self.window_ctx.try_load()? {
+            win.set_full_screen(mode);
+        }
         Ok(())
     }
 

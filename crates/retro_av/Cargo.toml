@@ -15,6 +15,7 @@ winit.workspace = true
 glutin.workspace = true
 raw-window-handle.workspace = true
 glutin-winit.workspace = true
+vulkano.workspace = true
 
 [build-dependencies]
 cfg_aliases.workspace = true

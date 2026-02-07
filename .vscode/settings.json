@@ -23,6 +23,8 @@
         "tinic",
         "usec",
         "uuid",
-        "Uuid"
+        "Uuid",
+        "vulkan",
+        "vulkano"
     ]
 }
