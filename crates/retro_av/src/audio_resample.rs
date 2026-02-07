@@ -11,7 +11,8 @@ use ringbuf::{
 use rubato::{
     Resampler, SincFixedIn, SincInterpolationParameters, SincInterpolationType, WindowFunction,
 };
-use std::thread::{self, JoinHandle};
+use std::thread::{self, sleep, JoinHandle};
+use std::time::Duration;
 
 #[derive(Clone)]
 pub struct AudioResample {
@@ -110,6 +111,8 @@ impl AudioResample {
                         &front_metadata,
                     );
                 }
+
+                sleep(Duration::from_millis(3));
             }
         });
 
