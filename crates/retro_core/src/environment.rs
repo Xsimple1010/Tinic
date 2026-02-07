@@ -350,12 +350,8 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
 
             match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => {
-                    if !core_ctx.options.opts.lock().unwrap().is_empty() {
-                        if core_ctx.options.updated_count.load(Ordering::SeqCst) > 0 {
-                            *(data as *mut bool) = true;
-                        } else {
-                            *(data as *mut bool) = false;
-                        }
+                    if core_ctx.options.updated_count.load(Ordering::SeqCst) > 0 {
+                        *(data as *mut bool) = true;
                     } else {
                         *(data as *mut bool) = false;
                     }
