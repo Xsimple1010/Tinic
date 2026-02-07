@@ -5,9 +5,9 @@ use async_std::task;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
-use retro_ab::option_manager::OptionManager;
 use retro_controllers::devices_manager::{Device, DeviceState, DeviceStateListener};
 use retro_controllers::RetroController;
+use retro_core::option_manager::OptionManager;
 use std::sync::{Arc, Mutex, RwLock};
 
 static DEVICE_STATE_LISTENER: RwLock<Option<DeviceStateListener>> = RwLock::new(None);

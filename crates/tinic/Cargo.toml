@@ -5,7 +5,7 @@ edition = "2021"
 
 
 [dependencies]
-retro_ab.workspace = true
+retro_core.workspace = true
 retro_controllers.workspace = true
 retro_av.workspace = true
 async-std.workspace = true

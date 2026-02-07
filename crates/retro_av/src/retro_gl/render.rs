@@ -16,7 +16,7 @@ use super::{
     vertex_array::VertexArray,
 };
 use generics::erro_handle::ErroHandle;
-use retro_ab::core::{AvInfo, Geometry};
+use retro_core::core::{AvInfo, Geometry};
 use std::mem::size_of;
 use std::{rc::Rc, sync::Arc};
 

@@ -1,4 +1,4 @@
-use retro_ab::core::Geometry;
+use retro_core::core::Geometry;
 
 use super::texture::TexturePosition;
 

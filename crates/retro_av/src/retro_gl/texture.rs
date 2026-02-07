@@ -2,7 +2,7 @@ use super::{gl::gl, pixel::Pixel};
 use crate::video::RawTextureData;
 use generics::erro_handle::ErroHandle;
 use gl::types::GLuint;
-use retro_ab::core::AvInfo;
+use retro_core::core::AvInfo;
 use std::{ptr::null, rc::Rc, sync::Arc};
 
 pub type TexturePosition = [f32; 2];

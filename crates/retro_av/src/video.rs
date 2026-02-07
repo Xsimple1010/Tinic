@@ -4,7 +4,7 @@ use libretro_sys::binding_libretro::{
     retro_hw_context_type::{RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL_CORE},
     retro_log_level,
 };
-use retro_ab::core::AvInfo;
+use retro_core::core::AvInfo;
 use sdl2::Sdl;
 use std::{
     ffi::{c_uint, c_void},

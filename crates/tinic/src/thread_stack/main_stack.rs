@@ -1,5 +1,5 @@
 use crate::thread_stack::model_stack::{ModelStackManager, RetroStackFn};
-use retro_ab::option_manager::OptionManager;
+use retro_core::option_manager::OptionManager;
 use std::sync::Arc;
 
 pub type SavePath = String;

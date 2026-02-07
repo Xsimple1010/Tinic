@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-retro_ab.workspace = true
+retro_core.workspace = true
 rodio.workspace = true
 sdl2.workspace = true
 image.workspace = true

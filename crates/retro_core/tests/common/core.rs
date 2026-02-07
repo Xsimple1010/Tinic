@@ -1,7 +1,7 @@
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_NONE;
-use retro_ab::test_tools;
-use retro_ab::RetroCore;
+use retro_core::test_tools;
+use retro_core::RetroCore;
 
 pub fn setup() -> Result<RetroCore, ErroHandle> {
     RetroCore::new(

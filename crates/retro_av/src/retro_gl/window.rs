@@ -2,7 +2,7 @@ use super::{gl::gl, render::Render};
 use crate::video::RetroVideoAPi;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
-use retro_ab::core::AvInfo;
+use retro_core::core::AvInfo;
 use sdl2::video::FullscreenType;
 use sdl2::{
     video::{GLContext, GLProfile, Window},

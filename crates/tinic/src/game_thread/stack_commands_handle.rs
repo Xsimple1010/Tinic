@@ -13,7 +13,6 @@ use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::{
     retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE, retro_log_level::RETRO_LOG_ERROR,
 };
-use retro_ab::{core::RetroEnvCallbacks, RetroCore};
 use retro_av::{
     audio_sample_batch_callback, audio_sample_callback, get_proc_address, video_refresh_callback,
     EventPump, RetroAv,
@@ -21,6 +20,7 @@ use retro_av::{
 use retro_controllers::{
     input_poll_callback, input_state_callback, rumble_callback, RetroController,
 };
+use retro_core::{core::RetroEnvCallbacks, RetroCore};
 use std::sync::{Arc, Mutex};
 
 fn teste() {}
@@ -51,7 +51,7 @@ fn create_retro_contexts(
 
     Err(ErroHandle {
         level: RETRO_LOG_ERROR,
-        message: "nao foi possível criar uma instancia retro_ab".to_string(),
+        message: "nao foi possível criar uma instancia retro_core".to_string(),
     })
 }
 
@@ -74,7 +74,7 @@ pub fn stack_commands_handle(
                 }
 
                 match create_retro_contexts(core_path, rom_path, paths) {
-                    Ok((retro_ab, av)) => {
+                    Ok((new_retro_core, new_retro_av)) => {
                         if let Ok(mut ctr) = controller_ctx.lock() {
                             ctr.stop_thread_events();
 
@@ -83,7 +83,7 @@ pub fn stack_commands_handle(
                             //que ja existem agora! E depois os próximos conforme forem chegando.
                             for device in ctr.get_list() {
                                 if device.retro_port != INVALID_CONTROLLER_PORT {
-                                    let _ = retro_ab.core().connect_controller(
+                                    let _ = new_retro_core.core().connect_controller(
                                         device.retro_port as u32,
                                         device.retro_type,
                                     );
@@ -91,11 +91,12 @@ pub fn stack_commands_handle(
                             }
                         }
 
-                        channel_notify
-                            .notify_main_stack(GameLoaded(Some(retro_ab.core().options.clone())));
+                        channel_notify.notify_main_stack(GameLoaded(Some(
+                            new_retro_core.core().options.clone(),
+                        )));
 
-                        retro_core.replace(retro_ab);
-                        retro_av.replace(av);
+                        retro_core.replace(new_retro_core);
+                        retro_av.replace(new_retro_av);
                     }
                     Err(e) => {
                         println!("{:?}", e);

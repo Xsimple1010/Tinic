@@ -28,16 +28,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'retro_ab'",
+            "name": "Debug unit tests in executable 'retro_core'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--example=retro_ab",
-                    "--package=retro_ab"
+                    "--example=retro_core",
+                    "--package=retro_core"
                 ],
                 "filter": {
-                    "name": "retro_ab",
+                    "name": "retro_core",
                     "kind": "example"
                 }
             },

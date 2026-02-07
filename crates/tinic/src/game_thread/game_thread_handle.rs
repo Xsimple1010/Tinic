@@ -3,10 +3,10 @@ use crate::game_thread::game_window_handle::game_window_handle;
 use crate::game_thread::stack_commands_handle::stack_commands_handle;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_DUMMY, RETRO_LOG_ERROR};
-use retro_ab::RetroCore;
 use retro_av::EventPump;
 use retro_av::RetroAv;
 use retro_controllers::RetroController;
+use retro_core::RetroCore;
 use std::sync::{Arc, Mutex};
 use std::thread;
 

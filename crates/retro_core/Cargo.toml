@@ -1,5 +1,5 @@
 [package]
-name = "retro_ab"
+name = "retro_core"
 version = "0.1.0"
 edition = "2021"
 

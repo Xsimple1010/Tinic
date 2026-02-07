@@ -1,7 +1,7 @@
 extern crate generics;
 extern crate image;
 extern crate libretro_sys;
-extern crate retro_ab;
+extern crate retro_core;
 extern crate rodio;
 extern crate sdl2;
 

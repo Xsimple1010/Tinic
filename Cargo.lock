@@ -1532,16 +1532,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
-name = "retro_ab"
-version = "0.1.0"
-dependencies = [
- "generics",
- "libretro_sys",
- "sdl2",
- "uuid",
-]
-
-[[package]]
 name = "retro_av"
 version = "0.1.1"
 dependencies = [
@@ -1550,7 +1540,7 @@ dependencies = [
  "gl_generator",
  "image",
  "libretro_sys",
- "retro_ab",
+ "retro_core",
  "rodio",
  "sdl2",
 ]
@@ -1564,7 +1554,17 @@ dependencies = [
  "lazy_static",
  "libretro_sys",
  "pc-keyboard",
- "retro_ab",
+ "retro_core",
+ "uuid",
+]
+
+[[package]]
+name = "retro_core"
+version = "0.1.0"
+dependencies = [
+ "generics",
+ "libretro_sys",
+ "sdl2",
  "uuid",
 ]
 
@@ -1821,9 +1821,9 @@ dependencies = [
  "generics",
  "lazy_static",
  "libretro_sys",
- "retro_ab",
  "retro_av",
  "retro_controllers",
+ "retro_core",
 ]
 
 [[package]]
