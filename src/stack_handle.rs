@@ -32,7 +32,7 @@ pub fn stack_handle(
                                 Ok(loaded) => {
                                     if loaded {
                                         if let Ok(mut controller) = controller_ctx.lock() {
-                                            controller.pause_thread_events();
+                                            controller.stop_thread_events();
                                         }
 
                                         match RetroAvCtx::new(ctx.core.av_info.clone()) {
@@ -73,14 +73,16 @@ pub fn stack_handle(
             LoadState => {} //ainda e preciso adicionar isso em retro_ab
             SaveState => {} //ainda e preciso adicionar isso em retro_ab
             Pause => {
+                //habilita a thread de eventos novamente
                 if let Ok(mut controller) = controller_ctx.lock() {
                     controller.resume_thread_events();
                     *pause_request_new_frames = true
                 }
             }
             Resume => {
+                //como a rom estará em execução é necessário interromper a thread de eventos
                 if let Ok(mut controller) = controller_ctx.lock() {
-                    controller.pause_thread_events();
+                    controller.stop_thread_events();
                     *pause_request_new_frames = false
                 }
             }

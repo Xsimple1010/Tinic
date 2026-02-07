@@ -37,13 +37,14 @@ pub fn game_window_handle(
             } => {
                 //reservado para o save state
             }
+            //pausa a rom
             Event::KeyDown {
                 keycode: Some(Keycode::F3),
                 ..
             } => {
                 if *pause_request_new_frames {
                     if let Ok(mut controller) = controller_ctx.lock() {
-                        controller.pause_thread_events();
+                        controller.stop_thread_events();
                         *pause_request_new_frames = false
                     }
                 } else {
