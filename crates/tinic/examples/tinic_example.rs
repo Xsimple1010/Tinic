@@ -1,20 +1,21 @@
 use generics::error_handle::ErrorHandle;
-use tinic::{self, args_manager::RetroArgs, test_tools::paths, DeviceListener, Tinic};
+use retro_controllers::RetroGamePad;
+use tinic::{self, DeviceListener, Tinic, args_manager::RetroArgs, test_tools::paths};
 use winit::platform::pump_events::PumpStatus;
 
 #[derive(Debug, Default)]
 struct DeviceEventHandle;
 
 impl DeviceListener for DeviceEventHandle {
-    fn connected(&self, device: tinic::Device) {
+    fn connected(&self, device: RetroGamePad) {
         println!("connected -> {}", device.name)
     }
 
-    fn disconnected(&self, device: tinic::Device) {
+    fn disconnected(&self, device: RetroGamePad) {
         println!("disconnected -> {}", device.name)
     }
 
-    fn button_pressed(&self, button: String, device: tinic::Device) {
+    fn button_pressed(&self, button: String, device: RetroGamePad) {
         println!("{} pressed -> {}", device.name, button)
     }
 }
