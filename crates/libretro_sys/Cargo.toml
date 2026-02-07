@@ -1,0 +1,12 @@
+[package]
+name = "libretro_sys"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+libloading.workspace = true
+
+[build-dependencies]
+cc.workspace = true
+bindgen.workspace = true
