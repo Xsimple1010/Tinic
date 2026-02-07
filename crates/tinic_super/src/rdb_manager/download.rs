@@ -21,8 +21,6 @@ pub async fn download_rdb(
         .await
         .ok();
 
-        println!("{d:?}");
-
         if let Some(path) = d {
             let _ = tokio::task::spawn_blocking(move || {
                 let _ = extract_zip_file(path, paths.databases.to_string(), event_listener);
