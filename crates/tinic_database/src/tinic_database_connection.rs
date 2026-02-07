@@ -1,6 +1,7 @@
 use generics::error_handle::ErrorHandle;
 use generics::types::{ArcTMutex, TMutex};
 use sqlite::Connection;
+use std::path::PathBuf;
 use std::sync::MutexGuard;
 
 #[derive(Clone)]
@@ -9,8 +10,16 @@ pub struct TinicDbConnection {
 }
 
 impl TinicDbConnection {
-    pub fn new() -> Result<Self, ErrorHandle> {
-        let connection = sqlite::open("./games.sqlite")?;
+    pub fn new(path: PathBuf) -> Result<Self, ErrorHandle> {
+        let connection = sqlite::open(path.join("games.sqlite"))?;
+
+        Ok(Self {
+            conn: TMutex::new(connection),
+        })
+    }
+
+    pub fn in_memory() -> Result<Self, ErrorHandle> {
+        let connection = sqlite::open(":memory:")?;
 
         Ok(Self {
             conn: TMutex::new(connection),

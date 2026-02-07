@@ -3,7 +3,7 @@ pub mod model;
 pub mod query;
 mod sqlite_query;
 mod sqlite_query_tools;
-mod tinic_database_connection;
+pub mod tinic_database_connection;
 
 #[cfg(test)]
 mod tests {
@@ -17,11 +17,11 @@ mod tests {
 
     #[test]
     fn start_connection() -> Result<(), ErrorHandle> {
-        let conn = TinicDbConnection::new()?;
+        let conn = TinicDbConnection::in_memory()?;
         create_game_table(&conn)?;
-        insert_game_infos(&conn, &data_test::get_data_test())?;
+        insert_game_infos(&conn, &data_test::_get_data_test())?;
 
-        let mut crcs = data_test::get_data_test()
+        let mut crcs = data_test::_get_data_test()
             .into_iter()
             .map(|g| g.crc32.unwrap())
             .collect::<Vec<_>>();
