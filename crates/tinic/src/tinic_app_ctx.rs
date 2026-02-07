@@ -146,6 +146,7 @@ impl TinicGameCtx {
         self.controller.resume_thread_events();
         self.retro_video.destroy_window();
 
+        self.window_listener.game_closed();
         self.window_listener.window_closed();
 
         Ok(())
