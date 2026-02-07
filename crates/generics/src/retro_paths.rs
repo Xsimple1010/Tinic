@@ -103,7 +103,7 @@ impl RetroPaths {
         })
     }
 
-    pub fn from_base(base: String) -> Result<Self, ErrorHandle> {
+    pub fn from_base(base: impl Display) -> Result<Self, ErrorHandle> {
         let sys = format!("{}/system", base);
         let save = format!("{}/save", base);
         let opt = format!("{}/opt", base);
