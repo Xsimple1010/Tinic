@@ -45,8 +45,8 @@ async fn main() {
     for core in core_infos {
         tinic_super
             .read_rdb_to_end(&core.database, |cores| {
-                // println!("{cores:?}");
-                // println!("=====")
+                println!("{cores:?}");
+                println!("=====")
             })
             .unwrap();
     }
