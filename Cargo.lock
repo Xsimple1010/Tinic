@@ -446,7 +446,7 @@ dependencies = [
 [[package]]
 name = "retro_ab_av"
 version = "0.1.1"
-source = "git+https://github.com/Xsimple1010/retro_ab_av.git#1cce0322255c373099d407f5b688bef4e56ccc2f"
+source = "git+https://github.com/Xsimple1010/retro_ab_av.git#4e0a8afd6b2b236ee809d4c601a59540dfa67b65"
 dependencies = [
  "gl",
  "retro_ab",
@@ -738,6 +738,6 @@ checksum = "32b752e52a2da0ddfbdbcc6fceadfeede4c939ed16d13e648833a61dfb611ed8"
 
 [[package]]
 name = "xml-rs"
-version = "0.8.19"
+version = "0.8.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fcb9cbac069e033553e8bb871be2fbdffcab578eb25bd0f7c508cedc6dcd75a"
+checksum = "791978798f0597cfc70478424c2b4fdc2b7a8024aaff78497ef00f24ef674193"
