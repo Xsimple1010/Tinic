@@ -69,18 +69,6 @@ impl RetroVideoAPi for RetroGlWindow {
         self.window.request_redraw();
     }
 
-    fn resize(&mut self, width: u32, height: u32) {
-        if width == 0 || height == 0 {
-            return;
-        }
-
-        self.gl_surface.resize(
-            &self.gl_context,
-            NonZeroU32::new(width).unwrap(),
-            NonZeroU32::new(height).unwrap(),
-        );
-    }
-
     fn draw_new_frame(&self, texture: &RawTextureData) {
         let size = self.window.inner_size();
 
@@ -112,12 +100,24 @@ impl RetroVideoAPi for RetroGlWindow {
     fn context_reset(&mut self) {
         todo!("context_reset ainda nao foi criado")
     }
+
+    fn resize(&mut self, width: u32, height: u32) {
+        if width == 0 || height == 0 {
+            return;
+        }
+
+        self.gl_surface.resize(
+            &self.gl_context,
+            NonZeroU32::new(width).unwrap(),
+            NonZeroU32::new(height).unwrap(),
+        );
+    }
 }
 
 impl RetroGlWindow {
     pub fn new(event_loop: &ActiveEventLoop, av_info: &Arc<AvInfo>) -> Self {
         let attributes = Window::default_attributes()
-            .with_title("Simple Glium Window")
+            .with_title("Tinic")
             .with_inner_size(winit::dpi::PhysicalSize::new(800, 480))
             .with_transparent(false);
 
