@@ -1,4 +1,4 @@
-use crate::{print_scree::PrintScree, retro_gl::window::RetroGlWindow};
+use crate::{print_scree::PrintScree, retro_gl::window::RetroGlWindow, SyncData};
 use generics::{
     error_handle::ErrorHandle,
     types::{ArcTMutex, TMutex},
@@ -54,13 +54,17 @@ pub trait RetroVideoAPi {
 pub struct RetroVideo {
     window_ctx: ArcTMutex<Option<Box<dyn RetroVideoAPi>>>,
     texture: ArcTMutex<RawTextureData>,
+    sync_data: ArcTMutex<SyncData>,
+    av_info: ArcTMutex<Option<Arc<AvInfo>>>,
 }
 
 impl RetroVideo {
-    pub fn new() -> Self {
+    pub fn new(sync_data: ArcTMutex<SyncData>) -> Self {
         Self {
             window_ctx: TMutex::new(None),
             texture: TMutex::new(RawTextureData::new()),
+            sync_data,
+            av_info: TMutex::new(None),
         }
     }
 
@@ -74,13 +78,18 @@ impl RetroVideo {
                 self.window_ctx
                     .try_load()?
                     .replace(Box::new(RetroGlWindow::new(event_loop, av_info)));
-                Ok(())
             }
             // RETRO_HW_CONTEXT_VULKAN => {}
-            _ => Err(ErrorHandle {
-                message: "suporte para a api selecionada não está disponível".to_owned(),
-            }),
-        }
+            _ => {
+                return Err(ErrorHandle {
+                    message: "suporte para a api selecionada não está disponível".to_owned(),
+                })
+            }
+        };
+
+        self.av_info.store(Some(av_info.clone()));
+
+        Ok(())
     }
 
     pub fn destroy_window(&mut self) {
@@ -91,16 +100,6 @@ impl RetroVideo {
     pub fn request_redraw(&self) -> Result<(), ErrorHandle> {
         if let Some(win) = &*self.window_ctx.try_load()? {
             win.request_redraw();
-        }
-
-        Ok(())
-    }
-
-    pub fn draw_new_frame(&self, av_info: &Arc<AvInfo>) -> Result<(), ErrorHandle> {
-        let texture = &*self.texture.try_load()?;
-
-        if let Some(win) = &*self.window_ctx.try_load()? {
-            win.draw_new_frame(texture, &av_info.video.geometry);
         }
 
         Ok(())
@@ -122,9 +121,12 @@ impl RetroVideo {
     }
 
     pub fn get_core_cb(&self) -> RetroVideoCb {
+        println!("{:?}", self.av_info);
         RetroVideoCb {
             texture: self.texture.clone(),
             window_ctx: self.window_ctx.clone(),
+            sync_data: self.sync_data.clone(),
+            av_info: self.av_info.clone(),
         }
     }
 }
@@ -132,6 +134,8 @@ impl RetroVideo {
 pub struct RetroVideoCb {
     texture: ArcTMutex<RawTextureData>,
     window_ctx: ArcTMutex<Option<Box<dyn RetroVideoAPi>>>,
+    sync_data: ArcTMutex<SyncData>,
+    av_info: ArcTMutex<Option<Arc<AvInfo>>>,
 }
 
 impl RetroVideoEnvCallbacks for RetroVideoCb {
@@ -143,12 +147,20 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
         pitch: usize,
     ) -> Result<(), ErrorHandle> {
         let mut texture = self.texture.try_load()?;
-        let tex_data = texture.data.get_mut();
+        {
+            let tex_data = texture.data.get_mut();
 
-        *tex_data = data;
-        texture.width = width;
-        texture.height = height;
-        texture.pitch = pitch;
+            *tex_data = data;
+            texture.width = width;
+            texture.height = height;
+            texture.pitch = pitch;
+        }
+
+        if let Some(win) = &mut *self.window_ctx.try_load()? {
+            if let Some(av_info) = &*self.av_info.load_or(None) {
+                win.draw_new_frame(&*texture, &av_info.video.geometry);
+            }
+        }
 
         Ok(())
     }

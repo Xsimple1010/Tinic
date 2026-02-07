@@ -19,13 +19,14 @@ pub struct RetroAv {
 impl RetroAv {
     #[doc = "cria uma nova instancia de RetroAv. sempre mantenha a instancia dentro da thread onde foi criada!"]
     pub fn new() -> Result<Self, ErrorHandle> {
-        let video = RetroVideo::new();
-        let audio = RetroAudio::new()?;
+        let sync = RetroSync::new(0.005);
+        let video = RetroVideo::new(sync.sync_data.clone());
+        let audio = RetroAudio::new(sync.sync_data.clone())?;
 
         Ok(Self {
             video,
             audio,
-            sync: RetroSync::default(),
+            sync,
             av_info: None,
         })
     }
@@ -37,6 +38,7 @@ impl RetroAv {
     ) -> Result<(), ErrorHandle> {
         self.video.init(av_info, event_loop)?;
         self.av_info.replace(av_info.clone());
+        self.audio.set_av_info(av_info.clone());
 
         Ok(())
     }
@@ -50,13 +52,16 @@ impl RetroAv {
         self.video.request_redraw()
     }
 
-    pub fn get_new_frame(&mut self) -> Result<(), ErrorHandle> {
+    pub fn prepare_to_sync(&mut self) -> Result<(), ErrorHandle> {
         if let Some(av_info) = &self.av_info {
-            self.audio.resume_new_frame(av_info)?;
-            self.video.draw_new_frame(av_info)?;
+            self.sync.prepare_sync_data(av_info)?
         }
 
         Ok(())
+    }
+
+    pub fn sync_now(&mut self) -> Result<(), ErrorHandle> {
+        self.sync.sync_now()
     }
 
     pub fn print_screen(&self, out_path: &Path) -> Result<(), ErrorHandle> {
@@ -69,15 +74,6 @@ impl RetroAv {
 
     pub fn set_full_screen(&mut self, mode: Fullscreen) -> Result<(), ErrorHandle> {
         self.video.set_full_screen(mode)
-    }
-
-    pub fn sync(&mut self) -> bool {
-        if let Some(av_info) = &self.av_info {
-            let fps = av_info.timing.fps.read().unwrap().abs();
-            self.sync.sync(fps)
-        } else {
-            false
-        }
     }
 
     pub fn get_core_cb(&self) -> (RetroVideoCb, RetroAudioCb) {

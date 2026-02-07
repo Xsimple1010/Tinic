@@ -7,7 +7,8 @@ edition = "2021"
 
 [dependencies]
 retro_core.workspace = true
-rodio.workspace = true
+cpal.workspace = true
+rubato.workspace = true
 image.workspace = true
 libretro_sys.workspace = true
 generics.workspace = true

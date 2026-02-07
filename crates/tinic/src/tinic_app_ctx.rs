@@ -109,14 +109,13 @@ impl TinicGameCtx {
     }
 
     pub fn draw_new_frame(&mut self) -> Result<(), ErrorHandle> {
-        if self.retro_av.sync() {
-            if !self.can_request_new_frames {
-                return Ok(());
-            }
-
-            self.retro_core.run()?;
-            self.retro_av.get_new_frame()?
+        if !self.can_request_new_frames {
+            return Ok(());
         }
+
+        self.retro_av.prepare_to_sync()?;
+        self.retro_core.run()?;
+        self.retro_av.sync_now()?;
 
         Ok(())
     }
