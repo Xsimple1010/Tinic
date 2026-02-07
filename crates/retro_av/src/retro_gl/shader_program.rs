@@ -50,20 +50,16 @@ impl ShaderProgram {
                 error_log.set_len(error_log_size as usize);
                 let log = String::from_utf8(error_log);
 
-                match log {
-                    Ok(log) => {
-                        return Err(ErroHandle {
-                            level: RETRO_LOG_ERROR,
-                            message: log,
-                        })
-                    }
-                    Err(e) => {
-                        return Err(ErroHandle {
-                            level: RETRO_LOG_ERROR,
-                            message: e.to_string(),
-                        })
-                    }
-                }
+                return match log {
+                    Ok(log) => Err(ErroHandle {
+                        level: RETRO_LOG_ERROR,
+                        message: log,
+                    }),
+                    Err(e) => Err(ErroHandle {
+                        level: RETRO_LOG_ERROR,
+                        message: e.to_string(),
+                    }),
+                };
             }
 
             Ok(Self { id, gl })
