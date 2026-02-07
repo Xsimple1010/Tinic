@@ -107,4 +107,21 @@ impl Tinic {
     pub fn disable_full_screen(&self) {
         CHANNEL.disable_full_screen();
     }
+
+    pub fn try_update_core_infos(&self, force_update: bool) {
+        let retro_paths = self.retro_paths.clone();
+
+        tokio::spawn(CoreInfoHelper::try_update_core_infos(
+            retro_paths,
+            force_update,
+        ));
+    }
+
+    pub fn get_cores_infos(&self) -> Vec<CoreInfo> {
+        CoreInfoHelper::get_core_infos(&self.retro_paths.infos)
+    }
+
+    pub fn get_compatibility_info_cores(&self, rom: &String) -> Vec<CoreInfo> {
+        CoreInfoHelper::get_compatibility_core_infos(PathBuf::from(rom))
+    }
 }

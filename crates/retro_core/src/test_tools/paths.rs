@@ -7,5 +7,8 @@ pub fn get_paths() -> Result<RetroPaths, ErroHandle> {
         "retro_out_test/save".to_string(),
         "retro_out_test/opt".to_string(),
         "retro_out_test/assents".to_string(),
+        "retro_out_test/temps".to_string(),
+        "retro_out_test/cores".to_string(),
+        "retro_out_test/infos".to_string(),
     )
 }

@@ -11,6 +11,9 @@ pub struct RetroPaths {
     pub save: Arc<String>,
     pub opt: Arc<String>,
     pub assets: Arc<String>,
+    pub temps: Arc<String>,
+    pub cores: Arc<String>,
+    pub infos: Arc<String>,
 }
 
 impl PartialEq for RetroPaths {
@@ -25,6 +28,9 @@ impl RetroPaths {
         save: String,
         opt: String,
         assets: String,
+        temps: String,
+        cores: String,
+        infos: String,
     ) -> Result<Self, ErroHandle> {
         if Path::new(&system).exists().not() && fs::create_dir_all(&system).is_err() {
             return Err(ErroHandle {
@@ -54,11 +60,35 @@ impl RetroPaths {
             });
         }
 
+        if Path::new(&temps).exists().not() && fs::create_dir_all(&temps).is_err() {
+            return Err(ErroHandle {
+                level: RETRO_LOG_ERROR,
+                message: "Não foi possível criar a pasta temps".to_owned(),
+            });
+        }
+
+        if Path::new(&cores).exists().not() && fs::create_dir_all(&cores).is_err() {
+            return Err(ErroHandle {
+                level: RETRO_LOG_ERROR,
+                message: "Não foi possível criar a pasta cores".to_owned(),
+            });
+        }
+
+        if Path::new(&infos).exists().not() && fs::create_dir_all(&infos).is_err() {
+            return Err(ErroHandle {
+                level: RETRO_LOG_ERROR,
+                message: "Não foi possível criar a pasta infos".to_owned(),
+            });
+        }
+
         Ok(Self {
             system: Arc::new(system),
             opt: Arc::new(opt),
             save: Arc::new(save),
             assets: Arc::new(assets),
+            temps: Arc::new(temps),
+            cores: Arc::new(cores),
+            infos: Arc::new(infos),
         })
     }
 }

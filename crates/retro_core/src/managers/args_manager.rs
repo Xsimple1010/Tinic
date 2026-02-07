@@ -3,7 +3,7 @@ use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::env;
 
 pub struct RetroArgs {
-    pub core: String,
+    pub core: Option<String>,
     pub rom: String,
 }
 
@@ -11,7 +11,10 @@ impl RetroArgs {
     pub fn new() -> Result<Self, ErroHandle> {
         let args = env::args().collect();
 
-        let core = get_value(&args, "--core=")?;
+        let core = match get_value(&args, "--core=") {
+            Ok(value) => Some(value),
+            Err(_) => None,
+        };
         let rom = get_value(&args, "--rom=")?;
 
         Ok(Self { core, rom })

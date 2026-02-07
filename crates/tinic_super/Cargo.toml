@@ -1,0 +1,10 @@
+[package]
+name = "tinic_super"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+generics.workspace = true
+reqwest.workspace = true
+zip.workspace = true
+sevenz-rust.workspace = true

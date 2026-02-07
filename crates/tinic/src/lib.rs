@@ -1,8 +1,11 @@
 #[macro_use]
 extern crate lazy_static;
+extern crate generics;
+extern crate libretro_sys;
 extern crate retro_av;
 extern crate retro_controllers;
 extern crate retro_core;
+extern crate tinic_super;
 
 mod channel;
 mod game_thread;

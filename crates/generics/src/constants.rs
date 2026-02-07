@@ -11,3 +11,8 @@ pub const CORE_OPTION_EXTENSION_FILE: &str = ".opt";
 pub const DEFAULT_MAX_PORT: usize = 2;
 pub const INVALID_CONTROLLER_PORT: i16 = -1;
 pub const SAVE_IMAGE_EXTENSION_FILE: &str = ".png";
+
+//URLS
+pub const CORE_INFOS_URL: &str = "https://buildbot.libretro.com/assets/frontend/info.zip";
+pub const CORES_URL: &str =
+    "https://buildbot.libretro.com/stable/1.19.1/windows/x86_64/RetroArch_cores.7z";
