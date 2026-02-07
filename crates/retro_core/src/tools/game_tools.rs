@@ -139,7 +139,7 @@ impl RomTools {
 
         let save_path = get_save_path(save_dir, sys_info, rom_name, slot)?;
 
-        return match File::create(&save_path) {
+        match File::create(&save_path) {
             Ok(mut file) => {
                 if let Err(e) = file.write(&data) {
                     return Err(ErroHandle {
@@ -154,7 +154,7 @@ impl RomTools {
                 level: RETRO_LOG_ERROR,
                 message: e.to_string(),
             }),
-        };
+        }
     }
 
     pub fn load_save_state(
