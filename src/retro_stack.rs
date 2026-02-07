@@ -2,13 +2,14 @@ use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, Copy)]
 pub enum StackCommand {
-    LoadGame,
+    // LoadGame,
     SaveState,
     LoadState,
     Pause,
     Resume,
-    UnloadGame,
+    // UnloadGame,
     UpdateControllers,
+    GameQuit,
 }
 
 pub struct RetroStack {
@@ -24,10 +25,6 @@ impl RetroStack {
 
     pub fn push(&self, command: StackCommand) {
         self.command.lock().unwrap().push(command);
-    }
-
-    pub fn clear(&self) {
-        self.command.lock().unwrap().clear();
     }
 
     pub fn read(&self) -> Vec<StackCommand> {

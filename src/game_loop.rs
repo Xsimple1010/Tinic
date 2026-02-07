@@ -16,7 +16,6 @@ pub fn init_game_loop(
     stack: Arc<RetroStack>,
 ) {
     let th = thread::spawn(move || {
-        core::init(&core_ctx).expect("msg");
         core::load_game(&core_ctx, rom_path.as_str()).expect("msg");
 
         let (mut av_ctx, mut event_pump) = RetroAvCtx::new(core_ctx.core.av_info.clone())
@@ -27,12 +26,13 @@ pub fn init_game_loop(
         'running: loop {
             for cmd in stack.read() {
                 match cmd {
-                    StackCommand::LoadGame => {}
-                    StackCommand::LoadState => {}
-                    StackCommand::SaveState => {}
+                    // StackCommand::LoadGame => {} //preciso limpar o av_ctx quando um novo jogo for carregado
+                    // StackCommand::UnloadGame => core::unload_game(&core_ctx).expect("msg"),
+                    StackCommand::GameQuit => break 'running,
+                    StackCommand::LoadState => {} //ainda e preciso adicionar isso em retro_ab
+                    StackCommand::SaveState => {} //ainda e preciso adicionar isso em retro_ab
                     StackCommand::Pause => _pause = true,
                     StackCommand::Resume => _pause = false,
-                    StackCommand::UnloadGame => core::unload_game(&core_ctx).expect("msg"),
                     StackCommand::UpdateControllers => {
                         for gamepad in &*gamepads.lock().unwrap() {
                             if gamepad.retro_port >= 0 {
@@ -67,6 +67,5 @@ pub fn init_game_loop(
 
         core::de_init(core_ctx).expect("ds");
     });
-
     th.join().expect("erro na thread");
 }

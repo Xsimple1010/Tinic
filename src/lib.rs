@@ -1,52 +1,85 @@
 extern crate retro_ab;
 extern crate retro_ab_av;
 extern crate retro_ab_gamepad;
-#[macro_use]
-extern crate lazy_static;
 
 mod game_loop;
 mod retro_stack;
 
 use game_loop::init_game_loop;
-use retro_ab::core::{self, RetroEnvCallbacks};
+use retro_ab::core::{self, RetroContext, RetroEnvCallbacks};
 use retro_ab_av::{audio_sample_batch_callback, audio_sample_callback, video_refresh_callback};
 use retro_ab_gamepad::context::{input_poll_callback, input_state_callback, GamepadContext};
-use retro_stack::RetroStack;
-use std::sync::{Arc, Mutex};
+use retro_stack::{RetroStack, StackCommand};
+use std::sync::Arc;
 
 pub use retro_ab::args_manager;
 pub use retro_ab::paths::Paths;
 pub use retro_ab::test_tools;
 
-lazy_static! {
-    static ref STACK: Arc<RetroStack> = RetroStack::new();
-    static ref CONTROLLER_CTX: Mutex<GamepadContext> = Mutex::new(GamepadContext::new(2));
+pub struct Tinic {
+    stack: Arc<RetroStack>,
+    pub controller_ctx: GamepadContext,
+    pub core_ctx: Option<Arc<RetroContext>>,
 }
 
-pub fn pause() {}
+impl Tinic {
+    pub fn new() -> Tinic {
+        Self {
+            stack: RetroStack::new(),
+            //TODO:o numero máximo de portas deve ser alterado no futuro
+            controller_ctx: GamepadContext::new(2),
+            core_ctx: None,
+        }
+    }
 
-pub fn resume() {}
+    pub fn load(&mut self, core_path: &str, rom_path: String, paths: Paths) -> Result<(), String> {
+        let core_ctx = core::load(
+            core_path,
+            paths,
+            RetroEnvCallbacks {
+                audio_sample_batch_callback,
+                audio_sample_callback,
+                input_poll_callback,
+                input_state_callback,
+                video_refresh_callback,
+            },
+        )?;
+        core::init(&core_ctx).expect("msg");
+        self.core_ctx = Some(core_ctx.clone());
 
-pub fn get_gamepads() {}
+        let gamepads = self.controller_ctx.search();
+        self.stack.push(StackCommand::UpdateControllers);
 
-pub fn change_controller_pending() {}
+        init_game_loop(rom_path, core_ctx, gamepads, self.stack.clone());
 
-pub fn load(core_path: &str, rom_path: String, paths: Paths) {
-    let core_ctx = core::load(
-        core_path,
-        paths,
-        RetroEnvCallbacks {
-            audio_sample_batch_callback,
-            audio_sample_callback,
-            input_poll_callback,
-            input_state_callback,
-            video_refresh_callback,
-        },
-    )
-    .expect("Erro ao tentar inicia o Core");
+        Ok(())
+    }
 
-    let gamepads = CONTROLLER_CTX.lock().unwrap().search();
-    STACK.push(retro_stack::StackCommand::UpdateControllers);
+    pub fn pause(&self) {
+        self.stack.push(StackCommand::Pause);
+    }
 
-    init_game_loop(rom_path, core_ctx, gamepads, STACK.clone());
+    pub fn resume(&self) {
+        self.stack.push(StackCommand::Resume);
+    }
+
+    pub fn save_state(&self) {
+        self.stack.push(StackCommand::SaveState)
+    }
+
+    pub fn load_state(&self) {
+        self.stack.push(StackCommand::LoadState)
+    }
+
+    // pub fn unload_game(&self) {
+    //     self.stack.push(StackCommand::UnloadGame);
+    // }
+
+    // pub fn load_game(&self) {
+    //     self.stack.push(StackCommand::LoadGame);
+    // }
+
+    pub fn change_controller_pending(&self) {
+        self.stack.push(StackCommand::UpdateControllers);
+    }
 }

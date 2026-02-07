@@ -1,8 +1,8 @@
 use std::env;
 
-use tinic::{self, args_manager, test_tools};
+use tinic::{self, args_manager, test_tools, Tinic};
 
-fn main() {
+fn main() -> Result<(), String> {
     let args = args_manager::get_values(env::args().collect());
 
     let (_, core_path) = args
@@ -12,11 +12,13 @@ fn main() {
     let (_, rom_path) = args
         .get_key_value("rom")
         .expect("O caminho para o rom nao foi fornecido tente --rom=caminho_pra_rom_aqui!");
-    println!("Hello, world!");
 
-    tinic::load(
+    let mut tinic = Tinic::new();
+    tinic.load(
         core_path,
         rom_path.to_string(),
         test_tools::paths::get_paths(),
-    );
+    )?;
+
+    Ok(())
 }
