@@ -32,6 +32,29 @@ pub struct SaveInfo<'a> {
     pub buffer_size: usize,
 }
 
+/// Create a rom info wrapper
+struct RomInfo {
+    data: Vec<u8>,
+    meta: CString,
+    path: CString,
+    size: usize,
+}
+
+impl RomInfo {
+    pub fn to_core_native(&self) -> retro_game_info {
+        retro_game_info {
+            data: if self.data.is_empty() {
+                null()
+            } else {
+                self.data.as_ptr() as *const c_void
+            },
+            meta: self.meta.as_ptr(),
+            path: self.path.as_ptr(),
+            size: self.size,
+        }
+    }
+}
+
 impl<'a> SaveInfo<'a> {
     /// Create new SafeSaveInfo with validation
     pub fn new(
@@ -108,9 +131,10 @@ impl RomTools {
 
         // Create validated ROM info
         let rom_info = Self::create_game_info(&validated_path, sys_info, file_size)?;
+        let native_core_info = rom_info.to_core_native();
 
         // Load the game using the validated info
-        let loaded = unsafe { libretro_raw.retro_load_game(&rom_info) };
+        let loaded = unsafe { libretro_raw.retro_load_game(&native_core_info) };
 
         if !loaded {
             return Err(ErrorHandle::new(&format!(
@@ -127,8 +151,8 @@ impl RomTools {
         path: &Path,
         sys_info: &SysInfo,
         file_size: u64,
-    ) -> Result<retro_game_info, ErrorHandle> {
-        let mut buf = Vec::new();
+    ) -> Result<RomInfo, ErrorHandle> {
+        let mut buf: Vec<u8> = Vec::new();
         let meta = CString::new("")?;
 
         // Create safe C string for path
@@ -172,14 +196,10 @@ impl RomTools {
             }
         }
 
-        let game_info = retro_game_info {
-            data: if buf.is_empty() {
-                null()
-            } else {
-                buf.as_ptr() as *const c_void
-            },
-            meta: meta.as_ptr(),
-            path: path_cstring.as_ptr(),
+        let game_info = RomInfo {
+            data: buf,
+            meta,
+            path: path_cstring,
             size,
         };
 
