@@ -13,7 +13,7 @@ use retro_ab::retro_sys::retro_rumble_effect;
 use retro_ab_av::{audio_sample_batch_callback, audio_sample_callback, video_refresh_callback};
 use retro_ab_gamepad::context::{input_poll_callback, input_state_callback, GamepadContext};
 use retro_stack::{RetroStack, StackCommand};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub use retro_ab::args_manager;
 pub use retro_ab::paths::Paths;
@@ -28,7 +28,7 @@ lazy_static! {
 
 pub struct Tinic {
     // stack: Arc<RetroStack>,
-    pub controller_ctx: GamepadContext,
+    pub controller_ctx: Arc<Mutex<GamepadContext>>,
     pub core_ctx: Option<Arc<RetroContext>>,
 }
 
@@ -47,6 +47,9 @@ fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
                 GamePadState::Connected | GamePadState::Disconnected => {
                     STACK.push(StackCommand::UpdateControllers);
                 }
+                GamePadState::ButtonPressed(b) => {
+                    println!("{:?}", b);
+                }
                 _ => {}
             }
             listener(state, _gamepad);
@@ -62,7 +65,9 @@ impl Tinic {
         Self {
             // stack: RetroStack::new(),
             //TODO:o numero máximo de portas deve ser alterado no futuro
-            controller_ctx: GamepadContext::new(Some(gamepad_state_listener)),
+            controller_ctx: Arc::new(Mutex::new(GamepadContext::new(Some(
+                gamepad_state_listener,
+            )))),
             core_ctx: None,
         }
     }
@@ -85,9 +90,19 @@ impl Tinic {
             Ok(..) => {
                 self.core_ctx = Some(core_ctx.clone());
 
-                let gamepads = self.controller_ctx.get_list();
+                match self.controller_ctx.clone().lock() {
+                    Ok(controller) => {
+                        let gamepads = controller.get_list();
 
-                init_game_loop(core_ctx, gamepads, STACK.clone());
+                        init_game_loop(
+                            core_ctx,
+                            gamepads,
+                            self.controller_ctx.clone(),
+                            STACK.clone(),
+                        );
+                    }
+                    Err(..) => {}
+                }
             }
             Err(e) => {
                 return Err(e.message);
@@ -128,14 +143,6 @@ impl Tinic {
     pub fn quit_game(&self) {
         STACK.push(StackCommand::GameQuit);
     }
-
-    // pub fn unload_game(&self) {
-    //     STACK.push(StackCommand::UnloadGame);
-    // }
-
-    // pub fn load_game(&self) {
-    //     STACK.push(StackCommand::LoadGame);
-    // }
 
     pub fn change_controller_pending(&self) {
         // STACK.push(StackCommand::UpdateControllers);

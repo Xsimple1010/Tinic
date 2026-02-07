@@ -5,7 +5,7 @@ use std::{
 
 use retro_ab::core::{self, RetroContext};
 use retro_ab_av::{context::RetroAvCtx, Event, EventPump, Keycode};
-use retro_ab_gamepad::retro_gamepad::RetroGamePad;
+use retro_ab_gamepad::{context::GamepadContext, retro_gamepad::RetroGamePad};
 
 use crate::retro_stack::{RetroStack, StackCommand};
 
@@ -13,6 +13,7 @@ use crate::retro_stack::{RetroStack, StackCommand};
 pub fn init_game_loop(
     core_ctx: Arc<RetroContext>,
     gamepads: Arc<Mutex<Vec<RetroGamePad>>>,
+    controller_ctx: Arc<Mutex<GamepadContext>>,
     stack: Arc<RetroStack>,
 ) {
     thread::spawn(move || {
@@ -28,9 +29,11 @@ pub fn init_game_loop(
                         match result {
                             Ok(s) => {
                                 if s {
-                                    let result = RetroAvCtx::new(core_ctx.core.av_info.clone());
+                                    if let Ok(mut controller) = controller_ctx.lock() {
+                                        controller.pause_thread_events();
+                                    }
 
-                                    match result {
+                                    match RetroAvCtx::new(core_ctx.core.av_info.clone()) {
                                         Ok(retro_av_) => {
                                             retro_av = Some(retro_av_);
                                         }
@@ -49,6 +52,9 @@ pub fn init_game_loop(
                     }
                     StackCommand::UnloadGame => match core::unload_game(&core_ctx) {
                         Ok(..) => {
+                            if let Ok(mut controller) = controller_ctx.lock() {
+                                controller.resume_thread_events();
+                            }
                             retro_av = None;
                         }
                         Err(e) => {
@@ -61,13 +67,12 @@ pub fn init_game_loop(
                     StackCommand::SaveState => {} //ainda e preciso adicionar isso em retro_ab
                     StackCommand::Pause => _pause = true,
                     StackCommand::Resume => _pause = false,
-                    StackCommand::Reset => match core::reset(&core_ctx) {
-                        Ok(..) => {}
-                        Err(e) => {
+                    StackCommand::Reset => {
+                        if let Err(e) = core::reset(&core_ctx) {
                             println!("{:?}", e);
                             break 'running;
-                        }
-                    },
+                        };
+                    }
                     StackCommand::UpdateControllers => {
                         for gamepad in &*gamepads.lock().unwrap() {
                             if gamepad.retro_port >= 0 {
@@ -150,5 +155,12 @@ pub fn init_game_loop(
             Ok(..) => {}
             Err(e) => println!("{:?}", e),
         };
+
+        match controller_ctx.lock() {
+            Ok(mut controller) => {
+                controller.resume_thread_events();
+            }
+            Err(..) => {}
+        }
     });
 }
