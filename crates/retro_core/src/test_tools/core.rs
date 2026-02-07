@@ -1,12 +1,11 @@
-use crate::core::CoreWrapper;
 use crate::core_env::RetroEnvCallbacks;
 use crate::graphic_api::GraphicApi;
+use crate::retro_core::RetroCore;
 use crate::test_tools::constants::CORE_TEST_RELATIVE_PATH;
 use crate::test_tools::paths::get_paths;
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use std::ptr;
 use std::sync::Arc;
-use uuid::Uuid;
 
 fn audio_sample_callback(_left: i16, _right: i16) {}
 
@@ -68,8 +67,8 @@ pub fn get_callbacks() -> RetroEnvCallbacks {
     }
 }
 
-pub fn get_core_wrapper() -> Arc<CoreWrapper> {
-    CoreWrapper::new(
+pub fn get_core_wrapper() -> Arc<RetroCore> {
+    RetroCore::new(
         CORE_TEST_RELATIVE_PATH,
         get_paths().unwrap(),
         get_callbacks(),

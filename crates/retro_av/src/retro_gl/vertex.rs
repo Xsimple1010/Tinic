@@ -1,5 +1,6 @@
+use retro_core::av_info::Geometry;
+
 use super::texture::TexturePosition;
-use retro_core::core::Geometry;
 use std::sync::atomic::Ordering;
 
 pub type Pos = [f32; 2];

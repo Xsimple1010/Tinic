@@ -8,11 +8,11 @@ use crate::libretro_sys::{
     binding_log_interface,
 };
 use crate::{
-    core::CoreWrapper,
     libretro_sys::binding_libretro::{
         retro_game_geometry, retro_pixel_format, RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE,
         RETRO_ENVIRONMENT_SET_GEOMETRY, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
     },
+    retro_core::RetroCore,
 };
 #[cfg(feature = "hw")]
 use std::{ffi::c_char, mem};
@@ -106,7 +106,7 @@ unsafe extern "C" fn context_destroy() {
     }
 }
 
-pub unsafe fn env_cb_av(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut c_void) -> bool {
+pub unsafe fn env_cb_av(core_ctx: &Arc<RetroCore>, cmd: c_uint, data: *mut c_void) -> bool {
     match cmd {
         RETRO_ENVIRONMENT_SET_GEOMETRY => {
             #[cfg(feature = "core_ev_logs")]
@@ -118,7 +118,7 @@ pub unsafe fn env_cb_av(core_ctx: &Arc<CoreWrapper>, cmd: c_uint, data: *mut c_v
                 return false;
             }
 
-            core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr);
+            let _ = core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr);
 
             true
         }

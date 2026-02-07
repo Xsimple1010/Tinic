@@ -1,7 +1,6 @@
 #[cfg(feature = "core_logs")]
 use crate::tools::ffi_tools::get_str_from_ptr;
 use crate::{
-    core::CoreWrapper,
     core_env::{
         env_directory::env_cb_directory, env_gamepads_io::env_cb_gamepad_io,
         env_option::env_cb_option, env_video::env_cb_av,
@@ -17,6 +16,7 @@ use crate::{
         },
         binding_log_interface::configure_log_interface,
     },
+    retro_core::RetroCore,
     retro_perf::{
         core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
         get_cpu_features, get_features_get_time_usec,
@@ -29,6 +29,7 @@ use std::{
 use std::{os::raw::c_void, ptr::addr_of, sync::Arc};
 
 #[derive(Clone, Copy, Debug)]
+
 pub struct RetroEnvCallbacks {
     pub video_refresh_callback: fn(data: *const c_void, width: u32, height: u32, pitch: usize),
     pub audio_sample_callback: fn(left: i16, right: i16),
@@ -45,10 +46,10 @@ pub struct RetroEnvCallbacks {
 }
 
 #[doc = "pelo amor de deus MANTENHA isso dentro desse diretório"]
-pub static mut CORE_CONTEXT: Option<Arc<CoreWrapper>> = None;
+pub static mut CORE_CONTEXT: Option<Arc<RetroCore>> = None;
 
 //noinspection RsPlaceExpression
-pub fn configure(core_ctx: Arc<CoreWrapper>) {
+pub fn configure(core_ctx: Arc<RetroCore>) {
     unsafe {
         CORE_CONTEXT = Some(core_ctx);
     }

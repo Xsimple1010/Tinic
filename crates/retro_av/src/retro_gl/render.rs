@@ -1,5 +1,3 @@
-use crate::video::RawTextureData;
-
 use super::{
     frame_buffer::FrameBuffer,
     gl::gl::{
@@ -15,8 +13,9 @@ use super::{
     vertex::{new_vertex, GlVertex},
     vertex_array::VertexArray,
 };
+use crate::video::RawTextureData;
 use generics::erro_handle::ErroHandle;
-use retro_core::core::{AvInfo, Geometry};
+use retro_core::av_info::{AvInfo, Geometry};
 use std::{mem::size_of, sync::atomic::Ordering};
 use std::{rc::Rc, sync::Arc};
 

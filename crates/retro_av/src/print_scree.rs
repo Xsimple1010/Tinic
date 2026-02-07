@@ -1,8 +1,8 @@
 use crate::video::RawTextureData;
 use generics::{constants::SAVE_IMAGE_EXTENSION_FILE, erro_handle::ErroHandle};
 use image::{ImageBuffer, RgbImage};
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
-use retro_core::core::{retro_pixel_format, AvInfo};
+use libretro_sys::binding_libretro::{retro_log_level::RETRO_LOG_ERROR, retro_pixel_format};
+use retro_core::av_info::AvInfo;
 use std::{
     path::{Path, PathBuf},
     sync::Arc,

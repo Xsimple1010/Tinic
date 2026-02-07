@@ -1,8 +1,9 @@
-use crate::core::retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN};
 use crate::graphic_api::GraphicApi;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::{
-    retro_game_geometry, retro_log_level, retro_system_av_info, retro_system_timing, LibretroRaw,
+    retro_game_geometry, retro_log_level,
+    retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN},
+    retro_system_av_info, retro_system_timing, LibretroRaw,
 };
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, RwLock};

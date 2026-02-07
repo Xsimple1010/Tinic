@@ -1,6 +1,6 @@
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
-use retro_core::core::AvInfo;
+use retro_core::av_info::AvInfo;
 use rodio::{buffer::SamplesBuffer, OutputStream, OutputStreamHandle, Sink};
 use std::{
     ptr::{null, slice_from_raw_parts},

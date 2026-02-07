@@ -7,7 +7,7 @@ use libretro_sys::binding_libretro::{
     },
     retro_log_level::RETRO_LOG_ERROR,
 };
-use retro_core::core::AvInfo;
+use retro_core::av_info::AvInfo;
 use sdl2::video::FullScreenType;
 use sdl2::{
     video::{GLContext, GLProfile, Window},
@@ -110,7 +110,7 @@ impl GlWindow {
             _ => {
                 return Err(ErroHandle {
                     level: RETRO_LOG_ERROR,
-                    message: "api selecionado nao e compativel".to_string(),
+                    message: "api selecionado nao e compatível".to_string(),
                 })
             }
         }

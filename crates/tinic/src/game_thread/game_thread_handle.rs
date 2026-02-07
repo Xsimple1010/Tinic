@@ -1,14 +1,63 @@
 use crate::channel::ChannelNotify;
-use crate::game_thread::game_window_handle::game_window_handle;
-use crate::game_thread::stack_commands_handle::stack_commands_handle;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_DUMMY, RETRO_LOG_ERROR};
 use retro_av::EventPump;
 use retro_av::RetroAv;
 use retro_controllers::RetroController;
 use retro_core::RetroCore;
+use retro_core::RetroCoreIns;
 use std::sync::{Arc, Mutex};
 use std::thread;
+
+use super::game_window_handle::game_window_handle;
+use super::stack_commands_handle::stack_commands_handle;
+
+pub struct ThreadState {
+    pub channel_notify: ChannelNotify,
+    pub pause_request_new_frames: bool,
+    pub use_full_screen_mode: bool,
+    pub retro_core: Option<RetroCoreIns>,
+    pub retro_av: Option<(RetroAv, EventPump)>,
+    pub controller_ctx: Arc<Mutex<RetroController>>,
+    is_running: Arc<Mutex<bool>>,
+}
+
+impl ThreadState {
+    pub fn is_running(&self) -> bool {
+        *self.is_running.lock().unwrap_or_else(|op| {
+            let mut can_run = op.into_inner();
+            *can_run = false;
+
+            can_run
+        })
+    }
+}
+
+impl Drop for ThreadState {
+    fn drop(&mut self) {
+        self.channel_notify.clear_game_stack();
+
+        //Gracas ao mutex is-running pode ser que algo externo atrapalhe a leitura dos comandos da stack,
+        //então so para garantir que essa thread será fechada dando a posse da leitura dos inputs para a
+        //thread de inputs novamente, o bom é fazer isso aqui mesmo!
+        if let Ok(mut ctr) = self.controller_ctx.lock() {
+            let _ = ctr.resume_thread_events();
+        }
+
+        if let Some(core) = self.retro_core.take() {
+            let _ = core.de_init();
+        }
+
+        match self.is_running.lock() {
+            Ok(mut is_running) => {
+                *is_running = false;
+            }
+            Err(op) => {
+                *op.into_inner() = false;
+            }
+        }
+    }
+}
 
 pub struct GameThread {
     pub is_running: Arc<Mutex<bool>>,
@@ -69,36 +118,29 @@ impl GameThread {
     }
 
     fn spawn_game_thread(&self, channel_notify: ChannelNotify) {
-        let controller_ctx = self.controller_ctx.clone();
         let is_running = self.is_running.clone();
+        let controller_ctx = self.controller_ctx.clone();
 
         thread::spawn(move || {
-            let mut pause_request_new_frames = false;
-            let mut use_full_screen_mode = false;
-            let mut retro_core: Option<RetroCore> = None;
-            let mut retro_av: Option<(RetroAv, EventPump)> = None;
+            let mut state = ThreadState {
+                pause_request_new_frames: false,
+                retro_av: None,
+                retro_core: None,
+                use_full_screen_mode: false,
+                channel_notify,
+                controller_ctx,
+                is_running,
+            };
 
-            while *is_running.lock().unwrap_or_else(|op| {
-                let mut can_run = op.into_inner();
-                *can_run = false;
-
-                can_run
-            }) {
-                if stack_commands_handle(
-                    &channel_notify,
-                    &mut retro_core,
-                    &controller_ctx,
-                    &mut retro_av,
-                    &mut pause_request_new_frames,
-                    &mut use_full_screen_mode,
-                ) {
+            while state.is_running() {
+                if stack_commands_handle(&mut state) {
                     break;
                 }
 
-                if let Some((retro_av, event_pump)) = &mut retro_av {
-                    if let Some(retro_core) = &retro_core {
+                if let Some((retro_av, event_pump)) = &mut state.retro_av {
+                    if let Some(retro_core) = &state.retro_core {
                         if let Err(e) =
-                            try_render_frame(retro_core, retro_av, pause_request_new_frames)
+                            try_render_frame(retro_core, retro_av, state.pause_request_new_frames)
                         {
                             println!("{:?}", e);
                             break;
@@ -107,30 +149,12 @@ impl GameThread {
 
                     if game_window_handle(
                         event_pump,
-                        &channel_notify,
-                        pause_request_new_frames,
-                        use_full_screen_mode,
+                        &state.channel_notify,
+                        state.pause_request_new_frames,
+                        state.use_full_screen_mode,
                     ) {
                         break;
                     }
-                }
-            }
-
-            channel_notify.clear_game_stack();
-
-            //Gracas ao mutex is-running pode ser que algo externo atrapalhe a leitura dos comandos da stack,
-            //então so para garantir que essa thread será fechada dando a posse da leitura dos inputs para a
-            //thread de inputs novamente, o bom é fazer isso aqui mesmo!
-            if let Ok(ctr) = &mut controller_ctx.lock() {
-                let _ = ctr.resume_thread_events();
-            }
-
-            match is_running.lock() {
-                Ok(mut is_running) => {
-                    *is_running = false;
-                }
-                Err(op) => {
-                    *op.into_inner() = false;
                 }
             }
         });
@@ -147,7 +171,7 @@ fn try_render_frame(
     }
 
     // Pede para core gerar novos buffers de video e audio
-    retro_core.core.run()?;
+    retro_core.run()?;
     // Exibe os buffers gerados pelo core
     retro_av.get_new_frame();
 

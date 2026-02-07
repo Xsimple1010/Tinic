@@ -3,7 +3,7 @@ use crate::sync::RetroSync;
 use crate::video::RetroVideo;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
-use retro_core::core::AvInfo;
+use retro_core::av_info::AvInfo;
 use sdl2::{EventPump, Sdl};
 use std::sync::Arc;
 

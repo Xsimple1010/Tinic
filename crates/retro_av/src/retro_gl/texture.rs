@@ -2,7 +2,7 @@ use super::{gl::gl, pixel::Pixel};
 use crate::video::RawTextureData;
 use generics::erro_handle::ErroHandle;
 use gl::types::GLuint;
-use retro_core::core::AvInfo;
+use retro_core::av_info::AvInfo;
 use std::{
     ptr::null,
     rc::Rc,

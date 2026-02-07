@@ -6,7 +6,7 @@ use libretro_sys::binding_libretro::{
     },
     retro_log_level,
 };
-use retro_core::core::AvInfo;
+use retro_core::av_info::AvInfo;
 use sdl2::Sdl;
 use std::{
     ffi::{c_uint, c_void},

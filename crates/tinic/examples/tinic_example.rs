@@ -14,7 +14,7 @@ async fn main() -> Result<(), ErroHandle> {
 
     let mut tinic = Tinic::new(device_state_listener, get_paths()?)?;
 
-    if let Some(core) = args.core {
+    if let Some(core) = &args.core {
         tinic.load_game(&core, &args.rom)?;
     } else {
         //baixa as infamações dos cores
@@ -72,6 +72,10 @@ async fn main() -> Result<(), ErroHandle> {
                     tinic.reset();
                 } else if command.starts_with("6") {
                     tinic.quit();
+                } else if command.starts_with("7") {
+                    if let Some(core) = &args.core {
+                        tinic.load_game(&core, &args.rom)?;
+                    }
                 }
 
                 println!();
