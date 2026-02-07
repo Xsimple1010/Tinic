@@ -45,7 +45,7 @@ impl RetroVideoAPi for GlWIndow {
         let (width, height) = self.window.size();
 
         self.render.draw_new_frame(
-            &texture,
+            texture,
             &self.av_info.video.geometry,
             width as i32,
             height as i32,

@@ -84,7 +84,7 @@ mod retro_stack_test {
         })
         .join();
 
-        assert_eq!(stack.read().is_empty(), true);
+        assert!(stack.read().is_empty());
     }
 
     #[test]

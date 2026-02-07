@@ -32,6 +32,6 @@ impl RetroSync {
 
         sleep(Duration::from_millis(1));
 
-        return false;
+        false
     }
 }

@@ -49,7 +49,7 @@ impl Texture2D {
     }
 
     pub fn get_id(&self) -> GLuint {
-        return self.id.clone();
+        self.id
     }
 
     pub fn new(av_info: &Arc<AvInfo>, gl: Rc<gl::Gl>) -> Result<Texture2D, ErroHandle> {

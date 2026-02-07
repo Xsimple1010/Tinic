@@ -74,16 +74,14 @@ impl ThreadChannel {
         let mut core_options: Option<Arc<OptionManager>> = None;
         let mut rom_loaded = false;
 
-        wait_response(&self.main_stack, |command| {
-            return match command {
-                GameLoaded(options) => {
-                    core_options = options.clone();
-                    rom_loaded = options.is_none();
+        wait_response(&self.main_stack, |command| match command {
+            GameLoaded(options) => {
+                core_options = options.clone();
+                rom_loaded = options.is_none();
 
-                    true
-                }
-                _ => false,
-            };
+                true
+            }
+            _ => false,
         });
 
         (rom_loaded, core_options)
@@ -95,14 +93,12 @@ impl ThreadChannel {
 
         let mut save: Option<(String, String)> = None;
 
-        wait_response(&self.main_stack, |command| {
-            return match command {
-                GameStateSaved(s) => {
-                    save = s.to_owned();
-                    true
-                }
-                _ => false,
-            };
+        wait_response(&self.main_stack, |command| match command {
+            GameStateSaved(s) => {
+                save = s.to_owned();
+                true
+            }
+            _ => false,
         });
 
         save
@@ -113,15 +109,13 @@ impl ThreadChannel {
 
         let mut loaded = false;
 
-        wait_response(&self.main_stack, |command| {
-            return match command {
-                SaveStateLoaded(s_loaded) => {
-                    loaded = s_loaded.clone();
+        wait_response(&self.main_stack, |command| match command {
+            SaveStateLoaded(s_loaded) => {
+                loaded = *s_loaded;
 
-                    true
-                }
-                _ => false,
-            };
+                true
+            }
+            _ => false,
         });
 
         loaded
