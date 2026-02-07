@@ -2,7 +2,6 @@ extern crate generics;
 extern crate gilrs;
 
 mod gamepad;
-mod keyboard;
 mod retro_controller;
 mod state_thread;
 
