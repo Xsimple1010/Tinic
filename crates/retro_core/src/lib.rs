@@ -11,7 +11,6 @@ pub mod av_info;
 pub mod graphic_api;
 mod retro_core;
 pub mod system;
-pub mod test_tools;
 
 pub use core_env::{
     RetroAudioEnvCallbacks, RetroControllerEnvCallbacks, RetroEnvCallbacks, RetroVideoEnvCallbacks,

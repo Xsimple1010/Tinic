@@ -1,19 +1,19 @@
 #[cfg(feature = "core_logs")]
 use crate::tools::ffi_tools::get_str_from_ptr;
-use crate::{av_info::AvInfo, tools::validation::InputValidator};
 use crate::{
+    RetroCoreIns,
     core_env::{
         env_directory::env_cb_directory, env_gamepads_io::env_cb_gamepad_io,
         env_option::env_cb_option, env_video::env_cb_av,
     },
     libretro_sys::{
         binding_libretro::{
-            retro_language::{self, RETRO_LANGUAGE_PORTUGUESE_BRAZIL}, retro_log_level,
-            retro_perf_callback, retro_rumble_effect,
             RETRO_ENVIRONMENT_GET_LANGUAGE, RETRO_ENVIRONMENT_GET_LOG_INTERFACE,
             RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, RETRO_ENVIRONMENT_GET_PERF_INTERFACE,
-            RETRO_ENVIRONMENT_GET_VARIABLE,
-            RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
+            RETRO_ENVIRONMENT_GET_VARIABLE, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
+            RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
+            retro_language::{self, RETRO_LANGUAGE_PORTUGUESE_BRAZIL},
+            retro_log_level, retro_perf_callback, retro_rumble_effect,
         },
         binding_log_interface::configure_log_interface,
     },
@@ -22,8 +22,8 @@ use crate::{
         core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
         get_cpu_features, get_features_get_time_usec,
     },
-    RetroCoreIns,
 };
+use crate::{av_info::AvInfo, tools::validation::InputValidator};
 use generics::error_handle::ErrorHandle;
 use std::sync::Arc;
 use std::{
@@ -244,66 +244,5 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
             },
             None => false,
         }
-    }
-}
-
-//TODO: novos teste para "fn core_environment"
-#[cfg(test)]
-mod test_environment {
-    use crate::{core_env::environment::CORE_CONTEXT, test_tools};
-    use generics::error_handle::ErrorHandle;
-    use libretro_sys::binding_libretro::{
-        retro_pixel_format, RETRO_ENVIRONMENT_GET_INPUT_BITMASKS,
-        RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
-    };
-    use std::{ffi::c_void, ptr::addr_of};
-
-    use super::{configure, core_environment};
-
-    fn cfg_test() {
-        let core_ctx = test_tools::core::get_core_wrapper();
-        configure(core_ctx);
-    }
-
-    #[test]
-    fn input_bitmasks() {
-        let mut my_bool = true;
-        let data = &mut my_bool as *mut bool as *mut c_void;
-
-        let result = unsafe { core_environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, data) };
-
-        println!("{:?}", result);
-
-        assert_eq!(result, true);
-    }
-
-    #[test]
-    fn pixel_format() -> Result<(), ErrorHandle> {
-        cfg_test();
-        let pixel = retro_pixel_format::RETRO_PIXEL_FORMAT_RGB565;
-        let data = &pixel as *const retro_pixel_format as *mut c_void;
-
-        let result = unsafe { core_environment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, data) };
-
-        assert_eq!(
-            result, true,
-            "returno inesperado: valor desejado -> true; valor recebido -> {:?}",
-            result,
-        );
-
-        unsafe {
-            match &*addr_of!(CORE_CONTEXT) {
-                Some(core_ctx) => assert_eq!(
-                    *core_ctx.av_info.video.pixel_format.try_load()?,
-                    pixel,
-                    "returno inesperado: valor desejado -> {:?}; valor recebido -> {:?}",
-                    pixel,
-                    *core_ctx.av_info.video.pixel_format.try_load()?
-                ),
-                _ => panic!("CORE_CONTEXT nao foi encontrado"),
-            }
-        }
-
-        Ok(())
     }
 }

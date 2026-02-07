@@ -30,7 +30,7 @@ pub struct RetroCore {
 
 impl RetroCore {
     pub fn new(
-        core_path: &str,
+        core_path: &PathBuf,
         paths: RetroPaths,
         callbacks: RetroEnvCallbacks,
         graphic_api: GraphicApi,
@@ -38,7 +38,8 @@ impl RetroCore {
         let raw = unsafe {
             LibretroRaw::new(core_path).map_err(|_| {
                 ErrorHandle::new(&format!(
-                    "Não foi possível abrir o core selecionado: {core_path}"
+                    "Não foi possível abrir o core selecionado: {}",
+                    core_path.display()
                 ))
             })
         }?;
@@ -270,6 +271,3 @@ impl RetroCore {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod core {}

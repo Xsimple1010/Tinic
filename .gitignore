@@ -1,5 +1,5 @@
 /target
-*/**/test_workspace
+/test_workspace
 *.so
 *.dll
 *.sqlite

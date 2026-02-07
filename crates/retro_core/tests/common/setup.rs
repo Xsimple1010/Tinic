@@ -1,14 +1,14 @@
-use crate::av_info::AvInfo;
-use crate::core_env::{RetroControllerEnvCallbacks, RetroEnvCallbacks};
-use crate::graphic_api::GraphicApi;
-use crate::retro_core::RetroCore;
-use crate::test_tools::constants::CORE_TEST_RELATIVE_PATH;
-use crate::test_tools::paths::get_paths;
-use crate::{RetroAudioEnvCallbacks, RetroCoreIns, RetroVideoEnvCallbacks};
-use generics::error_handle::ErrorHandle;
+use generics::{
+    error_handle::ErrorHandle,
+    retro_paths::RetroPaths,
+    test_workdir::{create_test_work_dir_path, get_core_test_path},
+};
 use libretro_sys::binding_libretro::retro_rumble_effect;
-use std::ptr;
-use std::sync::Arc;
+use retro_core::{
+    RetroAudioEnvCallbacks, RetroControllerEnvCallbacks, RetroCore, RetroCoreIns,
+    RetroEnvCallbacks, RetroVideoEnvCallbacks, av_info::AvInfo, graphic_api::GraphicApi,
+};
+use std::{ptr, sync::Arc};
 
 pub fn get_callbacks() -> RetroEnvCallbacks {
     RetroEnvCallbacks {
@@ -106,12 +106,15 @@ impl RetroControllerEnvCallbacks for Controller {
     }
 }
 
-pub fn get_core_wrapper() -> RetroCoreIns {
+pub fn get_core_test(project_name: &str) -> Result<RetroCoreIns, ErrorHandle> {
+    let test_dir = create_test_work_dir_path(project_name)
+        .display()
+        .to_string();
+
     RetroCore::new(
-        CORE_TEST_RELATIVE_PATH,
-        get_paths().unwrap(),
+        &get_core_test_path(),
+        RetroPaths::from_base(&test_dir)?,
         get_callbacks(),
         GraphicApi::default(),
     )
-    .unwrap()
 }

@@ -6,10 +6,10 @@ use generics::{
     error_handle::ErrorHandle,
 };
 use libretro_sys::binding_libretro::{
-    retro_controller_description, retro_controller_info, retro_subsystem_info,
-    retro_subsystem_memory_info, retro_subsystem_rom_info, retro_system_info, LibretroRaw,
+    LibretroRaw, retro_controller_description, retro_controller_info, retro_subsystem_info,
+    retro_subsystem_memory_info, retro_subsystem_rom_info, retro_system_info,
 };
-use std::sync::{atomic::AtomicU8, Arc, RwLock};
+use std::sync::{Arc, RwLock, atomic::AtomicU8};
 
 #[derive(Default, Debug)]
 pub struct SysInfo {
@@ -164,30 +164,5 @@ impl System {
             }
         }
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod test_system {
-    use crate::test_tools;
-
-    #[test]
-    fn test_get_sys_info() {
-        let core = test_tools::core::get_core_wrapper();
-
-        let sys = &core.system;
-
-        assert_eq!(*sys.info.library_name, "Snes9x".to_owned());
-
-        assert_eq!(*sys.info.library_version, "1.62.3 46f8a6b".to_owned());
-
-        assert_eq!(
-            *sys.info.valid_extensions,
-            "smc|sfc|swc|fig|bs|st".to_owned()
-        );
-
-        assert_eq!(*sys.info.block_extract, false);
-
-        assert_eq!(*sys.info.need_full_path, false);
     }
 }

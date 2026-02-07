@@ -1,6 +1,10 @@
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 
-pub fn create_test_work_dir_path(test_dir: &str) -> PathBuf {
+pub fn create_test_work_dir_path(test_dir: impl Display) -> PathBuf {
+    workspace_root().join(format!("test_workspace/{test_dir}"))
+}
+
+pub fn remove_test_work_dir_path(test_dir: impl Display) -> PathBuf {
     workspace_root().join(format!("test_workspace/{test_dir}"))
 }
 

@@ -5,7 +5,7 @@ use generics::{constants::SAVE_IMAGE_EXTENSION_FILE, error_handle::ErrorHandle};
 use libretro_sys::binding_libretro::retro_hw_context_type;
 use retro_audio::RetroAudio;
 use retro_controllers::{RetroController, RetroGamePad};
-use retro_core::{graphic_api::GraphicApi, RetroCore, RetroCoreIns, RetroEnvCallbacks};
+use retro_core::{RetroCore, RetroCoreIns, RetroEnvCallbacks, graphic_api::GraphicApi};
 use retro_video::RetroVideo;
 use std::path::PathBuf;
 use std::{path::Path, sync::Arc};
@@ -41,7 +41,7 @@ impl TinicGameCtx {
         let paths = RetroPaths::from_base(game_info.sys_dir)?;
 
         let retro_core = RetroCore::new(
-            &game_info.core,
+            &game_info.core.into(),
             paths,
             callbacks,
             GraphicApi::with(retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE),
