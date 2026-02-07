@@ -3632,6 +3632,7 @@ dependencies = [
  "crc32fast",
  "futures-util",
  "generics",
+ "rayon",
  "reqwest",
  "rmp-serde",
  "rmpv",

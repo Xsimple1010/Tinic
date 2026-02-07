@@ -1,4 +1,5 @@
 use crate::database::game::GameInfo;
+use generics::constants::RDB_HEADER_SIZE;
 use generics::error_handle::ErrorHandle;
 use rmp_serde::Deserializer;
 use serde::Deserialize;
@@ -11,7 +12,11 @@ where
     let file = std::fs::read(rdb_file)?;
     let data = file.as_slice();
 
-    let cursor = Cursor::new(&data[0x10..]);
+    if data.len() < RDB_HEADER_SIZE {
+        return Ok(());
+    }
+
+    let cursor = Cursor::new(&data[RDB_HEADER_SIZE..]);
     let mut de = Deserializer::new(cursor);
 
     loop {
@@ -52,6 +57,5 @@ pub fn debug_rdb(data: &[u8]) {
 
     let mut cursor = &payload[..];
     let v = rmpv::decode::read_value(&mut cursor).unwrap();
-
     println!("{:#?}", v);
 }

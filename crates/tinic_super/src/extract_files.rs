@@ -1,6 +1,7 @@
 use crate::FileProgress;
 use sevenz_rust::Error;
 use std::io::BufWriter;
+use std::sync::Arc;
 use std::{
     fs::{create_dir_all, File},
     io::{Read, Write},
@@ -8,14 +9,11 @@ use std::{
 };
 use zip::ZipArchive;
 
-pub fn extract_zip_file<CP>(
+pub fn extract_zip_file(
     file_path: PathBuf,
     out_dir: String,
-    on_progress: CP,
-) -> zip::result::ZipResult<()>
-where
-    CP: Fn(FileProgress),
-{
+    on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+) -> zip::result::ZipResult<()> {
     let file = File::open(file_path)?;
     let mut archive = ZipArchive::new(file)?;
 

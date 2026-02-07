@@ -5,6 +5,8 @@ use crate::database::helper::DatabaseHelper;
 use crate::FileProgress;
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use std::sync::Arc;
 
 pub struct TinicSuper {
     pub retro_paths: RetroPaths,
@@ -14,34 +16,30 @@ impl TinicSuper {
     pub async fn try_update_core<CP>(
         &self,
         force_update: bool,
-        on_progress: CP,
-    ) -> Result<(), ErrorHandle>
-    where
-        CP: Fn(FileProgress) + Copy,
-    {
+        on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+    ) -> Result<(), ErrorHandle> {
         CoreInfoHelper::try_update_core_infos(&self.retro_paths, force_update, on_progress).await
     }
 
-    pub async fn install_cores<CP>(
+    pub async fn install_cores(
         &self,
         core_info: &Vec<CoreInfo>,
         force_update: bool,
-        on_progress: CP,
-    ) -> Result<(), ErrorHandle>
-    where
-        CP: Fn(FileProgress) + Copy,
-    {
+        on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+    ) -> Result<(), ErrorHandle> {
         let core_names: Vec<String> = core_info.iter().map(|c| c.file_name.clone()).collect();
         CoreInfoHelper::install_core(&self.retro_paths, &core_names);
 
         for core in core_info {
-            let _ = DatabaseHelper::download_db(
-                &self.retro_paths,
-                &core.database,
-                force_update,
-                on_progress,
-            )
-            .await;
+            let retro_path = self.retro_paths.clone();
+            let on_progress = on_progress.clone();
+            let database = core.database.clone();
+
+            tokio::spawn(async move {
+                let _ =
+                    DatabaseHelper::download_db(&retro_path, &database, force_update, on_progress)
+                        .await;
+            });
         }
 
         Ok(())
@@ -55,20 +53,14 @@ impl TinicSuper {
         CoreInfoHelper::get_compatibility_core_infos(&rom_file.into(), &self.retro_paths)
     }
 
-    pub fn identifier_rom_file(
-        &self,
-        rom_file: &str,
-        cores: &Vec<CoreInfo>,
-    ) -> Result<Option<GameInfo>, ErrorHandle> {
-        for core in cores {
-            let games_data =
-                DatabaseHelper::identifier_rom_file(rom_file, &core, &self.retro_paths.databases)?;
-
-            if let Some(game) = games_data {
-                return Ok(Some(game));
-            }
-        }
-
-        Ok(None)
+    pub fn identifier_rom_file(&self, rom_file: &str, cores: &Vec<CoreInfo>) -> Option<GameInfo> {
+        cores.par_iter().find_map_any(|core| {
+            DatabaseHelper::identifier_rom_file_with_any_rdb(
+                rom_file,
+                core,
+                &self.retro_paths.databases,
+            )
+            .unwrap_or_else(|_| None)
+        })
     }
 }

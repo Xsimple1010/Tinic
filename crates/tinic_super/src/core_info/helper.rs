@@ -5,6 +5,8 @@ use crate::extract_files::{extract_7zip_file, extract_zip_file, SevenZipBeforeEx
 use generics::constants::{cores_url, CORE_INFOS_URL};
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
+use rayon::prelude::*;
+use std::sync::Arc;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -14,14 +16,11 @@ use std::{
 pub struct CoreInfoHelper;
 
 impl CoreInfoHelper {
-    pub async fn try_update_core_infos<CP>(
+    pub async fn try_update_core_infos(
         retro_paths: &RetroPaths,
         force_update: bool,
-        on_progress: CP,
-    ) -> Result<(), ErrorHandle>
-    where
-        CP: Fn(FileProgress) + Copy,
-    {
+        on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+    ) -> Result<(), ErrorHandle> {
         let temp_dir = retro_paths.temps.clone().to_string();
 
         download_file(
@@ -29,10 +28,14 @@ impl CoreInfoHelper {
             "info.zip",
             &temp_dir,
             force_update,
-            on_progress,
+            on_progress.clone(),
             |infos| {
-                extract_zip_file(infos, retro_paths.infos.clone().to_string(), on_progress)
-                    .unwrap();
+                extract_zip_file(
+                    infos,
+                    retro_paths.infos.clone().to_string(),
+                    on_progress.clone(),
+                )
+                .unwrap();
             },
         )
         .await
@@ -121,30 +124,28 @@ impl CoreInfoHelper {
         rom_path: &PathBuf,
         retro_paths: &RetroPaths,
     ) -> Vec<CoreInfo> {
-        let mut read_dir = PathBuf::from(retro_paths.infos.to_string())
-            .read_dir()
-            .unwrap();
+        let extension = match rom_path.extension().and_then(|e| e.to_str()) {
+            Some(ext) => ext,
+            None => return Vec::new(),
+        };
 
-        let mut infos = Vec::new();
+        let entries = match std::fs::read_dir(&retro_paths.infos.to_string()) {
+            Ok(rd) => rd,
+            Err(_) => return Vec::new(),
+        };
 
-        while let Some(Ok(entry)) = read_dir.next() {
-            match CoreInfoHelper::read_info_file(&entry.path()) {
-                Ok(info) => {
-                    let extension = rom_path
-                        .extension()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .replace(".", "");
+        entries
+            .par_bridge()
+            .filter_map(|entry| {
+                let entry = entry.ok()?;
+                let info = CoreInfoHelper::read_info_file(&entry.path()).ok()?;
 
-                    if info.supported_extensions.contains(&extension) {
-                        infos.push(info);
-                    };
+                if info.supported_extensions.contains(extension) {
+                    Some(info)
+                } else {
+                    None
                 }
-                Err(_) => continue,
-            };
-        }
-
-        infos
+            })
+            .collect()
     }
 }

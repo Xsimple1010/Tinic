@@ -6,7 +6,10 @@ use crate::download::download_file;
 use crate::FileProgress;
 use generics::constants::RDB_BASE_URL;
 use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use std::fs::File;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 pub struct DatabaseHelper {
     pub rdb_file: String,
@@ -23,7 +26,7 @@ impl DatabaseHelper {
         parse_all_rdb_to_vec(&self.rdb_file)
     }
 
-    pub fn identifier_rom_file(
+    pub fn identifier_rom_file_with_any_rdb(
         rom_file: &str,
         core_info: &CoreInfo,
         database_dir: &String,
@@ -37,38 +40,81 @@ impl DatabaseHelper {
             })
             .collect();
 
-        let src32 = crc32_file(rom_file)?;
-        let mut out_game = None;
+        //metadata
+        let rom_path = Path::new(rom_file);
 
-        for rdb in rbs {
-            let rdb_file = rdb
-                .file
-                .to_str()
-                .ok_or_else(|| ErrorHandle::new("rdb file no exist"))?;
+        // CRC32 (abre o arquivo internamente)
+        let crc32 = crc32_file(rom_path)?;
 
-            let _ = parse_rdb(rdb_file, |game| {
-                if game.crc32 == Some(src32) {
-                    out_game = Some(game);
-                    true
-                } else {
-                    false
-                }
-            });
+        // abre o arquivo UMA vez
+        let file = File::open(rom_path)?;
 
-            if out_game.is_some() {
-                break;
-            }
-        }
+        // metadata
+        let rom_size = file.metadata()?.len();
+        let rom_extension = rom_path
+            .extension()
+            .ok_or_else(|| ErrorHandle::new("invalid rom name"))?
+            .to_str()
+            .ok_or_else(|| ErrorHandle::new("invalid rom name"))?;
+
+        let rom_name = rom_path
+            .file_name()
+            .ok_or_else(|| ErrorHandle::new("invalid rom extension"))?
+            .to_str()
+            .ok_or_else(|| ErrorHandle::new("invalid rom extension"))?
+            .replace(&format!(".{}", rom_extension), "");
+
+        let out_game = rbs.par_iter().find_map_any(|rdb| {
+            let rdb_file = match rdb.file.to_str() {
+                Some(file) => file,
+                None => return None,
+            };
+
+            Self::identifier_rom_file(rom_size, &rom_name, crc32, rdb_file)
+        });
 
         Ok(out_game)
+    }
+
+    pub fn identifier_rom_file(
+        rom_size: u64,
+        rom_name: &str,
+        crc32: u32,
+        rdb_file: &str,
+    ) -> Option<GameInfo> {
+        let mut out_game = None;
+
+        let _ = parse_rdb(rdb_file, |game| {
+            if game.crc32 == Some(crc32) {
+                out_game = Some(game);
+                return true;
+            }
+
+            if let Some(name) = &game.name {
+                if let Some(size) = game.size {
+                    if name.eq(rom_name) && size == rom_size {
+                        out_game = Some(game);
+                        return true;
+                    }
+
+                    // para possivel rom modificada
+                    if name.eq(rom_name) {
+                        out_game = Some(game);
+                        return true;
+                    }
+                }
+            }
+
+            false
+        });
+
+        out_game
     }
 
     pub fn search_by_name(&self, name: &str) -> Result<Vec<GameInfo>, ErrorHandle> {
         let mut out_game: Vec<GameInfo> = Vec::new();
 
         parse_rdb(&self.rdb_file, |game| {
-            // println!("{game:?}");
-
             let game_name = match &game.name {
                 Some(name) => name,
                 None => return false,
@@ -106,21 +152,17 @@ impl DatabaseHelper {
         Ok(out)
     }
 
-    pub async fn download_db<CP>(
+    pub async fn download_db(
         paths: &RetroPaths,
         rdbs: &Vec<String>,
         force_update: bool,
-        on_progress: CP,
-    ) -> Result<(), ErrorHandle>
-    where
-        CP: Fn(FileProgress) + Copy,
-    {
+        on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
+    ) -> Result<(), ErrorHandle> {
         if rdbs.is_empty() {
             return Err(ErrorHandle::new("dbs is empty"));
         }
 
         let mut dbs: Vec<String> = Vec::new();
-        //
         for rdb in rdbs {
             if !rdb.ends_with(".rdb") {
                 dbs.push(format!("{rdb}.rdb"));
@@ -140,7 +182,7 @@ impl DatabaseHelper {
                 &rdb_name,
                 &paths.temps,
                 force_update,
-                on_progress,
+                on_progress.clone(),
                 |temp_path| {
                     let db_dir = PathBuf::from(paths.databases.to_string());
 

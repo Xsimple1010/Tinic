@@ -28,7 +28,7 @@ pub const RDB_BASE_URL: &str =
 pub const THUMBNAIL_BASE_URL: &str =
     "https://raw.githubusercontent.com/libretro/libretro-thumbnails/master";
 
-
+pub const RDB_HEADER_SIZE: usize = 0x10;
 
 pub fn cores_url() -> Result<&'static str, ErrorHandle> {
     if cfg!(target_os = "windows") {

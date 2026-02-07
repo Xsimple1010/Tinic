@@ -1,5 +1,6 @@
 use futures_util::StreamExt;
 use reqwest::Error;
+use std::sync::Arc;
 use std::{fs::File, io::Write, path::PathBuf};
 
 pub enum FileProgress {
@@ -7,17 +8,16 @@ pub enum FileProgress {
     Extract(String),
 }
 
-pub async fn download_file<CA, CP>(
+pub async fn download_file<CA>(
     url: &str,
     file_name: &str,
     out_dir: &str,
     force_update: bool,
-    on_progress: CP,
+    on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
     on_downloaded: CA,
 ) -> Result<(), Error>
 where
     CA: Fn(PathBuf),
-    CP: Fn(FileProgress) + Copy, // porcentagem (0.0 .. 100.0)
 {
     let mut dest = PathBuf::from(out_dir);
     dest.push(file_name);
