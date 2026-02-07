@@ -18,7 +18,7 @@ pub struct GameInfoInDb {
     pub core_path: Option<String>,
     pub rom_path: Option<String>,
     pub rumble: bool,
-    pub rdb_name: Option<String>,
+    pub console_name: Option<String>,
 }
 
 #[derive(Debug)]
