@@ -42,6 +42,11 @@ pub unsafe fn env_cb_option(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL -> ok");
 
+            InputValidator::validate_non_null_ptr(
+                data,
+                "ptr data in RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL",
+            )?;
+
             let _ = core_ctx
                 .options
                 .convert_option_v2_intl(data as *mut retro_core_options_v2_intl);

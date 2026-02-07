@@ -7,6 +7,7 @@ use crate::{
         RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
         retro_controller_info, retro_rumble_effect, retro_rumble_interface,
     },
+    tools::validation::InputValidator,
 };
 use generics::error_handle::ErrorHandle;
 use std::{ffi::c_uint, os::raw::c_void, ptr::addr_of};
@@ -97,6 +98,11 @@ pub unsafe fn env_cb_gamepad_io(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_CONTROLLER_INFO -> ok");
 
+            InputValidator::validate_non_null_mut_ptr(
+                data,
+                "data in RETRO_ENVIRONMENT_SET_CONTROLLER_INFO",
+            )?;
+
             let raw_ctr_infos =
                 unsafe { *(data as *mut [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES]) };
 
@@ -112,6 +118,11 @@ pub unsafe fn env_cb_gamepad_io(
         RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE -> ok");
+
+            InputValidator::validate_non_null_mut_ptr(
+                data,
+                "data in RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE",
+            )?;
 
             let mut rumble_raw = unsafe { *(data as *mut retro_rumble_interface) };
             rumble_raw.set_rumble_state = Some(rumble_callback);

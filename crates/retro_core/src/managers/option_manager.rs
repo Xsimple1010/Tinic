@@ -299,7 +299,7 @@ impl OptionManager {
         &self,
         option_intl_v2: *mut retro_core_options_v2_intl,
     ) -> Result<(), ErrorHandle> {
-        InputValidator::_validate_non_null_mut_ptr(option_intl_v2, "option_intl_v2")?;
+        InputValidator::validate_non_null_mut_ptr(option_intl_v2, "option_intl_v2")?;
 
         let option_intl_v2 = unsafe { &mut *option_intl_v2 };
 

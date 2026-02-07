@@ -14,6 +14,7 @@ use crate::{
         RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE, RETRO_ENVIRONMENT_SET_GEOMETRY,
         RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, retro_game_geometry, retro_pixel_format,
     },
+    tools::validation::InputValidator,
 };
 use generics::error_handle::ErrorHandle;
 #[cfg(feature = "hw")]
@@ -180,6 +181,11 @@ pub unsafe fn env_cb_av(
         RETRO_ENVIRONMENT_SET_PIXEL_FORMAT => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_PIXEL_FORMAT -> ok");
+
+            InputValidator::validate_non_null_ptr(
+                data,
+                "ptr data in RETRO_ENVIRONMENT_SET_PIXEL_FORMAT",
+            )?;
 
             unsafe {
                 core_ctx.av_info.video.pixel_format.store_or_else(

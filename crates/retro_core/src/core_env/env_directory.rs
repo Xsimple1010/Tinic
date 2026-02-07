@@ -66,8 +66,14 @@ pub unsafe fn env_cb_directory(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
 
+            InputValidator::validate_non_null_mut_ptr(
+                data,
+                "data in RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO",
+            )?;
+
             let raw_subsystem =
                 unsafe { *(data as *mut [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]) };
+
             core_ctx.system.get_subsystem(raw_subsystem)?;
 
             Ok(true)
