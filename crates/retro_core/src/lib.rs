@@ -1,3 +1,4 @@
+extern crate generics;
 extern crate libretro_sys;
 extern crate uuid;
 

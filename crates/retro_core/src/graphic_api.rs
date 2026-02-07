@@ -1,6 +1,6 @@
-use libretro_sys::binding_libretro::retro_hw_context_type;
+use libretro_sys::binding_libretro::{retro_hw_context_type, retro_hw_render_callback};
 use std::sync::{
-    atomic::{AtomicBool, AtomicU32},
+    atomic::{AtomicBool, AtomicU32, Ordering},
     RwLock,
 };
 
@@ -58,5 +58,27 @@ impl GraphicApi {
             context_type,
             ..Default::default()
         }
+    }
+
+    /// # Safety
+    ///
+    /// Garanta que o ponteiro *hw_raw_ptr* é valido antes de envia para essa função.
+    pub fn try_update_from_raw(&self, hw_raw_ptr: *const retro_hw_render_callback) -> bool {
+        if hw_raw_ptr.is_null() {
+            return false;
+        }
+
+        let hw = unsafe { *hw_raw_ptr };
+
+        self.depth.store(hw.depth, Ordering::SeqCst);
+        self.stencil.store(hw.stencil, Ordering::SeqCst);
+        self.bottom_left_origin
+            .store(hw.bottom_left_origin, Ordering::SeqCst);
+        self.minor.store(hw.version_minor, Ordering::SeqCst);
+        self.major.store(hw.version_major, Ordering::SeqCst);
+        self.cache_context.store(hw.cache_context, Ordering::SeqCst);
+        self.debug_context.store(hw.debug_context, Ordering::SeqCst);
+
+        true
     }
 }

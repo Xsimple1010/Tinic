@@ -74,7 +74,7 @@ impl AvInfo {
 
     /// # Safety
     ///
-    /// Garanta que o ponteiro *raw geometry ptr* é valida antes de envia para essa função.
+    /// Garanta que o ponteiro *raw geometry ptr* é valido antes de envia para essa função.
     pub unsafe fn try_set_new_geometry(&self, raw_geometry_ptr: *const retro_game_geometry) {
         if raw_geometry_ptr.is_null() {
             return;
