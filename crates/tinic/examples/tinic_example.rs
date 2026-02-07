@@ -1,6 +1,6 @@
 use tinic::{
-    self, args_manager::RetroArgs, DeviceListener, ErrorHandle, RetroGamePad, Tinic, TinicGameInfo,
-    WindowListener,
+    self, args_manager::RetroArgs, DeviceListener, ErrorHandle, GameState, RetroGamePad, Tinic,
+    TinicGameInfo, WindowListener, WindowState,
 };
 
 #[derive(Debug, Default)]
@@ -23,32 +23,16 @@ impl DeviceListener for DeviceEventHandle {
 struct WindowEvents;
 
 impl WindowListener for WindowEvents {
-    fn window_closed(&self) {
-        println!("window_closed");
+    fn window_state_change(&self, state: WindowState) {
+        println!("WindowState: {state:?}");
     }
 
-    fn window_opened(&self) {
-        println!("window_opened");
+    fn game_state_change(&self, state: GameState) {
+        println!("GameState: {state:?}");
     }
 
-    fn game_loaded_result(&self, suss: bool) {
-        println!("game_loaded: {suss}");
-    }
-
-    fn game_closed(&self) {
-        println!("game_closed");
-    }
-
-    fn game_paused(&self) {
-        println!("game paused");
-    }
-
-    fn game_resumed(&self) {
-        println!("game play");
-    }
-
-    fn save_state_result(&self, suss: bool) {
-        println!("save_state_result: {suss}");
+    fn save_state_result(&self, info: Option<tinic::SaveStateInfo>) {
+        println!("save_state_result: {info:?}");
     }
 
     fn load_state_result(&self, suss: bool) {

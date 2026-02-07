@@ -9,42 +9,23 @@ use crate::device_listener::DeviceEventHandle;
 use crate::game_loop::game_loop;
 use crate::io::stdin_reader::StdinReader;
 use crate::io::stdout_writer::StdoutWriter;
-use std::sync::atomic::Ordering;
-use tinic::{ErrorHandle, Tinic, WindowListener};
+use tinic::{ErrorHandle, GameState, Tinic, WindowListener, WindowState};
 
 struct WindowEvents {
     app_state: AppStateHandle,
 }
 
 impl WindowListener for WindowEvents {
-    fn window_closed(&self) {
-        let _ = StdoutWriter::window_closed();
+    fn window_state_change(&self, state: WindowState) {
+        let _ = StdoutWriter::window_state_change(state);
     }
 
-    fn window_opened(&self) {
-        let _ = StdoutWriter::window_opened();
+    fn game_state_change(&self, state: GameState) {
+        let _ = StdoutWriter::game_state_change(state);
     }
 
-    fn game_loaded_result(&self, suss: bool) {
-        self.app_state.game_loaded.store(suss, Ordering::SeqCst);
-        let _ = StdoutWriter::game_loaded(suss);
-    }
-
-    fn game_closed(&self) {
-        self.app_state.game_loaded.store(false, Ordering::SeqCst);
-        let _ = StdoutWriter::game_closed();
-    }
-
-    fn game_paused(&self) {
-        let _ = StdoutWriter::game_paused();
-    }
-
-    fn game_resumed(&self) {
-        let _ = StdoutWriter::game_resumed();
-    }
-
-    fn save_state_result(&self, suss: bool) {
-        let _ = StdoutWriter::save_state_result(suss);
+    fn save_state_result(&self, info: Option<tinic::SaveStateInfo>) {
+        let _ = StdoutWriter::save_state_result(info);
     }
 
     fn load_state_result(&self, suss: bool) {

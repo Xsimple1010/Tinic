@@ -1,6 +1,8 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize)]
+pub use tinic::{GameState, SaveStateInfo, WindowState};
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum ProtocolOut {
     DeviceConnected {
@@ -16,17 +18,14 @@ pub enum ProtocolOut {
         name: String,
         button: String,
     },
-    // Window && Game
-    WindowOpened,
-    WindowClosed,
-    GameLoadedResult {
-        success: bool,
+    WindowStateChange {
+        state: WindowState,
     },
-    GameClosed,
-    GamePaused,
-    GameResumed,
+    GameStateChange {
+        state: GameState,
+    },
     SaveStateResult {
-        success: bool,
+        info: Option<SaveStateInfo>,
     },
     LoadStateResult {
         success: bool,

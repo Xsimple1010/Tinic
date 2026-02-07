@@ -1,10 +1,10 @@
+use crate::app_state::AppStateHandle;
 use crate::constants::THREAD_SLEEP_TIME_IN_MILLISECONDS;
 use crate::io::protocol::input::ProtocolInput;
-use crate::AppState;
 use std::io::BufRead;
 use std::sync::atomic::Ordering;
 use std::sync::mpsc::Receiver;
-use std::sync::{mpsc, Arc};
+use std::sync::mpsc;
 use std::thread::sleep;
 use std::time::Duration;
 use tinic::TinicGameInfo;
@@ -13,7 +13,7 @@ pub struct StdinReader {}
 
 impl StdinReader {
     #[doc = "Cria uma thread de leitura de stdin e envia os comandos para o canal tx [tx: Sender<ProtocolInput>"]
-    pub fn start(state: Arc<AppState>) {
+    pub fn start(state: AppStateHandle) {
         let (tx, rx) = mpsc::channel::<ProtocolInput>();
 
         std::thread::spawn(move || {
@@ -35,7 +35,7 @@ impl StdinReader {
         Self::process_command_thread(rx, state);
     }
 
-    fn process_command_thread(rx: Receiver<ProtocolInput>, state: Arc<AppState>) {
+    fn process_command_thread(rx: Receiver<ProtocolInput>, state: AppStateHandle) {
         std::thread::spawn(move || {
             loop {
                 sleep(Duration::from_millis(THREAD_SLEEP_TIME_IN_MILLISECONDS));

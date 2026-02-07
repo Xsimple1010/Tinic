@@ -12,3 +12,4 @@ retro_audio.workspace = true
 libretro_sys.workspace = true
 generics.workspace = true
 winit.workspace = true
+serde = { version = "1.0.228", features = ["derive"] }

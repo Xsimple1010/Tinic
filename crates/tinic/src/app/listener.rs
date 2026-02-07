@@ -1,17 +1,33 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WindowState {
+    Opened,
+    Closed,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GameState {
+    Running,
+    Closed,
+    Paused,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct SaveStateInfo {
+    pub file: String,
+    pub img: String,
+}
+
 pub trait WindowListener {
-    fn window_closed(&self);
+    fn window_state_change(&self, state: WindowState);
 
-    fn window_opened(&self);
+    fn game_state_change(&self, state: GameState);
 
-    fn game_loaded_result(&self, suss: bool);
-
-    fn game_closed(&self);
-
-    fn game_paused(&self);
-
-    fn game_resumed(&self);
-
-    fn save_state_result(&self, suss: bool);
+    fn save_state_result(&self, info: Option<SaveStateInfo>);
 
     fn load_state_result(&self, suss: bool);
 

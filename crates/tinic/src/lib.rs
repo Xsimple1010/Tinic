@@ -9,9 +9,8 @@ mod app;
 mod app_dispatcher;
 mod device_listener;
 mod tinic;
-mod tinic_app_ctx;
 
-pub use app::listener::WindowListener;
+pub use app::listener::*;
 pub use app_dispatcher::GameInstanceDispatchers;
 pub use generics::error_handle::ErrorHandle;
 pub use generics::retro_paths::RetroPaths;

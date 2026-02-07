@@ -21,32 +21,16 @@ pub fn emit_protocol_event(event: &ProtocolOut) -> Result<(), ErrorHandle> {
 pub struct StdoutWriter;
 
 impl StdoutWriter {
-    pub fn window_opened() -> Result<(), ErrorHandle> {
-        emit_protocol_event(&ProtocolOut::WindowOpened)
+    pub fn window_state_change(state: tinic::WindowState) -> Result<(), ErrorHandle> {
+        emit_protocol_event(&ProtocolOut::WindowStateChange { state })
     }
 
-    pub fn window_closed() -> Result<(), ErrorHandle> {
-        emit_protocol_event(&ProtocolOut::WindowClosed)
+    pub fn game_state_change(state: tinic::GameState) -> Result<(), ErrorHandle> {
+        emit_protocol_event(&ProtocolOut::GameStateChange { state })
     }
 
-    pub fn game_loaded(success: bool) -> Result<(), ErrorHandle> {
-        emit_protocol_event(&ProtocolOut::GameLoadedResult { success })
-    }
-
-    pub fn game_closed() -> Result<(), ErrorHandle> {
-        emit_protocol_event(&ProtocolOut::GameClosed)
-    }
-
-    pub fn game_paused() -> Result<(), ErrorHandle> {
-        emit_protocol_event(&ProtocolOut::GamePaused)
-    }
-
-    pub fn game_resumed() -> Result<(), ErrorHandle> {
-        emit_protocol_event(&ProtocolOut::GameResumed)
-    }
-
-    pub fn save_state_result(success: bool) -> Result<(), ErrorHandle> {
-        emit_protocol_event(&ProtocolOut::SaveStateResult { success })
+    pub fn save_state_result(info: Option<tinic::SaveStateInfo>) -> Result<(), ErrorHandle> {
+        emit_protocol_event(&ProtocolOut::SaveStateResult { info })
     }
 
     pub fn load_state_result(success: bool) -> Result<(), ErrorHandle> {

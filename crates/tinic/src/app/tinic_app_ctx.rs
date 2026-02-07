@@ -1,6 +1,5 @@
-use std::{path::Path, sync::Arc};
-
-use crate::{TinicGameInfo, WindowListener};
+use crate::app::listener::{GameState, WindowState};
+use crate::{SaveStateInfo, TinicGameInfo, WindowListener};
 use generics::retro_paths::RetroPaths;
 use generics::{constants::SAVE_IMAGE_EXTENSION_FILE, error_handle::ErrorHandle};
 use libretro_sys::binding_libretro::retro_hw_context_type;
@@ -8,6 +7,8 @@ use retro_audio::RetroAudio;
 use retro_controllers::{RetroController, RetroGamePad};
 use retro_core::{graphic_api::GraphicApi, RetroCore, RetroCoreIns, RetroEnvCallbacks};
 use retro_video::RetroVideo;
+use std::path::PathBuf;
+use std::{path::Path, sync::Arc};
 use winit::dpi::PhysicalSize;
 use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::PhysicalKey;
@@ -100,7 +101,7 @@ impl TinicGameCtx {
 
     pub fn create_window(&mut self, event_loop: &ActiveEventLoop) -> Result<(), ErrorHandle> {
         let err_handle = |e: ErrorHandle| {
-            self.window_listener.game_loaded_result(false);
+            self.window_listener.game_state_change(GameState::Closed);
             e
         };
 
@@ -126,8 +127,9 @@ impl TinicGameCtx {
         // de agora em diante o core fará requisições manuais para verificar os inputs,
         self.controller.stop_thread_events();
 
-        self.window_listener.game_loaded_result(true);
-        self.window_listener.window_opened();
+        self.window_listener.game_state_change(GameState::Running);
+        self.window_listener
+            .window_state_change(WindowState::Opened);
 
         Ok(())
     }
@@ -137,7 +139,8 @@ impl TinicGameCtx {
         self.retro_audio.stop();
         self.controller.resume_thread_events();
 
-        self.window_listener.window_closed();
+        self.window_listener
+            .window_state_change(WindowState::Closed);
     }
 
     pub fn destroy_retro_ctx(&self) -> Result<(), ErrorHandle> {
@@ -146,8 +149,9 @@ impl TinicGameCtx {
         self.controller.resume_thread_events();
         self.retro_video.destroy_window();
 
-        self.window_listener.game_closed();
-        self.window_listener.window_closed();
+        self.window_listener.game_state_change(GameState::Closed);
+        self.window_listener
+            .window_state_change(WindowState::Closed);
 
         Ok(())
     }
@@ -174,20 +178,41 @@ impl TinicGameCtx {
     }
 
     pub fn save_state(&self, slot: usize) -> Result<(), ErrorHandle> {
-        let save_path = match self.retro_core.save_state(slot) {
-            Ok(path) => path,
-            Err(e) => {
-                self.window_listener.save_state_result(false);
-                return Err(e);
-            }
+        // Erros handles
+        let err_handle = |e: ErrorHandle| {
+            self.window_listener.save_state_result(None);
+            e
         };
+
+        let file_err_handle = |path: PathBuf| -> Result<String, ErrorHandle> {
+            Ok(path
+                .canonicalize()
+                .map_err(|e| err_handle(e.into()))?
+                .to_str()
+                .ok_or_else(|| {
+                    err_handle(ErrorHandle::new("Erro ao converter o caminho para string"))
+                })?
+                .to_string())
+        };
+        // =========================================================
+
+        let save_path = self.retro_core.save_state(slot).map_err(err_handle)?;
 
         let mut img_path = save_path.clone();
         img_path.set_extension(SAVE_IMAGE_EXTENSION_FILE);
 
-        self.window_listener.save_state_result(true);
+        if self.print_screen(&img_path).is_err() {
+            self.window_listener.save_state_result(None);
+            return Ok(());
+        }
 
-        self.print_screen(&img_path)
+        let img = file_err_handle(img_path)?;
+        let file = file_err_handle(save_path)?;
+
+        self.window_listener
+            .save_state_result(Some(SaveStateInfo { file, img }));
+
+        Ok(())
     }
 
     pub fn load_state(&self, slot: usize) -> Result<(), ErrorHandle> {
@@ -224,7 +249,7 @@ impl TinicGameCtx {
         self.controller.resume_thread_events();
         self.can_request_new_frames = false;
         self.retro_audio.pause()?;
-        self.window_listener.game_paused();
+        self.window_listener.game_state_change(GameState::Paused);
         Ok(())
     }
 
@@ -232,7 +257,7 @@ impl TinicGameCtx {
         self.controller.stop_thread_events();
         self.can_request_new_frames = true;
         self.retro_audio.play()?;
-        self.window_listener.game_resumed();
+        self.window_listener.game_state_change(GameState::Running);
         Ok(())
     }
 

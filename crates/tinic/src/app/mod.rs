@@ -1,10 +1,10 @@
 pub mod listener;
 mod user_events;
 mod window_events;
+mod tinic_app_ctx;
 
 use crate::app::listener::WindowListener;
 use crate::app_dispatcher::{GameInstanceActions, GameInstanceDispatchers};
-use crate::tinic_app_ctx::TinicGameCtx;
 use crate::TinicGameInfo;
 use generics::error_handle::ErrorHandle;
 use retro_controllers::RetroController;
@@ -13,6 +13,7 @@ use winit::{
     application::ApplicationHandler, event::WindowEvent, event_loop::ActiveEventLoop,
     window::WindowId,
 };
+use crate::app::tinic_app_ctx::TinicGameCtx;
 
 pub struct GameInstance {
     ctx: TinicGameCtx,

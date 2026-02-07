@@ -3538,12 +3538,13 @@ dependencies = [
  "retro_controllers",
  "retro_core",
  "retro_video",
+ "serde",
  "winit",
 ]
 
 [[package]]
 name = "tinic_ipc"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "serde",
  "serde_json",
