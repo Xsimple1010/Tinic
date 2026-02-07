@@ -20,9 +20,9 @@ retro_av = { path = "crates/retro_av" }
 libretro_sys = { path = "crates/libretro_sys" }
 generics = { path = "crates/generics" }
 tinic_super = { path = "crates/tinic_super" }
-tokio = { version = "1.43.0", features = ["full"] }
+tokio = { version = "1.44.2", features = ["full"] }
 reqwest = "0.12.12"
-zip = "2.2.2"
+zip = "2.6.1"
 sevenz-rust = "0.6.1"
 gilrs = "0.11.0"
 image = "0.25.5"

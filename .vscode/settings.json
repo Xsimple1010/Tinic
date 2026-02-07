@@ -31,5 +31,6 @@
         "vulkan",
         "vulkano",
         "winit"
-    ]
+    ],
+    "cSpell.language": "en,pt,pt-BR"
 }
