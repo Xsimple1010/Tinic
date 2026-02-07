@@ -1,26 +1,27 @@
-use crate::{
-    core_info::CoreInfo,
-    download::download_file,
-    extract_files::{extract_7zip_file, extract_zip_file},
-};
-use generics::{
-    constants::{CORE_INFOS_URL, CORES_URL},
-    retro_paths::RetroPaths,
-};
+use crate::core_info::model::CoreInfo;
+use crate::download::FileProgress;
+use crate::{download::download_file, extract_files::extract_7zip_file};
+use generics::constants::CORE_INFOS_URL;
+use generics::{constants::CORES_URL, retro_paths::RetroPaths};
 use reqwest::Error;
 use std::{
     fs::File,
     io::{self, BufRead, BufReader},
     path::PathBuf,
 };
+use crate::extract_files::extract_zip_file;
 
 pub struct CoreInfoHelper;
 
 impl CoreInfoHelper {
-    pub async fn try_update_core_infos(
+    pub async fn try_update_core_infos<CP>(
         retro_paths: &RetroPaths,
         force_update: bool,
-    ) -> Result<(), Error> {
+        on_progress: CP,
+    ) -> Result<(), Error>
+    where
+        CP: Fn(FileProgress) + Copy,
+    {
         let temp_dir = retro_paths.temps.clone().to_string();
 
         download_file(
@@ -28,15 +29,24 @@ impl CoreInfoHelper {
             "info.zip",
             &temp_dir,
             force_update,
+            on_progress,
             |infos| {
-                extract_zip_file(infos, retro_paths.infos.clone().to_string());
+                extract_zip_file(infos, retro_paths.infos.clone().to_string(), on_progress)
+                    .unwrap();
             },
         )
         .await?;
 
-        download_file(CORES_URL, "cores.7z", &temp_dir, force_update, |path_buf| {
-            extract_7zip_file(path_buf, retro_paths.cores.clone().to_string());
-        })
+        download_file(
+            CORES_URL,
+            "cores.7z",
+            &temp_dir,
+            force_update,
+            on_progress,
+            |path_buf| {
+                extract_7zip_file(path_buf, retro_paths.cores.clone().to_string(), on_progress);
+            },
+        )
         .await?;
 
         Ok(())

@@ -26,9 +26,9 @@ tinic_ipc_protocol = { path = "crates/tinic_ipc_protocol" }
 tinic = { path = "crates/tinic" }
 
 # Extern deps
-reqwest = "0.13.1"
+reqwest = { version = "0.13.1", features = ["stream"] }
 zip = "7.0.0"
-sevenz-rust = "0.6.1"
+sevenz-rust = { version = "0.6.1" }
 gilrs = "0.11.0"
 image = "0.25.5"
 rubato = "0.16.2"
