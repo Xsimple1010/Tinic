@@ -19,9 +19,7 @@ impl StdinReader {
         std::thread::spawn(move || {
             let stdin = std::io::stdin();
             for line in stdin.lock().lines() {
-                sleep(Duration::from_millis(
-                    THREAD_SLEEP_TIME_IN_MILLISECONDS,
-                ));
+                sleep(Duration::from_millis(THREAD_SLEEP_TIME_IN_MILLISECONDS));
                 match line {
                     Ok(line) => {
                         if let Ok(cmd) = serde_json::from_str::<ProtocolInput>(&line) {
@@ -69,6 +67,10 @@ impl StdinReader {
                             }
                         }
                         ProtocolInput::GameClose => {
+                            if !state.game_loaded.load(Ordering::SeqCst) {
+                                continue;
+                            }
+
                             if state.game_dispatchers.exit().is_err() {
                                 println!("Não foi possível parar o jogo atual!");
                             }
