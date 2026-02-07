@@ -60,8 +60,8 @@ pub unsafe extern "C" fn audio_sample_batch_callback(data: *const i16, frames: u
 
 pub unsafe extern "C" fn video_refresh_callback(
     data: *const c_void,
-    width: ::std::os::raw::c_uint,
-    height: ::std::os::raw::c_uint,
+    width: std::os::raw::c_uint,
+    height: std::os::raw::c_uint,
     pitch: usize,
 ) {
     unsafe {

@@ -7,7 +7,7 @@ use libretro_sys::binding_libretro::retro_hw_context_type;
 use retro_audio::RetroAudio;
 use retro_controllers::{RetroController, RetroGamePad};
 use retro_core::{graphic_api::GraphicApi, RetroCore, RetroCoreIns, RetroEnvCallbacks};
-use retro_video::{RetroVideo, RetroWindowMode};
+use retro_video::RetroVideo;
 use winit::dpi::PhysicalSize;
 use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::PhysicalKey;
@@ -210,15 +210,6 @@ impl TinicGameCtx {
 
     pub fn toggle_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
         self.retro_video.toggle_window_mode()
-    }
-
-    pub fn enable_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
-        self.retro_video
-            .set_window_mode(RetroWindowMode::FullScreen)
-    }
-
-    pub fn disable_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
-        self.retro_video.set_window_mode(RetroWindowMode::Windowed)
     }
 
     pub fn toggle_can_request_new_frames(&mut self) -> Result<(), ErrorHandle> {

@@ -10,7 +10,7 @@ pub struct GraphicApi {
     #[doc = " Which API to use. Set by libretro core."]
     pub context_type: retro_hw_context_type,
 
-    #[doc = " Set by frontend.\n TODO: This is rather obsolete. The frontend should not\n be providing preallocated framebuffers."]
+    #[doc = " Set by frontend.\n TODO: This is rather obsolete. The frontend should not\n be providing pre allocated framebuffers."]
     pub fbo: RwLock<Option<usize>>,
 
     #[doc = " Set if render buffers should have depth component attached.\n TODO: Obsolete."]

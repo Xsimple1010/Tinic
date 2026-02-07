@@ -32,7 +32,7 @@ impl WindowListener for WindowEvents {
     }
 
     fn game_loaded_result(&self, suss: bool) {
-        println!("game_loaded");
+        println!("game_loaded: {suss}");
     }
 
     fn game_closed(&self) {

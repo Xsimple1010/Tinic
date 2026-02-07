@@ -44,6 +44,7 @@ impl GameInstance {
 
         if let Err(e) = result {
             self.destroy_window_and_render_context(event_loop, &self.ctx);
+            println!("Error: {e:?}");
         }
     }
 }

@@ -22,7 +22,7 @@ use std::{result::Result, sync::Arc, time::Duration};
 pub struct AudioDriver {
     stream: ArcTMutex<Option<Stream>>,
     pub resampler: AudioResample,
-    // so existe se não for necessario fazer o resample!
+    // so existe se não for necessário fazer o resample!
     front_prod_buffer: ArcTMutex<Option<BufferProd>>,
 }
 
@@ -69,7 +69,7 @@ impl AudioDriver {
     pub fn play(&self) -> Result<(), ErrorHandle> {
         match &mut *self
             .stream
-            .load_or_spaw_err("Não foi possivel pausar o audio")?
+            .load_or_spawn_err("Não foi possível pausar o audio")?
         {
             Some(stream) => stream.play().map_err(|e| ErrorHandle::new(&e.to_string())),
             None => Err(ErrorHandle::new("Stream not initialized")),
@@ -92,7 +92,7 @@ impl AudioDriver {
     pub fn add_sample(&self, samples: &[i16], metadata: AudioMetadata) -> Result<(), ErrorHandle> {
         if let Some(front_buffer_prod) = &mut *self
             .front_prod_buffer
-            .load_or_spaw_err("Front buffer not initialized")?
+            .load_or_spawn_err("Front buffer not initialized")?
         {
             front_buffer_prod.push_slice(samples);
         } else {
@@ -106,9 +106,7 @@ impl AudioDriver {
         let config = device.default_output_config().unwrap();
 
         let config = &config.into();
-        let error_callback = |err| {
-            // eprintln!("erro no stream {}", err)
-        };
+        let error_callback = |err| eprintln!("erro no stream {err}");
         let timeout = Some(Duration::from_millis(2));
         let data_callback = move |front: &mut [i16], _: &cpal::OutputCallbackInfo| {
             if cons.is_empty() {

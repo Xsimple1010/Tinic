@@ -19,7 +19,7 @@ impl PrintScree {
         match &*av_info
             .video
             .pixel_format
-            .load_or_spaw_err("Pixel está inacessivel")?
+            .load_or_spawn_err("Pixel está inacessivel")?
         {
             retro_pixel_format::RETRO_PIXEL_FORMAT_XRGB8888 => {
                 Self::_from_xrgb8888(raw_texture, out_path)

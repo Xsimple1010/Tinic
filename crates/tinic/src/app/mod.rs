@@ -18,7 +18,7 @@ pub struct GameInstance {
     ctx: TinicGameCtx,
     game_dispatchers: GameInstanceDispatchers,
     pub default_slot: usize,
-    window_listener: Arc<Box<dyn WindowListener>>,
+    _window_listener: Arc<Box<dyn WindowListener>>,
 }
 
 impl GameInstance {
@@ -34,7 +34,7 @@ impl GameInstance {
             ctx,
             default_slot: 1,
             game_dispatchers,
-            window_listener,
+            _window_listener: window_listener,
         })
     }
 
@@ -66,6 +66,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         if let Err(e) = self.ctx.redraw_request() {
+            println!("{:?}", e);
             self.destroy_window_and_render_context(event_loop, &self.ctx);
         }
     }
