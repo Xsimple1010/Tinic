@@ -3,6 +3,9 @@ name = "retro_audio"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+debug-logs = []
+
 [dependencies]
 cpal.workspace = true
 rubato.workspace = true
