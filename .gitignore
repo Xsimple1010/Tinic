@@ -2,3 +2,4 @@
 */**/tinic_test_workspace
 *.so
 *.dll
+*.sqlite
