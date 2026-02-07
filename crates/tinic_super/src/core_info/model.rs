@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 #[derive(Debug, Default, Clone)]
 pub struct CoreInfo {
     pub file_name: String,
@@ -78,5 +80,23 @@ impl CoreInfo {
             "disk_control" => self.disk_control = self.get_boolean_value(&value),
             _ => {}
         }
+    }
+}
+
+impl CoreInfo {
+    pub fn get_rdb_names(&self, core_infos: Vec<CoreInfo>) -> Vec<String> {
+        let mut out = Vec::new();
+
+        for core_info in core_infos {
+            let new = core_info.get_rdb_name();
+            out.extend_from_slice(new.as_slice());
+        }
+
+        out
+    }
+
+    pub fn get_rdb_name(&self) -> Vec<String> {
+        let rdb: HashSet<String> = self.database.clone().into_iter().collect();
+        rdb.into_iter().collect()
     }
 }
