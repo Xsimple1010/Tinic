@@ -32,7 +32,7 @@ pub(crate) fn read_game_info(stmt: &sqlite::Statement) -> sqlite::Result<GameInf
 
         core_path: read_opt_string(stmt, 10),
         rom_path: read_opt_string(stmt, 11),
-        console_name: read_opt_string(stmt, 12),
+        rdb_name: read_opt_string(stmt, 12),
 
         release_year: read_opt_u32(stmt, 13),
         release_month: read_opt_u32(stmt, 14),

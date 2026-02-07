@@ -15,41 +15,34 @@ pub use tools::{download::DownloadProgress, game_identifier::GameIdentifier};
 #[cfg(test)]
 mod test {
     use crate::{
+        art::helper::ThumbnailEventType,
+        cores::CoreEventType,
         event::TinicSuperEventListener,
-        infos::model::CoreInfo,
-        rdb_manager::game_model::GameInfo,
+        infos::{helper::InfoEventType, model::CoreInfo},
+        rdb_manager::helper::RdbEventType,
         tinic_super::TinicSuper,
-        tools::{
-            download::{DownloadProgress, download_file},
-            game_identifier::GameIdentifier,
-        },
+        tools::{download::download_file, game_identifier::GameIdentifier},
     };
     use generics::{constants::ROM_FOR_TEST, retro_paths::RetroPaths};
-    use std::{collections::HashSet, path::PathBuf, sync::Arc};
+    use std::{path::PathBuf, sync::Arc};
 
     struct TinicSuperListener;
 
     impl TinicSuperEventListener for TinicSuperListener {
-        fn downloading(&self, progress: DownloadProgress) {
-            match progress {
-                DownloadProgress::Started(file_name) => println!("{file_name}: started"),
-                DownloadProgress::Progress(file_name, percent) => {
-                    println!("{file_name}: {percent}%")
-                }
-                DownloadProgress::Completed(file_name) => println!("{file_name}: completed"),
-            }
+        fn on_thumbnail_evnt(&self, event: ThumbnailEventType) {
+            println!("on_thumbnail_evnt: {event:?}");
         }
 
-        fn extract_file(&self, file_name: String) {
-            println!("extracting: {file_name}")
+        fn on_info_event(&self, event: InfoEventType) {
+            println!("on_info_event: {event:?}");
         }
 
-        fn rdb_read(&self, game_info: Vec<GameInfo>) {
-            println!("{game_info:?}")
+        fn on_core_event(&self, event: CoreEventType) {
+            println!("on_core_event: {event:?}");
         }
 
-        fn core_installed(&self, core_name: String) {
-            println!("{core_name} installed")
+        fn on_rdb_event(&self, event: RdbEventType) {
+            println!("on_core_event: {event:?}");
         }
     }
 
@@ -87,7 +80,7 @@ mod test {
         // get_infos
         {
             let infos = tinic_super.info_helper.get_infos().await;
-            assert_eq!(infos.len(), 294);
+            assert_eq!(infos.len(), 295);
             info = infos
                 .into_iter()
                 .find(|info| info.file_name == "snes9x_libretro");
@@ -132,12 +125,7 @@ mod test {
 
         tinic_super.rdb_helper.download(false).await.unwrap();
 
-        // read_rdb
-        {
-            let rdb_names = HashSet::from(["snes9x_libretro".to_string()]);
-
-            tinic_super.rdb_helper.read_rdbs(rdb_names).await;
-        }
+        tinic_super.rdb_helper.read_rdbs().unwrap();
 
         clean_up(&work_dir).await;
     }
@@ -181,23 +169,23 @@ mod test {
         let thumbnails = tinic_super
             .art_helper
             .get_urls(
-                &"Nintendo",
-                &"Super Nintendo Entertainment System",
+                &"Nintendo - Super Nintendo Entertainment System",
                 &"Batman Returns (USA)",
             )
             .await
             .unwrap();
 
-        assert!(thumbnails.box_img.is_some(), "box img não foi definida!");
-        assert!(thumbnails.snap_img.is_some(), "snap img não foi definida!");
-        assert!(
-            thumbnails.title_img.is_some(),
-            "title img não foi definida!"
-        );
+        let (box_img, _box_img_url) = thumbnails.box_img;
+        let (snap_img, _snap_img_url) = thumbnails.snap_img;
+        let (title_img, _title_img_url) = thumbnails.title_img;
 
-        let box_path = thumbnails.box_img.unwrap();
-        let snap_path = thumbnails.snap_img.unwrap();
-        let title_path = thumbnails.title_img.unwrap();
+        assert!(box_img.is_some(), "box img não foi definida!");
+        assert!(snap_img.is_some(), "snap img não foi definida!");
+        assert!(title_img.is_some(), "title img não foi definida!");
+
+        let box_path = box_img.unwrap();
+        let snap_path = snap_img.unwrap();
+        let title_path = title_img.unwrap();
 
         assert!(box_path.exists(), "box img não foi salvo!");
         assert!(snap_path.exists(), "snap img não foi salvo!");
@@ -215,7 +203,7 @@ mod test {
             "Forgotten In Time (Demo).nes",
             tinic_super.retro_paths.temps.to_string().into(),
             false,
-            Arc::new(TinicSuperListener),
+            |_| {},
         )
         .await
         .unwrap();

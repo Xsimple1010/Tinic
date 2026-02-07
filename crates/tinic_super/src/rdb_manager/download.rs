@@ -1,5 +1,6 @@
 use crate::{
     event::TinicSuperEventListener,
+    rdb_manager::helper::RdbEventType,
     tools::{download::download_file, extract_files::extract_zip_file},
 };
 use generics::{constants::RDB_URL, error_handle::ErrorHandle, retro_paths::RetroPaths};
@@ -16,14 +17,18 @@ pub async fn download_rdb(
             "database-rdb.zip",
             paths.temps.to_string().into(),
             force_update,
-            event_listener.clone(),
+            |event| {
+                event_listener.on_rdb_event(RdbEventType::Downloading(event));
+            },
         )
         .await
         .ok();
 
         if let Some(path) = d {
             let _ = tokio::task::spawn_blocking(move || {
-                let _ = extract_zip_file(path, paths.databases.to_string(), event_listener);
+                let _ = extract_zip_file(path, paths.databases.to_string(), |event| {
+                    event_listener.on_rdb_event(RdbEventType::Extracting(event));
+                });
             })
             .await;
         }

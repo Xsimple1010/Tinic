@@ -18,6 +18,7 @@ pub struct GameInfo {
     pub crc32: Option<u32>,
     pub serial: Option<String>,
     pub rumble: bool,
+    pub rdb_name: String,
 }
 
 #[derive(Deserialize)]

@@ -16,7 +16,10 @@ pub async fn download_core(
     let url = cores_url()?;
 
     let task = async move || {
-        let _ = download_file(url, "cores.7z", temp_dir, force_update, event_listener).await;
+        let _ = download_file(url, "cores.7z", temp_dir, force_update, |event| {
+            event_listener.on_core_event(super::CoreEventType::Downloading(event));
+        })
+        .await;
     };
 
     if blocking {

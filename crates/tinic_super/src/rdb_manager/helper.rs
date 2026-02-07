@@ -1,12 +1,22 @@
-use crate::GameIdentifier;
 use crate::event::TinicSuperEventListener;
 use crate::rdb_manager::download::download_rdb;
-use crate::rdb_manager::rdb_parser::{read_rdb, read_rdb_blocking, read_rdbs};
+use crate::rdb_manager::game_model::GameInfo;
+use crate::rdb_manager::rdb_parser::read_rdbs_from_dir;
+use crate::tools::extract_files::ExtractProgress;
+use crate::{DownloadProgress, GameIdentifier};
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
-use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
+
+#[derive(Debug)]
+pub enum RdbEventType {
+    Downloading(DownloadProgress),
+    Extracting(ExtractProgress),
+    Reading { game_infos: Vec<GameInfo> },
+    StartRead { name: String },
+    ReadCompleted { remaining: usize, name: String },
+}
 
 pub struct RdbManager {
     pub retro_path: RetroPaths,
@@ -20,21 +30,11 @@ pub struct RDBDatabase {
 }
 
 impl RdbManager {
-    pub fn read_rdb_blocking(&self, rdb_path: &String) -> Result<(), ErrorHandle> {
-        read_rdb_blocking(rdb_path, self.event_listener.clone())
-    }
-
-    pub async fn read_rb(&self, rdb_path: String) {
-        read_rdb(rdb_path, self.event_listener.clone()).await;
-    }
-
-    pub async fn read_rdbs(&self, rdb_names: HashSet<String>) {
-        read_rdbs(
-            rdb_names,
-            self.retro_path.databases.to_string(),
+    pub fn read_rdbs(&self) -> Result<(), ErrorHandle> {
+        read_rdbs_from_dir(
+            &self.retro_path.databases.to_string().into(),
             self.event_listener.clone(),
         )
-        .await;
     }
 
     pub async fn identify_roms_from_dir(

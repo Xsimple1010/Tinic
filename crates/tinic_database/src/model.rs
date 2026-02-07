@@ -18,7 +18,7 @@ pub struct GameInfoInDb {
     pub core_path: Option<String>,
     pub rom_path: Option<String>,
     pub rumble: bool,
-    pub console_name: Option<String>,
+    pub rdb_name: Option<String>,
 }
 
 #[derive(Debug)]
@@ -28,7 +28,6 @@ pub struct GameInfoPagination {
     pub rom_path: String,
     pub console_name: Option<String>,
 }
-
 
 pub(crate) fn opt_str(v: &Option<String>) -> Value {
     match v {

@@ -1,4 +1,5 @@
 use crate::{
+    cores::CoreEventType,
     event::TinicSuperEventListener,
     tools::extract_files::{SevenZipBeforeExtractionAction, extract_7zip_file},
 };
@@ -26,12 +27,10 @@ pub async fn install_core(
         extract_7zip_file(
             src_path.into(),
             retro_paths.cores.to_string(),
-            event_listener,
-            |file_name, event_listener| {
+            |file_name| {
                 let name = remove_so_extension(file_name);
 
                 if wanted.remove(&name) {
-                    event_listener.core_installed(name);
                     return SevenZipBeforeExtractionAction::Extract;
                 }
 
@@ -40,6 +39,9 @@ pub async fn install_core(
                 } else {
                     SevenZipBeforeExtractionAction::Jump
                 }
+            },
+            |event| {
+                event_listener.on_core_event(CoreEventType::Extraction(event));
             },
         );
     };

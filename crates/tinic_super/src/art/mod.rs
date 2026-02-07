@@ -1,3 +1,4 @@
+use crate::art::helper::ThumbnailEventType;
 use crate::art::thumbnail::{ThumbnailType, Thumbnails};
 use crate::event::TinicSuperEventListener;
 use crate::tools::download::download_file;
@@ -11,14 +12,13 @@ pub mod helper;
 pub mod thumbnail;
 
 pub fn get_thumbnail_url(
-    thumbnail_type: ThumbnailType,
-    manufacturer_name: &impl Display,
-    sys_name: &impl Display,
+    thumbnail_type: &ThumbnailType,
+    rdb_name: &impl Display,
     name: &impl Display,
 ) -> String {
     let name = name.to_string().replace(" ", "%20");
-    let sys = sys_name.to_string().replace(" ", "%20");
-    format!("{THUMBNAIL_BASE_URL}/{manufacturer_name} - {sys}/{thumbnail_type}/{name}.png")
+    let sys = rdb_name.to_string().replace(" ", "%20");
+    format!("{THUMBNAIL_BASE_URL}/{sys}/{thumbnail_type}/{name}.png")
 }
 
 pub async fn download_thumbnail(
@@ -29,23 +29,24 @@ pub async fn download_thumbnail(
 ) -> Result<PathBuf, ErrorHandle> {
     let file_name = format!("{name}.png");
 
-    let path = download_file(url, &file_name, dest, false, event_listener)
-        .await
-        .map_err(|e| ErrorHandle::new(&e.to_string()))?;
+    let path = download_file(url, &file_name, dest, false, |event| {
+        event_listener.on_thumbnail_evnt(ThumbnailEventType::Downloading(event));
+    })
+    .await
+    .map_err(|e| ErrorHandle::new(&e.to_string()))?;
 
     Ok(path)
 }
 
 pub async fn download_all_thumbnail_from_game(
-    manufacturer_name: &impl Display,
-    sys_name: &impl Display,
+    rdb_name: &impl Display,
     name: &impl Display,
     dest: &String,
     on_progress: Arc<dyn TinicSuperEventListener>,
 ) -> Result<Thumbnails, ErrorHandle> {
-    let box_art = get_thumbnail_url(ThumbnailType::Box, manufacturer_name, sys_name, name);
-    let snap_art = get_thumbnail_url(ThumbnailType::Snap, manufacturer_name, sys_name, name);
-    let title_art = get_thumbnail_url(ThumbnailType::Titles, manufacturer_name, sys_name, name);
+    let box_art = get_thumbnail_url(&ThumbnailType::Box, rdb_name, name);
+    let snap_art = get_thumbnail_url(&ThumbnailType::Snap, rdb_name, name);
+    let title_art = get_thumbnail_url(&ThumbnailType::Titles, rdb_name, name);
 
     let arts = [
         (box_art, ThumbnailType::Box),
@@ -59,11 +60,10 @@ pub async fn download_all_thumbnail_from_game(
         let on_progress = on_progress.clone();
         let name = name.to_string();
         let dest = PathBuf::from(dest).join(art_type.to_string());
-
-        println!("url: {art_url}");
+        let art_url_2 = art_url.clone();
 
         let path = tokio::spawn(async move {
-            download_thumbnail(&art_url, &name, dest, on_progress)
+            download_thumbnail(&art_url_2, &name, dest, on_progress)
                 .await
                 .ok()
         })
@@ -72,9 +72,9 @@ pub async fn download_all_thumbnail_from_game(
         .flatten();
 
         match art_type {
-            ThumbnailType::Box => thumbnails.box_img = path,
-            ThumbnailType::Snap => thumbnails.snap_img = path,
-            ThumbnailType::Titles => thumbnails.title_img = path,
+            ThumbnailType::Box => thumbnails.box_img = (path, art_url),
+            ThumbnailType::Snap => thumbnails.snap_img = (path, art_url),
+            ThumbnailType::Titles => thumbnails.title_img = (path, art_url),
         }
     }
 

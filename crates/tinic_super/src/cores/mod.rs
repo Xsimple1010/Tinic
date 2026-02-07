@@ -1,6 +1,8 @@
+use crate::DownloadProgress;
 use crate::cores::download::download_core;
 use crate::cores::installed::{has_installed, install_core};
 use crate::event::TinicSuperEventListener;
+use crate::tools::extract_files::ExtractProgress;
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
 use std::path::PathBuf;
@@ -12,6 +14,12 @@ pub mod installed;
 pub struct CoreHelper {
     pub(crate) event_listener: Arc<dyn TinicSuperEventListener>,
     pub(crate) retro_paths: RetroPaths,
+}
+
+#[derive(Debug)]
+pub enum CoreEventType {
+    Downloading(DownloadProgress),
+    Extraction(ExtractProgress),
 }
 
 impl CoreHelper {

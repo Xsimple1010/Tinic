@@ -20,9 +20,11 @@ impl Display for ThumbnailType {
     }
 }
 
+pub type ImgUrl = String;
+
 #[derive(Default)]
 pub struct Thumbnails {
-    pub box_img: Option<PathBuf>,
-    pub snap_img: Option<PathBuf>,
-    pub title_img: Option<PathBuf>,
+    pub box_img: (Option<PathBuf>, ImgUrl),
+    pub snap_img: (Option<PathBuf>, ImgUrl),
+    pub title_img: (Option<PathBuf>, ImgUrl),
 }

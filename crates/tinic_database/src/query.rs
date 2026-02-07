@@ -36,7 +36,7 @@ pub fn insert_game_infos(
 
             stmt.bind((10, opt_str(&game.core_path)))?;
             stmt.bind((11, opt_str(&game.rom_path)))?;
-            stmt.bind((12, opt_str(&game.console_name)))?;
+            stmt.bind((12, opt_str(&game.rdb_name)))?;
 
             stmt.bind((13, opt_u32(game.release_year)))?;
             stmt.bind((14, opt_u32(game.release_month)))?;

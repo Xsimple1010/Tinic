@@ -3,6 +3,7 @@ use std::{fmt::Display, sync::Arc};
 use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
 
 use crate::{
+    DownloadProgress,
     art::{download_all_thumbnail_from_game, thumbnail::Thumbnails},
     event::TinicSuperEventListener,
 };
@@ -10,6 +11,11 @@ use crate::{
 pub struct ArtHelper {
     pub(crate) event_listener: Arc<dyn TinicSuperEventListener>,
     pub(crate) retro_paths: RetroPaths,
+}
+
+#[derive(Debug)]
+pub enum ThumbnailEventType {
+    Downloading(DownloadProgress),
 }
 
 impl ArtHelper {
@@ -22,13 +28,11 @@ impl ArtHelper {
 
     pub async fn get_urls(
         &self,
-        manufacturer_name: &impl Display,
-        sys_name: &impl Display,
+        rdb_name: &impl Display,
         name: &impl Display,
     ) -> Result<Thumbnails, ErrorHandle> {
         download_all_thumbnail_from_game(
-            manufacturer_name,
-            sys_name,
+            rdb_name,
             name,
             &self.retro_paths.arts.to_string(),
             self.event_listener.clone(),

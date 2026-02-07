@@ -1,8 +1,6 @@
-use crate::event::TinicSuperEventListener;
 use sevenz_rust::Error;
 use std::collections::HashMap;
 use std::io::BufWriter;
-use std::sync::Arc;
 use std::{
     fs::{File, create_dir_all},
     io::{Read, Write},
@@ -10,11 +8,20 @@ use std::{
 };
 use zip::ZipArchive;
 
-pub fn extract_zip_file(
+#[derive(Debug)]
+pub enum ExtractProgress {
+    Extracting(String),
+    Finished,
+}
+
+pub fn extract_zip_file<C>(
     file_path: PathBuf,
     out_dir: String,
-    event_listener: Arc<dyn TinicSuperEventListener>,
-) -> zip::result::ZipResult<()> {
+    event_listener: C,
+) -> zip::result::ZipResult<()>
+where
+    C: Fn(ExtractProgress),
+{
     let file = File::open(file_path)?;
     let mut archive = ZipArchive::new(file)?;
 
@@ -45,9 +52,11 @@ pub fn extract_zip_file(
 
             outfile.write_all(&buffer[..n])?;
 
-            event_listener.extract_file(file.name().to_string());
+            event_listener(ExtractProgress::Extracting(file.name().to_string()));
         }
     }
+
+    event_listener(ExtractProgress::Finished);
 
     Ok(())
 }
@@ -58,13 +67,14 @@ pub enum SevenZipBeforeExtractionAction {
     Stop,
 }
 
-pub fn extract_7zip_file<CP>(
+pub fn extract_7zip_file<C, CP>(
     src_path: PathBuf,
     dest: String,
-    event_listener: Arc<dyn TinicSuperEventListener>,
     mut before_extraction: CP,
+    event_listener: C,
 ) where
-    CP: FnMut(String, &Arc<dyn TinicSuperEventListener>) -> SevenZipBeforeExtractionAction,
+    C: Fn(ExtractProgress),
+    CP: FnMut(String) -> SevenZipBeforeExtractionAction,
 {
     let dest_path = PathBuf::from(dest);
     let mut used_names = HashMap::<String, usize>::new();
@@ -93,7 +103,7 @@ pub fn extract_7zip_file<CP>(
             };
             *count += 1;
 
-            let action = before_extraction(final_name.clone(), &event_listener);
+            let action = before_extraction(final_name.clone());
 
             match action {
                 SevenZipBeforeExtractionAction::Jump => {
@@ -107,7 +117,7 @@ pub fn extract_7zip_file<CP>(
                     let mut writer = BufWriter::new(file);
                     std::io::copy(reader, &mut writer)?;
 
-                    event_listener.extract_file(final_name);
+                    event_listener(ExtractProgress::Extracting(final_name.clone()));
 
                     Ok(true)
                 }
@@ -115,6 +125,8 @@ pub fn extract_7zip_file<CP>(
             }
         },
     );
+
+    event_listener(ExtractProgress::Finished);
 
     println!("{_e:?}")
 }

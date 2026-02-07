@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug, Eq)]
 pub struct RetroPaths {
+    pub base_dir: Arc<String>,
     pub system: Arc<String>,
     pub save: Arc<String>,
     pub opt: Arc<String>,
@@ -25,7 +26,8 @@ impl PartialEq for RetroPaths {
 }
 
 impl RetroPaths {
-    pub fn new(
+    fn new(
+        base_dir: String,
         system: String,
         save: String,
         opt: String,
@@ -91,6 +93,7 @@ impl RetroPaths {
         }
 
         Ok(Self {
+            base_dir: Arc::new(base_dir),
             system: Arc::new(system),
             opt: Arc::new(opt),
             save: Arc::new(save),
@@ -114,6 +117,17 @@ impl RetroPaths {
         let databases = format!("{}/databases", base);
         let arts = format!("{}/arts", base);
 
-        Self::new(sys, save, opt, assets, temps, cores, infos, databases, arts)
+        Self::new(
+            base.to_string(),
+            sys,
+            save,
+            opt,
+            assets,
+            temps,
+            cores,
+            infos,
+            databases,
+            arts,
+        )
     }
 }
