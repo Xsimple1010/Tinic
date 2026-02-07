@@ -1,5 +1,6 @@
 use crate::graphic_api::GraphicApi;
 use generics::error_handle::ErrorHandle;
+use generics::types::{ArcTMutex, TMutex};
 use libretro_sys::binding_libretro::{
     retro_game_geometry,
     retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN},
@@ -41,7 +42,7 @@ pub struct Geometry {
 #[derive(Debug)]
 pub struct Video {
     pub can_dupe: RwLock<bool>,
-    pub pixel_format: RwLock<retro_pixel_format>,
+    pub pixel_format: ArcTMutex<retro_pixel_format>,
     pub geometry: Geometry,
     pub graphic_api: GraphicApi,
 }
@@ -50,7 +51,7 @@ impl Default for Video {
     fn default() -> Self {
         Video {
             can_dupe: RwLock::new(false),
-            pixel_format: RwLock::new(RETRO_PIXEL_FORMAT_UNKNOWN),
+            pixel_format: TMutex::new(RETRO_PIXEL_FORMAT_UNKNOWN),
             geometry: Geometry::default(),
             graphic_api: GraphicApi::default(),
         }

@@ -101,6 +101,17 @@ unsafe extern "C" fn core_log(_level: retro_log_level, _log: *const c_char) {
     println!("[{:?}]: {:?}", _level, get_str_from_ptr(_log));
 }
 
+fn handle_env_result(core_ctx: &Rc<RetroCore>, core_env_result: Result<bool, ErrorHandle>) -> bool {
+    match core_env_result {
+        Ok(val) => val,
+        Err(err) => {
+            println!("[CORE_ENV]: {:?}", err);
+            let _ = core_ctx.de_init();
+            false
+        }
+    }
+}
+
 pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> bool {
     match &*addr_of!(CORE_CONTEXT) {
         Some(core_ctx) => match cmd {
@@ -168,10 +179,10 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                 true
             }
             _ => {
-                if env_cb_av(core_ctx, cmd, data)
-                    || env_cb_gamepad_io(core_ctx, cmd, data)
-                    || env_cb_option(core_ctx, cmd, data)
-                    || env_cb_directory(core_ctx, cmd, data)
+                if handle_env_result(core_ctx, env_cb_av(core_ctx, cmd, data))
+                    || handle_env_result(core_ctx, env_cb_gamepad_io(core_ctx, cmd, data))
+                    || handle_env_result(core_ctx, env_cb_option(core_ctx, cmd, data))
+                    || handle_env_result(core_ctx, env_cb_directory(core_ctx, cmd, data))
                 {
                     return true;
                 }
@@ -236,11 +247,11 @@ mod test_environment {
         unsafe {
             match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => assert_eq!(
-                    *core_ctx.av_info.video.pixel_format.read()?,
+                    *core_ctx.av_info.video.pixel_format.try_load()?,
                     pixel,
                     "returno inesperado: valor desejado -> {:?}; valor recebido -> {:?}",
                     pixel,
-                    *core_ctx.av_info.video.pixel_format.read()?
+                    *core_ctx.av_info.video.pixel_format.try_load()?
                 ),
                 _ => panic!("CORE_CONTEXT nao foi encontrado"),
             }

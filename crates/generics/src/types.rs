@@ -36,6 +36,13 @@ impl<T> TMutex<T> {
         }
     }
 
+    pub fn load_or_spaw_err(&self, error_menssage: &str) -> Result<MutexGuard<'_, T>, ErrorHandle> {
+        match self.value.lock() {
+            Ok(v) => Ok(v),
+            Err(_) => Err(ErrorHandle::new(error_menssage)),
+        }
+    }
+
     pub fn store_or_else<CA: FnOnce(PoisonError<MutexGuard<'_, T>>)>(&self, value: T, or_else: CA) {
         match self.value.lock() {
             Ok(mut v) => *v = value,
