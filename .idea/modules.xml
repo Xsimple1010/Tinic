@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/tinic.iml" filepath="$PROJECT_DIR$/.idea/tinic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Tinic.iml" filepath="$PROJECT_DIR$/.idea/Tinic.iml" />
     </modules>
   </component>
 </project>

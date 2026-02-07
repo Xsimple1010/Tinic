@@ -1,14 +1,14 @@
 [package]
 name = "retro_controllers"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pc-keyboard.workspace = true
 gilrs.workspace = true
 uuid.workspace = true
 generics.workspace = true
 libretro_sys.workspace = true
 retro_core.workspace = true
+winit.workspace = true

@@ -15,6 +15,7 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/retro_controllers/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/retro_av/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/retro_core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tinic_super/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/crates/retro_ab_av/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>

@@ -1,14 +1,12 @@
 use crate::tools::ffi_tools::get_arc_string_from_ptr;
-use crate::tools::mutex_tools::get_string_mutex_from_ptr;
 use crate::{
     libretro_sys::binding_libretro::{
-        retro_core_option_v2_category, retro_core_option_v2_definition, retro_core_options_v2,
-        retro_core_options_v2_intl,
+        retro_core_option_v2_category, retro_core_option_v2_definition, retro_core_options_v2_intl,
     },
     tools::mutex_tools::get_string_rwlock_from_ptr,
 };
 use generics::constants::{CORE_OPTION_EXTENSION_FILE, MAX_CORE_OPTIONS};
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 use std::sync::Arc;
 use std::{
@@ -20,7 +18,7 @@ use std::{
 
 #[derive(Default, Debug)]
 pub struct CoreValue {
-    pub value: Mutex<String>,
+    pub value: Arc<String>,
     pub label: Arc<String>,
 }
 
@@ -67,14 +65,14 @@ impl OptionManager {
         }
     }
 
-    pub fn update_opt(&self, opt_key: &str, new_value_selected: &str) -> Result<(), ErroHandle> {
+    pub fn update_opt(&self, opt_key: &str, new_value_selected: &str) -> Result<(), ErrorHandle> {
         self.change_value_selected(opt_key, new_value_selected)?;
         self.write_all_options_in_file()?;
 
         Ok(())
     }
 
-    pub fn get_opt_value(&self, opt_key: &str) -> Result<Option<String>, ErroHandle> {
+    pub fn get_opt_value(&self, opt_key: &str) -> Result<Option<String>, ErrorHandle> {
         for core_opt in &*self.opts.lock()? {
             if !core_opt.key.clone().to_string().eq(opt_key) {
                 continue;
@@ -98,7 +96,7 @@ impl OptionManager {
         Ok(None)
     }
 
-    pub fn change_visibility(&self, key: &String, visibility: bool) -> Result<(), ErroHandle> {
+    pub fn change_visibility(&self, key: &String, visibility: bool) -> Result<(), ErrorHandle> {
         for core_opt in &mut *self.opts.lock()? {
             if !core_opt.key.to_string().eq(key) {
                 continue;
@@ -118,7 +116,7 @@ impl OptionManager {
         Ok(())
     }
 
-    fn write_all_options_in_file(&self) -> Result<(), ErroHandle> {
+    fn write_all_options_in_file(&self) -> Result<(), ErrorHandle> {
         let file_path = self.file_path.read()?.clone();
         let mut file = File::create(file_path.clone())?;
 
@@ -138,14 +136,14 @@ impl OptionManager {
         &self,
         opt_key: &str,
         new_value_selected: &str,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         for core_opt in &*self.opts.lock()? {
             if !core_opt.key.clone().to_string().eq(&opt_key) {
                 continue;
             }
 
             for core_value in &*core_opt.values.lock()? {
-                if *core_value.value.lock()? != new_value_selected {
+                if *core_value.value != new_value_selected {
                     continue;
                 }
 
@@ -163,7 +161,7 @@ impl OptionManager {
         Ok(())
     }
 
-    fn load_all_option_in_file(&self) -> Result<(), ErroHandle> {
+    fn load_all_option_in_file(&self) -> Result<(), ErrorHandle> {
         let file_path = self.file_path.read()?.clone();
 
         let mut file = File::open(file_path)?;
@@ -195,11 +193,10 @@ impl OptionManager {
         Ok(())
     }
 
-    //TODO: adiciona um meio do usuário saber se ocorrer um erro ao tentar salva ou ler o arquivo
-    pub fn try_reload_pref_option(&self) -> Result<(), ErroHandle> {
-        let file_path = self.file_path.read()?.clone();
+    pub fn try_reload_pref_option(&self) -> Result<(), ErrorHandle> {
+        let file_path = self.file_path.read()?;
 
-        //se o arquivo ainda nao existe apenas
+        //se o arquivo ainda não existe apenas
         //crie um novo arquivo e salve a configuração padrão do núcleo
         if !file_path.exists() {
             self.write_all_options_in_file()
@@ -215,21 +212,27 @@ impl OptionManager {
     fn get_v2_intl_category(
         &self,
         categories: *mut retro_core_option_v2_category,
-    ) -> Result<(), ErroHandle> {
-        let categories =
-            unsafe { *(categories as *mut [retro_core_option_v2_category; MAX_CORE_OPTIONS]) };
+    ) -> Result<(), ErrorHandle> {
+        // Create a read-only slice over the C array instead of copying into a Rust array.
+        // Iterate until we hit a null key sentinel.
+        unsafe {
+            let slice = std::slice::from_raw_parts(
+                categories as *const retro_core_option_v2_category,
+                MAX_CORE_OPTIONS,
+            );
 
-        for category in categories {
-            if !category.key.is_null() {
-                let key = get_arc_string_from_ptr(category.key);
-                let info = get_arc_string_from_ptr(category.info);
-                let desc = get_arc_string_from_ptr(category.desc);
+            for category in slice.iter() {
+                if !category.key.is_null() {
+                    let key = get_arc_string_from_ptr(category.key);
+                    let info = get_arc_string_from_ptr(category.info);
+                    let desc = get_arc_string_from_ptr(category.desc);
 
-                self.categories
-                    .write()?
-                    .push(Categories { key, desc, info });
-            } else {
-                break;
+                    self.categories
+                        .write()?
+                        .push(Categories { key, desc, info });
+                } else {
+                    break;
+                }
             }
         }
 
@@ -239,46 +242,52 @@ impl OptionManager {
     fn get_v2_intl_definitions(
         &self,
         definitions: *mut retro_core_option_v2_definition,
-    ) -> Result<(), ErroHandle> {
-        let definitions = unsafe { *(definitions as *mut [retro_core_option_v2_definition; 90]) };
+    ) -> Result<(), ErrorHandle> {
+        // Create a read-only slice over the C array instead of copying into a Rust array.
+        unsafe {
+            let slice = std::slice::from_raw_parts(
+                definitions as *const retro_core_option_v2_definition,
+                MAX_CORE_OPTIONS,
+            );
 
-        for definition in definitions {
-            if !definition.key.is_null() {
-                let key = get_arc_string_from_ptr(definition.key);
-                let selected = get_string_rwlock_from_ptr(definition.default_value);
-                let default_value = get_arc_string_from_ptr(definition.default_value);
-                let info = get_arc_string_from_ptr(definition.info);
-                let desc = get_arc_string_from_ptr(definition.desc);
-                let desc_categorized = get_arc_string_from_ptr(definition.desc_categorized);
-                let category_key = get_arc_string_from_ptr(definition.category_key);
-                let info_categorized = get_arc_string_from_ptr(definition.info_categorized);
-                let values = Mutex::new(Vec::new());
-                let need_update = AtomicBool::new(false);
+            for definition in slice.iter() {
+                if !definition.key.is_null() {
+                    let key = get_arc_string_from_ptr(definition.key);
+                    let selected = get_string_rwlock_from_ptr(definition.default_value);
+                    let default_value = get_arc_string_from_ptr(definition.default_value);
+                    let info = get_arc_string_from_ptr(definition.info);
+                    let desc = get_arc_string_from_ptr(definition.desc);
+                    let desc_categorized = get_arc_string_from_ptr(definition.desc_categorized);
+                    let category_key = get_arc_string_from_ptr(definition.category_key);
+                    let info_categorized = get_arc_string_from_ptr(definition.info_categorized);
+                    let values = Mutex::new(Vec::new());
+                    let need_update = AtomicBool::new(false);
 
-                for retro_value in definition.values {
-                    if !retro_value.label.is_null() {
-                        let value = get_string_mutex_from_ptr(retro_value.value);
-                        let label = get_arc_string_from_ptr(retro_value.label);
+                    for retro_value in definition.values {
+                        if !retro_value.label.is_null() {
+                            let value = get_arc_string_from_ptr(retro_value.value);
+                            let label = get_arc_string_from_ptr(retro_value.label);
 
-                        values.lock()?.push(CoreValue { label, value });
+                            values.lock()?.push(CoreValue { label, value });
+                        }
                     }
-                }
 
-                self.opts.lock()?.push(CoreOpt {
-                    key,
-                    selected,
-                    visibility: AtomicBool::new(true),
-                    default_value,
-                    info,
-                    desc,
-                    category_key,
-                    desc_categorized,
-                    info_categorized,
-                    values,
-                    need_update,
-                })
-            } else {
-                break;
+                    self.opts.lock()?.push(CoreOpt {
+                        key,
+                        selected,
+                        visibility: AtomicBool::new(true),
+                        default_value,
+                        info,
+                        desc,
+                        category_key,
+                        desc_categorized,
+                        info_categorized,
+                        values,
+                        need_update,
+                    })
+                } else {
+                    break;
+                }
             }
         }
 
@@ -287,18 +296,28 @@ impl OptionManager {
 
     pub fn convert_option_v2_intl(
         &self,
-        option_intl_v2: retro_core_options_v2_intl,
-    ) -> Result<(), ErroHandle> {
-        unsafe {
-            if option_intl_v2.local.is_null() {
-                let us: retro_core_options_v2 = *(option_intl_v2.us);
-                self.get_v2_intl_definitions(us.definitions)?;
-                self.get_v2_intl_category(us.categories)?;
-            } else {
-                let local: retro_core_options_v2 = *(option_intl_v2.local);
-                self.get_v2_intl_definitions(local.definitions)?;
-                self.get_v2_intl_category(local.categories)?;
-            }
+        option_intl_v2: &mut retro_core_options_v2_intl,
+    ) -> Result<(), ErrorHandle> {
+        if option_intl_v2.local.is_null() {
+            let us = unsafe {
+                option_intl_v2
+                    .us
+                    .as_ref()
+                    .ok_or_else(|| ErrorHandle::new("us is null in option_v2_intl"))?
+            };
+
+            self.get_v2_intl_definitions(us.definitions)?;
+            self.get_v2_intl_category(us.categories)?;
+        } else {
+            let local = unsafe {
+                option_intl_v2
+                    .local
+                    .as_ref()
+                    .ok_or_else(|| ErrorHandle::new("local is null in option_v2_intl"))?
+            };
+
+            self.get_v2_intl_definitions(local.definitions)?;
+            self.get_v2_intl_category(local.categories)?;
         }
 
         Ok(())

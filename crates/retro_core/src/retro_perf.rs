@@ -1,75 +1,137 @@
-use sdl2::sys::{
-    SDL_GetPerformanceCounter, SDL_GetTicks, SDL_HasAVX, SDL_HasAVX2, SDL_HasMMX, SDL_HasSSE,
-    SDL_HasSSE2, SDL_HasSSE3, SDL_HasSSE41, SDL_HasSSE42, SDL_bool,
-};
-
 use crate::libretro_sys::binding_libretro::{
     retro_perf_counter, retro_perf_tick_t, retro_time_t, RETRO_SIMD_AVX, RETRO_SIMD_AVX2,
     RETRO_SIMD_MMX, RETRO_SIMD_SSE, RETRO_SIMD_SSE2, RETRO_SIMD_SSE3, RETRO_SIMD_SSE4,
     RETRO_SIMD_SSE42,
 };
 
-static mut LAST_COUNTER: Option<*mut retro_perf_counter> = None;
+use raw_cpuid::CpuId;
+use std::ptr;
+use std::sync::{
+    atomic::{AtomicPtr, Ordering},
+    OnceLock,
+};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-pub unsafe extern "C" fn core_get_perf_counter() -> retro_perf_tick_t {
-    SDL_GetPerformanceCounter() as retro_perf_tick_t
+//
+// ─────────────────────────────────────────────────────────
+// GLOBALS (THREAD-SAFE)
+// ─────────────────────────────────────────────────────────
+//
+
+static PERF_EPOCH: OnceLock<Instant> = OnceLock::new();
+static LAST_COUNTER: AtomicPtr<retro_perf_counter> = AtomicPtr::new(ptr::null_mut());
+
+fn perf_epoch() -> &'static Instant {
+    PERF_EPOCH.get_or_init(Instant::now)
+}
+
+//
+// ─────────────────────────────────────────────────────────
+// PERF COUNTERS
+// ─────────────────────────────────────────────────────────
+//
+
+pub extern "C" fn core_get_perf_counter() -> retro_perf_tick_t {
+    perf_epoch().elapsed().as_nanos() as retro_perf_tick_t
 }
 
 pub unsafe extern "C" fn core_perf_register(counter_raw: *mut retro_perf_counter) {
-    let mut counter = *counter_raw;
+    if counter_raw.is_null() {
+        return;
+    }
+
+    let counter = unsafe { &mut *counter_raw };
     counter.registered = true;
-    LAST_COUNTER = Some(counter_raw);
+    counter.total = 0;
+    counter.start = 0;
+
+    LAST_COUNTER.store(counter_raw, Ordering::Release);
 }
 
 pub unsafe extern "C" fn core_perf_start(counter_raw: *mut retro_perf_counter) {
-    let mut counter = *counter_raw;
-    if counter.registered {
-        counter.start = core_get_perf_counter();
+    unsafe {
+        if let Some(counter) = counter_raw.as_mut()
+            && counter.registered
+        {
+            counter.start = core_get_perf_counter();
+        }
     }
 }
 
 pub unsafe extern "C" fn core_perf_stop(counter_raw: *mut retro_perf_counter) {
-    let mut counter = *counter_raw;
-    counter.total = core_get_perf_counter() - counter.start;
-}
-
-pub unsafe extern "C" fn core_perf_log() {
-    if let Some(counter_raw) = LAST_COUNTER {
-        let counter = *counter_raw;
-        println!("[timer] {:?}", counter);
+    unsafe {
+        if let Some(counter) = counter_raw.as_mut() {
+            let end = core_get_perf_counter();
+            counter.total = counter
+                .total
+                .saturating_add(end.saturating_sub(counter.start));
+        }
     }
 }
 
-pub unsafe extern "C" fn get_cpu_features() -> u64 {
+pub extern "C" fn core_perf_log() {
+    let counter_ptr = LAST_COUNTER.load(Ordering::Acquire);
+
+    if let Some(counter) = unsafe { counter_ptr.as_ref() } {
+        println!(
+            "[perf] ident={:?} total={} ticks",
+            counter.ident, counter.total
+        );
+    }
+}
+
+//
+// ─────────────────────────────────────────────────────────
+// CPU FEATURES
+// ─────────────────────────────────────────────────────────
+//
+
+pub extern "C" fn get_cpu_features() -> u64 {
     let mut cpu: u64 = 0;
+    let cpuid = CpuId::new();
 
-    if SDL_bool::SDL_TRUE == SDL_HasAVX() {
-        cpu |= RETRO_SIMD_AVX as u64;
+    if let Some(feature_info) = cpuid.get_feature_info() {
+        if feature_info.has_mmx() {
+            cpu |= RETRO_SIMD_MMX as u64;
+        }
+        if feature_info.has_sse() {
+            cpu |= RETRO_SIMD_SSE as u64;
+        }
+        if feature_info.has_sse2() {
+            cpu |= RETRO_SIMD_SSE2 as u64;
+        }
+        if feature_info.has_sse3() {
+            cpu |= RETRO_SIMD_SSE3 as u64;
+        }
+        if feature_info.has_sse41() {
+            cpu |= RETRO_SIMD_SSE4 as u64;
+        }
+        if feature_info.has_sse42() {
+            cpu |= RETRO_SIMD_SSE42 as u64;
+        }
+        if feature_info.has_avx() {
+            cpu |= RETRO_SIMD_AVX as u64;
+        }
     }
-    if SDL_bool::SDL_TRUE == SDL_HasAVX2() {
+
+    if let Some(extended_info) = cpuid.get_extended_feature_info()
+        && extended_info.has_avx2()
+    {
         cpu |= RETRO_SIMD_AVX2 as u64;
     }
-    if SDL_bool::SDL_TRUE == SDL_HasMMX() {
-        cpu |= RETRO_SIMD_MMX as u64;
-    }
-    if SDL_bool::SDL_TRUE == SDL_HasSSE() {
-        cpu |= RETRO_SIMD_SSE as u64;
-    }
-    if SDL_bool::SDL_TRUE == SDL_HasSSE2() {
-        cpu |= RETRO_SIMD_SSE2 as u64;
-    }
-    if SDL_bool::SDL_TRUE == SDL_HasSSE3() {
-        cpu |= RETRO_SIMD_SSE3 as u64;
-    }
-    if SDL_bool::SDL_TRUE == SDL_HasSSE41() {
-        cpu |= RETRO_SIMD_SSE4 as u64;
-    }
-    if SDL_bool::SDL_TRUE == SDL_HasSSE42() {
-        cpu |= RETRO_SIMD_SSE42 as u64;
-    }
+
     cpu
 }
 
-pub unsafe extern "C" fn get_features_get_time_usec() -> retro_time_t {
-    (SDL_GetTicks() * 1000) as retro_time_t
+//
+// ─────────────────────────────────────────────────────────
+// TIME (MICROSECONDS, THREAD-SAFE)
+// ─────────────────────────────────────────────────────────
+//
+
+pub extern "C" fn get_features_get_time_usec() -> retro_time_t {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_micros() as retro_time_t
 }

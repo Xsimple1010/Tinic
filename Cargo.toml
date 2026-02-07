@@ -3,35 +3,42 @@ resolver = "2"
 members = [
     'crates/retro_controllers',
     'crates/retro_core',
-    "crates/retro_av",
+    "crates/retro_video",
     "crates/tinic",
     "crates/generics",
     "crates/libretro_sys",
     "crates/tinic_super",
+    "crates/retro_audio",
 ]
 default-members = ["crates/tinic"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-retro_core = { path = "crates/retro_core", features = ["hw"] }
+retro_core = { path = "crates/retro_core", features = ["core_full_logs", "hw"] }
 retro_controllers = { path = "crates/retro_controllers" }
-retro_av = { path = "crates/retro_av" }
+retro_video = { path = "crates/retro_video" }
+retro_audio = { path = "crates/retro_audio" }
 libretro_sys = { path = "crates/libretro_sys" }
 generics = { path = "crates/generics" }
 tinic_super = { path = "crates/tinic_super" }
-tokio = { version = "1.42.0", features = ["full"] }
-reqwest = "0.12.9"
-zip = "2.2.2"
+reqwest = "0.12.12"
+zip = "2.6.1"
 sevenz-rust = "0.6.1"
 gilrs = "0.11.0"
-pc-keyboard = "0.8.0"
 image = "0.25.5"
-rodio = "0.20.1"
-sdl2 = { version = "0.37.0", features = ["bundled"] }
-uuid = { features = ["v4"], version = "1.11.0" }
-bindgen = "0.71.1"
-libloading = "0.8.6"
-cc = "1.2.2"
+rubato = "0.16.1"
+cpal = "0.17.0"
+raw-cpuid = "11.3.0"
+uuid = { features = ["v4"], version = "1.18.0" }
+bindgen = "0.72.0"
+libloading = "0.8.8"
+cc = "1.2.33"
 cfg_aliases = "0.2.1"
 gl_generator = "0.14.0"
+glutin = "0.32.2"
+winit = "0.30.8"
+raw-window-handle = "0.6.2"
+glutin-winit = "0.5.0"
+ringbuf = "0.4.8"
+# samplerate = "0.2.4"

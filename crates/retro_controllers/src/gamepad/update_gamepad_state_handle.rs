@@ -1,18 +1,19 @@
-use super::{gamepad_key_map::GamepadKeyMap, retro_gamepad::RetroGamePad};
-use crate::devices_manager::{Device, DeviceStateListener};
-use generics::{constants::INVALID_CONTROLLER_PORT, erro_handle::ErroHandle, types::ArcTMuxte};
+use crate::RetroGamePad;
+use crate::devices_manager::{DeviceKeyMap, DeviceStateListener};
+use crate::gamepad::retro_gamepad_key_map::GamePadKeyMap;
+use generics::{constants::INVALID_CONTROLLER_PORT, error_handle::ErrorHandle, types::ArcTMutex};
 use gilrs::{Button, GamepadId, Gilrs};
 use libretro_sys::binding_libretro::RETRO_DEVICE_JOYPAD;
 use std::sync::{
-    atomic::{AtomicUsize, Ordering},
     Arc,
+    atomic::{AtomicUsize, Ordering},
 };
 
-//Se o valor retornado for -1(INVALID_CONTROLLER_PORT) significa que todas as
+//Se o valor retornado for −1(INVALID_CONTROLLER_PORT)! significa que todas as
 //portas suportas pelo Core ja estão sendo usadas.
 fn get_available_port(
     max_ports: &Arc<AtomicUsize>,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
 ) -> i16 {
     let mut connected_gamepads = connected_gamepads.load_or(Vec::new());
 
@@ -33,8 +34,8 @@ fn get_available_port(
 
 pub fn remove(
     id: GamepadId,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
-) -> Result<Option<RetroGamePad>, ErroHandle> {
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
+) -> Result<Option<RetroGamePad>, ErrorHandle> {
     let list = &mut connected_gamepads.try_load()?;
 
     let mut gm_list = list.clone();
@@ -51,10 +52,10 @@ pub fn remove(
 pub fn connect_handle(
     gamepad_id: GamepadId,
     gilrs: &mut Gilrs,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
     max_ports: &Arc<AtomicUsize>,
     listener: &DeviceStateListener,
-) -> Result<(), ErroHandle> {
+) -> Result<(), ErrorHandle> {
     if let Some(gamepad) = gilrs.connected_gamepad(gamepad_id) {
         let port = get_available_port(max_ports, connected_gamepads);
 
@@ -68,9 +69,7 @@ pub fn connect_handle(
         let mut gamepads = connected_gamepads.load_or(Vec::new());
         gamepads.push(gamepad.clone());
 
-        listener
-            .try_load()?
-            .connected(Device::from_gamepad(&gamepad));
+        listener.try_load()?.connected(gamepad);
     }
 
     Ok(())
@@ -78,13 +77,11 @@ pub fn connect_handle(
 
 pub fn disconnect_handle(
     id: GamepadId,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
     listener: &DeviceStateListener,
-) -> Result<(), ErroHandle> {
+) -> Result<(), ErrorHandle> {
     if let Some(gamepad) = remove(id, connected_gamepads)? {
-        listener
-            .try_load()?
-            .disconnected(Device::from_gamepad(&gamepad));
+        listener.try_load()?.disconnected(gamepad);
     }
 
     Ok(())
@@ -93,17 +90,17 @@ pub fn disconnect_handle(
 pub fn pressed_button_handle(
     button: &Button,
     gamepad_id: GamepadId,
-    connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
     listener: &DeviceStateListener,
-) -> Result<(), ErroHandle> {
+) -> Result<(), ErrorHandle> {
     for gamepad in &mut *connected_gamepads.load_or(Vec::new()) {
         if gamepad.inner_id != gamepad_id {
             continue;
         }
 
         listener.try_load()?.button_pressed(
-            GamepadKeyMap::get_key_name_from_native_button(button).to_owned(),
-            Device::from_gamepad(gamepad),
+            GamePadKeyMap::get_key_name_from_native_button(button).to_owned(),
+            gamepad.clone(),
         );
     }
 
