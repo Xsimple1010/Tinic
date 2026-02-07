@@ -9,10 +9,11 @@ use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use libretro_sys::binding_libretro::LibretroRaw;
 use std::path::PathBuf;
+use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
 
-pub type RetroCoreIns = Arc<RetroCore>;
+pub type RetroCoreIns = Rc<RetroCore>;
 
 pub struct RetroCore {
     pub rom_name: RwLock<String>,
@@ -43,7 +44,7 @@ impl RetroCore {
             system.info.library_name.clone().to_string(),
         ));
 
-        let core = Arc::new(RetroCore {
+        let core = Rc::new(RetroCore {
             raw: Arc::new(raw),
             initialized: AtomicBool::new(false),
             game_loaded: AtomicBool::new(false),

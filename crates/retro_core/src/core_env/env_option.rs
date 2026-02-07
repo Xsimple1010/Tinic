@@ -18,9 +18,10 @@ use std::{
 use crate::{
     retro_core::RetroCore,
     tools::ffi_tools::{get_str_from_ptr, make_c_string},
+    RetroCoreIns,
 };
 
-pub unsafe fn env_cb_option(core_ctx: &Arc<RetroCore>, cmd: c_uint, data: *mut c_void) -> bool {
+pub unsafe fn env_cb_option(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void) -> bool {
     match cmd {
         RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION => {
             #[cfg(feature = "core_ev_logs")]

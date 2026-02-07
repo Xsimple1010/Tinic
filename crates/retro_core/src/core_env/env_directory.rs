@@ -1,4 +1,4 @@
-use crate::{retro_core::RetroCore, tools::ffi_tools::make_c_string};
+use crate::{retro_core::RetroCore, tools::ffi_tools::make_c_string, RetroCoreIns};
 use generics::constants::MAX_CORE_SUBSYSTEM_INFO;
 use libretro_sys::{
     binding_libretro::{
@@ -10,7 +10,7 @@ use libretro_sys::{
 };
 use std::{ffi::c_uint, os::raw::c_void, sync::Arc};
 
-pub unsafe fn env_cb_directory(core_ctx: &Arc<RetroCore>, cmd: c_uint, data: *mut c_void) -> bool {
+pub unsafe fn env_cb_directory(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void) -> bool {
     match cmd {
         RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY => {
             #[cfg(feature = "core_ev_logs")]

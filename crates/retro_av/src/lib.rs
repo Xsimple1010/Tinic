@@ -13,11 +13,9 @@ mod video;
 
 mod retro_av;
 
+pub use audios::RetroAudioCb;
+pub use retro_av::RetroAv;
 pub use sdl2::event::{Event, WindowEvent};
 pub use sdl2::keyboard::Keycode;
 pub use sdl2::EventPump;
-
-pub use retro_av::RetroAv;
-
-pub use audios::RetroAudioCb;
 pub use video::RetroVideoCb;

@@ -1,5 +1,5 @@
 use super::{gl::gl, render::Render};
-use crate::video::RetroVideoAPi;
+use crate::video::{RawTextureData, RetroVideoAPi};
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::{
     retro_hw_context_type::{
@@ -13,7 +13,7 @@ use sdl2::{
     video::{GLContext, GLProfile, Window},
     Sdl, VideoSubsystem,
 };
-use std::sync::atomic::Ordering;
+use std::{cell::UnsafeCell, sync::atomic::Ordering};
 use std::{rc::Rc, sync::Arc};
 
 pub struct GlWindow {
@@ -47,7 +47,7 @@ impl RetroVideoAPi for GlWindow {
         self.window.id()
     }
 
-    fn draw_new_frame(&self, texture: &crate::video::RawTextureData) {
+    fn draw_new_frame(&self, texture: &UnsafeCell<RawTextureData>) {
         let (width, height) = self.window.size();
 
         self.render.draw_new_frame(

@@ -16,7 +16,7 @@ use super::{
 use crate::video::RawTextureData;
 use generics::erro_handle::ErroHandle;
 use retro_core::av_info::{AvInfo, Geometry};
-use std::{mem::size_of, sync::atomic::Ordering};
+use std::{cell::UnsafeCell, mem::size_of, sync::atomic::Ordering};
 use std::{rc::Rc, sync::Arc};
 
 pub struct Render {
@@ -62,24 +62,28 @@ impl Render {
 
     pub fn draw_new_frame(
         &self,
-        next_frame: &RawTextureData,
+        next_frame: &UnsafeCell<RawTextureData>,
         geo: &Geometry,
         win_width: i32,
         win_height: i32,
     ) {
-        self.refresh_vertex(
-            geo,
-            next_frame.width as f32,
-            next_frame.height as f32,
-            win_width,
-            win_height,
-        );
+        let tex = next_frame.get();
 
         unsafe {
+            let texture = tex.read();
+
+            self.refresh_vertex(
+                geo,
+                texture.width as f32,
+                texture.height as f32,
+                win_width,
+                win_height,
+            );
+
             self.gl.Viewport(0, 0, win_width, win_height);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
-            self._texture.push(next_frame);
+            self._texture.push(&texture);
             self._program.use_program();
             self._texture.active();
 

@@ -21,9 +21,11 @@ use crate::{
         core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
         get_cpu_features, get_features_get_time_usec,
     },
+    RetroCoreIns,
 };
 use std::{
     ffi::{c_char, c_uint},
+    rc::Rc,
     sync::atomic::Ordering,
 };
 use std::{os::raw::c_void, ptr::addr_of, sync::Arc};
@@ -52,10 +54,10 @@ pub trait RetroAudioEnvCallbacks {
 }
 
 #[doc = "pelo amor de deus MANTENHA isso dentro desse diretório"]
-pub static mut CORE_CONTEXT: Option<Arc<RetroCore>> = None;
+pub static mut CORE_CONTEXT: Option<Rc<RetroCore>> = None;
 
 //noinspection RsPlaceExpression
-pub fn configure(core_ctx: Arc<RetroCore>) {
+pub fn configure(core_ctx: RetroCoreIns) {
     unsafe {
         CORE_CONTEXT = Some(core_ctx);
     }

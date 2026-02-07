@@ -13,6 +13,7 @@ use crate::{
         RETRO_ENVIRONMENT_SET_GEOMETRY, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
     },
     retro_core::RetroCore,
+    RetroCoreIns,
 };
 #[cfg(feature = "hw")]
 use std::{ffi::c_char, mem};
@@ -112,7 +113,7 @@ unsafe extern "C" fn context_destroy() {
     }
 }
 
-pub unsafe fn env_cb_av(core_ctx: &Arc<RetroCore>, cmd: c_uint, data: *mut c_void) -> bool {
+pub unsafe fn env_cb_av(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void) -> bool {
     match cmd {
         RETRO_ENVIRONMENT_SET_GEOMETRY => {
             #[cfg(feature = "core_ev_logs")]

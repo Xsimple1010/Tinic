@@ -3,7 +3,7 @@ use crate::graphic_api::GraphicApi;
 use crate::retro_core::RetroCore;
 use crate::test_tools::constants::CORE_TEST_RELATIVE_PATH;
 use crate::test_tools::paths::get_paths;
-use crate::{RetroAudioEnvCallbacks, RetroVideoEnvCallbacks};
+use crate::{RetroAudioEnvCallbacks, RetroCoreIns, RetroVideoEnvCallbacks};
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use std::ptr;
 use std::sync::Arc;
@@ -73,7 +73,7 @@ impl RetroAudioEnvCallbacks for Audio {
     }
 }
 
-pub fn get_core_wrapper() -> Arc<RetroCore> {
+pub fn get_core_wrapper() -> RetroCoreIns {
     RetroCore::new(
         CORE_TEST_RELATIVE_PATH,
         get_paths().unwrap(),

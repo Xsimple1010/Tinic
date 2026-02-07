@@ -143,14 +143,14 @@ impl ThreadState {
     }
 
     pub fn enable_full_screen(&mut self) -> Result<(), ErroHandle> {
-        self.try_get_retro_av_ctx()?.video.enable_full_screen();
+        self.try_get_retro_av_ctx()?.video.enable_full_screen()?;
         self.use_full_screen_mode = true;
 
         Ok(())
     }
 
     pub fn disable_full_screen(&mut self) -> Result<(), ErroHandle> {
-        self.try_get_retro_av_ctx()?.video.disable_full_screen();
+        self.try_get_retro_av_ctx()?.video.disable_full_screen()?;
         self.use_full_screen_mode = false;
 
         Ok(())
@@ -262,7 +262,7 @@ impl ThreadState {
                 // Pede para core gerar novos buffers de video e audio
                 retro_core.run()?;
                 // Exibe os buffers gerados pelo core
-                retro_av.get_new_frame();
+                retro_av.get_new_frame()?;
             }
         } else {
             //WITHOUT THIS, WI HAVE A HIGH CPU UTILIZATION!

@@ -1,7 +1,7 @@
+use crate::audios::RetroAudioCb;
 use crate::sync::RetroSync;
 use crate::video::RetroVideo;
-use crate::RetroAudioCb;
-use crate::{audios::RetroAudio, RetroVideoCb};
+use crate::{audios::RetroAudio, video::RetroVideoCb};
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use retro_core::av_info::AvInfo;
@@ -60,11 +60,13 @@ impl RetroAv {
         Ok(event_pump)
     }
 
-    pub fn get_new_frame(&mut self) {
+    pub fn get_new_frame(&mut self) -> Result<(), ErroHandle> {
         if let Some(av_info) = &self.av_info {
-            self.audio.resume_new_frame(av_info);
-            self.video.draw_new_frame();
+            self.audio.resume_new_frame(av_info)?;
+            self.video.draw_new_frame()?;
         }
+
+        Ok(())
     }
 
     pub fn sync(&mut self) -> bool {

@@ -31,13 +31,11 @@ impl EventThread {
             return Ok(());
         }
 
-        if self.try_enable_thread() {
-            if !self.try_enable_thread() {
-                return Err(ErroHandle {
-                    level: RETRO_LOG_ERROR,
-                    message: "Não foi possível iniciar a thread de eventos do gamepad".to_string(),
-                });
-            }
+        if self.try_enable_thread() && !self.try_enable_thread() {
+            return Err(ErroHandle {
+                level: RETRO_LOG_ERROR,
+                message: "Não foi possível iniciar a thread de eventos do gamepad".to_string(),
+            });
         }
 
         self.create_update_devices_state_thread(devices, self.event_thread_can_run.clone());

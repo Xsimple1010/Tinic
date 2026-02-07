@@ -7,6 +7,7 @@ use crate::{
         RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
     },
     retro_core::RetroCore,
+    RetroCoreIns,
 };
 use std::{ffi::c_uint, os::raw::c_void, ptr::addr_of, sync::Arc};
 
@@ -44,7 +45,7 @@ pub unsafe extern "C" fn input_state_callback(
     }
 }
 
-pub unsafe fn env_cb_gamepad_io(core_ctx: &Arc<RetroCore>, cmd: c_uint, data: *mut c_void) -> bool {
+pub unsafe fn env_cb_gamepad_io(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void) -> bool {
     match cmd {
         RETRO_ENVIRONMENT_GET_INPUT_BITMASKS => {
             #[cfg(feature = "core_ev_logs")]
