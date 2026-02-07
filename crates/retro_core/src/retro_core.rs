@@ -176,20 +176,11 @@ impl RetroCore {
 
     pub fn de_init(&self) -> Result<(), ErroHandle> {
         //Se uma *rom* estive carrega ela deve ser descarregada primeiro
-        match self.unload_game() {
-            Ok(..) => {}
-            Err(e) => match &e.level {
-                RETRO_LOG_ERROR => {}
-                _ => {
-                    unsafe {
-                        self.raw.retro_deinit();
-                    }
-                    self.initialized.store(false, Ordering::SeqCst);
-                    core_env::delete_local_core_ctx();
+        if let Err(e) = self.unload_game() {
+            self.initialized.store(false, Ordering::SeqCst);
+            core_env::delete_local_core_ctx();
 
-                    return Err(e);
-                }
-            },
+            return Err(e);
         }
 
         unsafe {
@@ -222,10 +213,7 @@ impl RetroCore {
 
     pub fn unload_game(&self) -> Result<(), ErroHandle> {
         if !self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "A rom ja foi descarregada anteriormente".to_string(),
-            });
+            return Ok(());
         }
 
         if !self.initialized.load(Ordering::SeqCst) {
