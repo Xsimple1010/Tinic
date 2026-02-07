@@ -1,9 +1,8 @@
 use super::{
     frame_buffer::FrameBuffer,
     gl::gl::{
-        self,
-        types::{GLint, GLuint},
-        DEPTH24_STENCIL8, DEPTH_ATTACHMENT, DEPTH_COMPONENT24, DEPTH_STENCIL_ATTACHMENT,
+        self, types::{GLint, GLuint}, DEPTH24_STENCIL8, DEPTH_ATTACHMENT, DEPTH_COMPONENT24,
+        DEPTH_STENCIL_ATTACHMENT,
     },
     gl_buffer::GlBuffer,
     render_buffer::RenderBuffer,
@@ -13,7 +12,7 @@ use super::{
     vertex::{new_vertex, GlVertex},
     vertex_array::VertexArray,
 };
-use crate::video::RawTextureData;
+use crate::raw_texture::RawTextureData;
 use generics::error_handle::ErrorHandle;
 use glutin::prelude::GlDisplay;
 use retro_core::av_info::{AvInfo, Geometry};
@@ -78,7 +77,7 @@ impl Render {
             );
 
             self.gl.Viewport(0, 0, win_width, win_height);
-            self.gl.ClearColor(0.0,0.0,0.0,1.0);
+            self.gl.ClearColor(0.0, 0.0, 0.0, 1.0);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
             self._texture.push(texture);

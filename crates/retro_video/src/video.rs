@@ -1,3 +1,6 @@
+use crate::raw_texture::RawTextureData;
+use crate::retro_env_callback::RetroVideoCb;
+use crate::sync::RetroSync;
 use crate::{print_scree::PrintScree, retro_gl::window::RetroGlWindow};
 use generics::{
     error_handle::ErrorHandle,
@@ -6,35 +9,14 @@ use generics::{
 use libretro_sys::binding_libretro::retro_hw_context_type::{
     RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
 };
-use retro_core::{av_info::AvInfo, RetroVideoEnvCallbacks};
+use retro_core::av_info::AvInfo;
 use std::{
-    cell::UnsafeCell,
-    ffi::{c_uint, c_void},
     path::{Path, PathBuf},
-    ptr::null,
     sync::Arc,
 };
 use winit::{event_loop::ActiveEventLoop, window::Fullscreen};
 
-pub struct RawTextureData {
-    pub data: UnsafeCell<*const c_void>,
-    pub width: c_uint,
-    pub height: c_uint,
-    pub pitch: usize,
-}
-
-impl RawTextureData {
-    pub fn new() -> Self {
-        Self {
-            data: UnsafeCell::new(null()),
-            pitch: 0,
-            height: 0,
-            width: 0,
-        }
-    }
-}
-
-pub trait RetroVideoAPi {
+pub trait RetroWindowsContext {
     fn request_redraw(&self);
 
     fn draw_new_frame(&self, texture: &RawTextureData);
@@ -46,13 +28,14 @@ pub trait RetroVideoAPi {
     fn context_destroy(&mut self);
 
     fn context_reset(&mut self);
-    
+
     fn resize(&mut self, width: u32, height: u32);
 }
 
 pub struct RetroVideo {
-    window_ctx: ArcTMutex<Option<Box<dyn RetroVideoAPi>>>,
+    window_ctx: ArcTMutex<Option<Box<dyn RetroWindowsContext>>>,
     texture: ArcTMutex<RawTextureData>,
+    pub sync: RetroSync,
 }
 
 impl RetroVideo {
@@ -60,6 +43,7 @@ impl RetroVideo {
         Self {
             window_ctx: TMutex::new(None),
             texture: TMutex::new(RawTextureData::new()),
+            sync: RetroSync::new(0.0002),
         }
     }
 
@@ -78,7 +62,7 @@ impl RetroVideo {
             _ => {
                 return Err(ErrorHandle {
                     message: "suporte para a api selecionada não está disponível".to_owned(),
-                })
+                });
             }
         };
 
@@ -112,72 +96,16 @@ impl RetroVideo {
         }
         Ok(())
     }
-    
+
     pub fn resize_window(&mut self, width: u32, height: u32) -> Result<(), ErrorHandle> {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
             win.resize(width, height);
         }
-        
+
         Ok(())
     }
 
     pub fn get_core_cb(&self) -> RetroVideoCb {
-        RetroVideoCb {
-            texture: self.texture.clone(),
-            window_ctx: self.window_ctx.clone(),
-        }
-    }
-}
-
-pub struct RetroVideoCb {
-    texture: ArcTMutex<RawTextureData>,
-    window_ctx: ArcTMutex<Option<Box<dyn RetroVideoAPi>>>,
-}
-
-impl RetroVideoEnvCallbacks for RetroVideoCb {
-    fn video_refresh_callback(
-        &self,
-        data: *const c_void,
-        width: u32,
-        height: u32,
-        pitch: usize,
-    ) -> Result<(), ErrorHandle> {
-        let mut texture = self.texture.try_load()?;
-        {
-            let tex_data = texture.data.get_mut();
-
-            *tex_data = data;
-            texture.width = width;
-            texture.height = height;
-            texture.pitch = pitch;
-        }
-
-        if let Some(win) = &mut *self.window_ctx.try_load()? {
-            win.draw_new_frame(&texture);
-        }
-
-        Ok(())
-    }
-
-    fn context_reset(&self) -> Result<(), ErrorHandle> {
-        if let Some(win) = &mut *self.window_ctx.try_load()? {
-            win.context_reset();
-        }
-        Ok(())
-    }
-
-    fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErrorHandle> {
-        if let Some(win) = &mut *self.window_ctx.try_load()? {
-            return Ok(win.get_proc_address(proc_name));
-        }
-
-        Ok(null())
-    }
-
-    fn context_destroy(&self) -> Result<(), ErrorHandle> {
-        if let Some(win) = &mut *self.window_ctx.try_load()? {
-            win.context_destroy();
-        }
-        Ok(())
+        RetroVideoCb::new(self.texture.clone(), self.window_ctx.clone())
     }
 }

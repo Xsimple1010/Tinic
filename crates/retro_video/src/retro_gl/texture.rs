@@ -1,5 +1,4 @@
 use super::{gl::gl, pixel::Pixel};
-use crate::video::RawTextureData;
 use generics::error_handle::ErrorHandle;
 use gl::types::GLuint;
 use retro_core::av_info::AvInfo;
@@ -8,6 +7,7 @@ use std::{
     rc::Rc,
     sync::{atomic::Ordering, Arc},
 };
+use crate::raw_texture::RawTextureData;
 
 pub type TexturePosition = [f32; 2];
 

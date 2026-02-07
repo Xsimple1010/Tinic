@@ -64,14 +64,8 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                 self.ctx.disable_keyboard();
                 Ok(())
             }
-            GameInstanceActions::Pause => {
-                self.ctx.pause();
-                Ok(())
-            }
-            GameInstanceActions::Resume => {
-                self.ctx.resume();
-                Ok(())
-            }
+            GameInstanceActions::Pause => self.ctx.pause(),
+            GameInstanceActions::Resume => self.ctx.resume(),
             GameInstanceActions::Exit => {
                 event_loop.exit();
                 Ok(())
@@ -96,9 +90,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                 Ok(())
             }
             WindowEvent::RedrawRequested => self.ctx.draw_new_frame(),
-            WindowEvent::Resized(size) => {
-                self.ctx.resize_window(size)
-            }
+            WindowEvent::Resized(size) => self.ctx.resize_window(size),
             WindowEvent::KeyboardInput {
                 device_id: _,
                 event,
@@ -116,10 +108,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                     PhysicalKey::Code(KeyCode::F2) => self.ctx.load_state(self.default_slot),
                     PhysicalKey::Code(KeyCode::F3) => self.ctx.toggle_keyboard_usage(),
                     PhysicalKey::Code(KeyCode::F5) => self.ctx.reset(),
-                    PhysicalKey::Code(KeyCode::F8) => {
-                        self.ctx.toggle_can_request_new_frames();
-                        Ok(())
-                    }
+                    PhysicalKey::Code(KeyCode::F8) => self.ctx.toggle_can_request_new_frames(),
                     PhysicalKey::Code(KeyCode::F11) => self.ctx.toggle_full_screen_mode(),
                     _ => Ok(()),
                 }

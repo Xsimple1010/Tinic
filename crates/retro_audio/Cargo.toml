@@ -1,0 +1,12 @@
+[package]
+name = "retro_audio"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cpal.workspace = true
+rubato.workspace = true
+libretro_sys.workspace = true
+ringbuf.workspace = true
+generics.workspace = true
+retro_core.workspace = true
