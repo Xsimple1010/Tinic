@@ -1,8 +1,8 @@
 use crate::core_info::model::CoreInfo;
 use crate::event::TinicSuperEventListener;
-use crate::rdb_manager::game::GameInfo;
-use futures_util::StreamExt;
+use crate::rdb_manager::game_model::GameInfo;
 use futures_util::stream::FuturesUnordered;
+use futures_util::StreamExt;
 use generics::constants::RDB_HEADER_SIZE;
 use generics::error_handle::ErrorHandle;
 use rmp_serde::Deserializer;
