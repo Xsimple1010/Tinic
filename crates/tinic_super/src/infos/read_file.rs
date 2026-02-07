@@ -1,4 +1,4 @@
-use crate::core_info::model::CoreInfo;
+use crate::infos::model::CoreInfo;
 use generics::error_handle::ErrorHandle;
 use std::path::PathBuf;
 
@@ -10,6 +10,7 @@ pub async fn read_info_file(file_path: &PathBuf) -> Result<CoreInfo, ErrorHandle
     let reader = BufReader::new(file);
     let mut lines = reader.lines();
     let mut info = CoreInfo::default();
+    info.path = file_path.clone();
 
     while let Ok(Some(mut line)) = lines.next_line().await {
         set_info_value(&mut line, &mut info);
@@ -29,6 +30,7 @@ pub fn read_info_file_blocking(file_path: &PathBuf) -> Result<CoreInfo, ErrorHan
     let reader = BufReader::new(file);
     let mut lines = reader.lines();
     let mut info = CoreInfo::default();
+    info.path = file_path.clone();
 
     while let Some(Ok(mut line)) = lines.next() {
         set_info_value(&mut line, &mut info);

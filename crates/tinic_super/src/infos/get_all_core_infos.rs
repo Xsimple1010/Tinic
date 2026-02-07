@@ -1,5 +1,5 @@
-use crate::core_info::model::CoreInfo;
-use crate::core_info::read_file::read_info_file;
+use crate::infos::model::CoreInfo;
+use crate::infos::read_file::read_info_file;
 use std::path::PathBuf;
 
 pub async fn get_all_core_infos(dir: &String) -> Vec<CoreInfo> {

@@ -1,9 +1,10 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, path::PathBuf};
 
 #[derive(Debug, Default, Clone)]
 pub struct CoreInfo {
     pub file_name: String,
     pub is_installed: bool,
+    pub path: PathBuf,
 
     // Informações de Software
     pub display_name: String,
