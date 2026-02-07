@@ -1,32 +1,33 @@
+use super::game_thread_channel::GameThreadChannel;
 use super::stack_commands_handle::stack_commands_handle;
 use super::{game_thread_state::ThreadState, game_window_handle::game_window_handle};
-use crate::channel::ChannelNotify;
 use generics::erro_handle::ErroHandle;
 use generics::types::ArcTMuxte;
 use retro_controllers::RetroController;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::{sync::Arc, thread};
 
+#[derive(Debug)]
 pub struct GameThread {
     is_running: Arc<AtomicBool>,
-    controller_ctx: ArcTMuxte<RetroController>,
+    pub channel: GameThreadChannel,
 }
 
 impl GameThread {
-    pub fn new(controller_ctx: ArcTMuxte<RetroController>) -> Self {
+    pub fn new() -> Self {
         Self {
             is_running: Arc::new(AtomicBool::new(false)),
-            controller_ctx,
+            channel: GameThreadChannel::new(),
         }
     }
 
-    pub fn start(&mut self, channel_notify: ChannelNotify) -> Result<(), ErroHandle> {
+    pub fn start(&self, controller_ctx: ArcTMuxte<RetroController>) -> Result<(), ErroHandle> {
         if self.is_running.load(Ordering::SeqCst) {
             return Ok(());
         }
 
         self.is_running.store(true, Ordering::SeqCst);
-        self.spawn_game_thread(channel_notify);
+        self.spawn_game_thread(controller_ctx);
 
         Ok(())
     }
@@ -35,9 +36,10 @@ impl GameThread {
         self.is_running.load(Ordering::SeqCst)
     }
 
-    fn spawn_game_thread(&self, channel_notify: ChannelNotify) {
+    fn spawn_game_thread(&self, controller_ctx: ArcTMuxte<RetroController>) {
         let is_running = self.is_running.clone();
-        let controller_ctx = self.controller_ctx.clone();
+        let controller_ctx = controller_ctx.clone();
+        let channel_notify = self.channel.get_notify();
 
         thread::spawn(move || {
             let mut state = ThreadState::new(channel_notify, controller_ctx, is_running);

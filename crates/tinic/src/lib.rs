@@ -5,7 +5,6 @@ extern crate retro_controllers;
 extern crate retro_core;
 extern crate tinic_super;
 
-mod channel;
 mod game_thread;
 mod thread_stack;
 mod tinic;

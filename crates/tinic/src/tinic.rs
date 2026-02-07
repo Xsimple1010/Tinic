@@ -1,5 +1,4 @@
 use crate::{
-    channel::ThreadChannel,
     game_thread::game_thread_handle::GameThread,
     generics::{erro_handle::ErroHandle, retro_paths::RetroPaths, types::TMutex},
     libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR,
@@ -16,10 +15,9 @@ use std::sync::Arc;
 
 pub struct Tinic {
     pub controller: Arc<TMutex<RetroController>>,
-    game_thread: GameThread,
     pub core_options: Option<Arc<OptionManager>>,
+    game_thread: Arc<GameThread>,
     retro_paths: Option<RetroPaths>,
-    channel: Arc<ThreadChannel>,
 }
 
 impl Drop for Tinic {
@@ -30,21 +28,18 @@ impl Drop for Tinic {
 
 impl Tinic {
     pub fn new(listener: Box<dyn DeviceListener>) -> Result<Tinic, ErroHandle> {
-        let channel = Arc::new(ThreadChannel::new());
-
+        let game_thread = Arc::new(GameThread::new());
         let tinic_device_handle = TinicDeviceHandle {
-            channel: channel.clone(),
+            game_thread: game_thread.clone(),
             extern_listener: listener,
         };
-
-        let controller_ctx = TMutex::new(RetroController::new(Box::new(tinic_device_handle))?);
+        let controller = TMutex::new(RetroController::new(Box::new(tinic_device_handle))?);
 
         Ok(Self {
-            game_thread: GameThread::new(controller_ctx.clone()),
+            game_thread,
             core_options: None,
-            controller: controller_ctx,
+            controller,
             retro_paths: None,
-            channel,
         })
     }
 
@@ -54,10 +49,10 @@ impl Tinic {
 
     pub async fn load_game(&mut self, core_path: &str, rom_path: &str) -> Result<bool, ErroHandle> {
         let retro_path = self.try_get_retro_path()?.clone();
-
-        self.game_thread.start(self.channel.get_notify())?;
+        self.game_thread.start(self.controller.clone())?;
 
         let core_options = self
+            .game_thread
             .channel
             .load_game(core_path, rom_path, retro_path)
             .await;
@@ -68,44 +63,44 @@ impl Tinic {
     }
 
     pub fn pause(&self) {
-        self.channel.pause_game();
+        self.game_thread.channel.pause_game();
     }
 
     pub fn resume(&self) {
-        self.channel.resume_game();
+        self.game_thread.channel.resume_game();
     }
 
     pub async fn save_state(&self, slot: usize) -> Option<(SavePath, SaveImg)> {
-        self.channel.save_state(slot).await
+        self.game_thread.channel.save_state(slot).await
     }
 
     pub async fn load_state(&self, slot: usize) -> bool {
-        self.channel.load_state(slot).await
+        self.game_thread.channel.load_state(slot).await
     }
 
     pub fn connect_device(&self, device: Device) {
-        self.channel.connect_device(device);
+        self.game_thread.channel.connect_device(device);
     }
 
     pub fn reset(&self) {
-        self.channel.reset_game();
+        self.game_thread.channel.reset_game();
     }
 
     pub async fn quit(&mut self) -> bool {
         if self.game_thread.is_running() {
             self.core_options.take();
-            self.channel.quit().await
+            self.game_thread.channel.quit().await
         } else {
             true
         }
     }
 
     pub fn enable_full_screen(&self) {
-        self.channel.enable_full_screen();
+        self.game_thread.channel.enable_full_screen();
     }
 
     pub fn disable_full_screen(&self) {
-        self.channel.disable_full_screen();
+        self.game_thread.channel.disable_full_screen();
     }
 
     pub async fn try_update_core_infos(&mut self, force_update: bool) -> Result<(), ErroHandle> {
@@ -154,13 +149,13 @@ impl Tinic {
 
 #[derive(Debug)]
 struct TinicDeviceHandle {
-    channel: Arc<ThreadChannel>,
+    game_thread: Arc<GameThread>,
     extern_listener: Box<dyn DeviceListener>,
 }
 
 impl DeviceListener for TinicDeviceHandle {
     fn connected(&self, device: Device) {
-        self.channel.connect_device(device.clone());
+        self.game_thread.channel.connect_device(device.clone());
         self.extern_listener.connected(device);
     }
 

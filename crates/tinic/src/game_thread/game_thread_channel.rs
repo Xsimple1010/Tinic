@@ -12,13 +12,13 @@ use retro_controllers::devices_manager::Device;
 use retro_core::option_manager::OptionManager;
 use std::sync::Arc;
 
-#[derive(Debug)]
-pub struct ThreadChannel {
+#[derive(Debug, Clone)]
+pub struct GameThreadChannel {
     game_stack: GameStack,
     main_stack: MainStack,
 }
 
-impl ThreadChannel {
+impl GameThreadChannel {
     pub fn new() -> Self {
         Self {
             main_stack: MainStack::new(),
@@ -26,8 +26,8 @@ impl ThreadChannel {
         }
     }
 
-    pub fn get_notify(&self) -> ChannelNotify {
-        ChannelNotify::from(self.game_stack.clone(), self.main_stack.clone())
+    pub fn get_notify(&self) -> GameThreadGenericNotify {
+        GameThreadGenericNotify::from(self.game_stack.clone(), self.main_stack.clone())
     }
 
     //####################### ações relacionadas ao carregamento de uma rom #######################
@@ -132,12 +132,12 @@ impl ThreadChannel {
     }
 }
 
-pub struct ChannelNotify {
+pub struct GameThreadGenericNotify {
     game_stack: GameStack,
     main_stack: MainStack,
 }
 
-impl ChannelNotify {
+impl GameThreadGenericNotify {
     fn from(game_stack: GameStack, main_stack: MainStack) -> Self {
         Self {
             game_stack,

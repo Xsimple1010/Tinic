@@ -1,4 +1,3 @@
-use crate::channel::ChannelNotify;
 use crate::thread_stack::game_stack::GameStackCommand::DeviceConnected;
 use crate::thread_stack::main_stack::MainStackCommand::{
     self, GameLoaded, GameStateSaved, SaveStateLoaded,
@@ -26,8 +25,10 @@ use std::{
     time::Duration,
 };
 
+use super::game_thread_channel::GameThreadGenericNotify;
+
 pub struct ThreadState {
-    pub channel_notify: ChannelNotify,
+    pub channel_notify: GameThreadGenericNotify,
     pub is_running: Arc<AtomicBool>,
     pub pause_request_new_frames: bool,
     pub use_full_screen_mode: bool,
@@ -164,7 +165,7 @@ impl ThreadState {
 
 impl ThreadState {
     pub fn new(
-        channel_notify: ChannelNotify,
+        channel_notify: GameThreadGenericNotify,
         controller_ctx: ArcTMuxte<RetroController>,
         is_running: Arc<AtomicBool>,
     ) -> Self {
