@@ -90,8 +90,8 @@ impl ThreadChannel {
     }
 
     // ################### OUTAS AÇÕES MAIS GENÉRICAS DO CORE FICAM AQUI! ###########################
-    pub fn save_state(&self, slot: usize) -> Option<(String, String)> {
-        self.game_stack.push(GameStackCommand::SaveState(slot));
+    pub async fn save_state(&self, slot: usize) -> Option<(String, String)> {
+        self.game_stack.push(SaveState(slot));
 
         let mut save: Option<(String, String)> = None;
 
@@ -108,7 +108,7 @@ impl ThreadChannel {
         save
     }
 
-    pub fn load_state(&self, slot: usize) -> bool {
+    pub async fn load_state(&self, slot: usize) -> bool {
         self.game_stack.push(GameStackCommand::LoadState(slot));
 
         let mut loaded = false;
