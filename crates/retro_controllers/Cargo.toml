@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 license = "GPL-3"
 description = "retro_controllers"
-
+repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/retro_controllers"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

@@ -6,6 +6,7 @@ license = "GPL-3"
 description = "Tinic is a runtime for Libretro cores that abstracts the native API and provides a ready-to-use foundation for cross-platform frontends. "
 keywords = ["emulator", "libretro", "tinic"]
 categories = ["emulators", "libretro"]
+repository = "https://github.com/Xsimple1010/Tinic"
 
 [dependencies]
 retro_core.workspace = true

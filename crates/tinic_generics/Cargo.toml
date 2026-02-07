@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 license = "GPL-3"
 description = "tinic_generics"
+repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/tinic_generics"
 
 [dependencies]
 libretro_sys.workspace = true
