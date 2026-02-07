@@ -70,7 +70,7 @@ impl KeyboardKeyMap {
 }
 
 impl DeviceKeyMap<KeyboardKeyMap, PhysicalKey> for KeyboardKeyMap {
-    fn get_key_name_from_native_button<'a>(native: &PhysicalKey) -> &'a str {
+    fn get_key_name_from_native_button<'a>(_native: &PhysicalKey) -> &'a str {
         todo!()
     }
 
