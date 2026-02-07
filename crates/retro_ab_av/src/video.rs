@@ -1,4 +1,4 @@
-use crate::{print_scree::PrintScree, retro_gl::window::GlWIndow};
+use crate::{print_scree::PrintScree, retro_gl::window::GlWindow};
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::{
     retro_hw_context_type::{RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL_CORE},
@@ -88,7 +88,7 @@ impl RetroVideo {
     pub fn new(sdl: &Sdl, av_info: &Arc<AvInfo>) -> Result<Self, ErroHandle> {
         match &av_info.video.graphic_api.context_type {
             RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_NONE => {
-                unsafe { WINDOW_CTX = Some(Box::new(GlWIndow::new(sdl, av_info)?)) }
+                unsafe { WINDOW_CTX = Some(Box::new(GlWindow::new(sdl, av_info)?)) }
 
                 Ok(Self {
                     av_info: av_info.clone(),

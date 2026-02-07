@@ -10,7 +10,7 @@ use sdl2::{
 };
 use std::{rc::Rc, sync::Arc};
 
-pub struct GlWIndow {
+pub struct GlWindow {
     video: VideoSubsystem,
     window: Window,
     gl_ctx: Option<GLContext>,
@@ -18,7 +18,7 @@ pub struct GlWIndow {
     av_info: Arc<AvInfo>,
 }
 
-impl Drop for GlWIndow {
+impl Drop for GlWindow {
     fn drop(&mut self) {
         //gl_ctx precisa ser deletado antes de tudo!
         /* esse é comportamento ideal aqui
@@ -36,7 +36,7 @@ impl Drop for GlWIndow {
     }
 }
 
-impl RetroVideoAPi for GlWIndow {
+impl RetroVideoAPi for GlWindow {
     fn get_window_id(&self) -> u32 {
         self.window.id()
     }
@@ -71,8 +71,8 @@ impl RetroVideoAPi for GlWIndow {
     }
 }
 
-impl GlWIndow {
-    pub fn new(sdl: &Sdl, av_info: &Arc<AvInfo>) -> Result<GlWIndow, ErroHandle> {
+impl GlWindow {
+    pub fn new(sdl: &Sdl, av_info: &Arc<AvInfo>) -> Result<GlWindow, ErroHandle> {
         let video = match sdl.video() {
             Ok(sdl) => sdl,
             Err(message) => {
@@ -124,7 +124,7 @@ impl GlWIndow {
 
                 let render = Render::new(av_info, gl.clone())?;
 
-                Ok(GlWIndow {
+                Ok(GlWindow {
                     video,
                     window,
                     gl_ctx: Some(gl_ctx),
