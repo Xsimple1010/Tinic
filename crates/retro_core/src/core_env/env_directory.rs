@@ -82,7 +82,7 @@ pub unsafe fn env_cb_directory(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_VFS_INTERFACE -> OK");
 
-            Ok(true)
+            Ok(false)
         }
         _ => Ok(false),
     }

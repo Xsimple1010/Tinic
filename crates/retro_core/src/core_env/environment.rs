@@ -1,19 +1,19 @@
 #[cfg(feature = "core_logs")]
 use crate::tools::ffi_tools::get_str_from_ptr;
+use crate::{av_info::AvInfo, tools::validation::InputValidator};
 use crate::{
-    RetroCoreIns,
     core_env::{
         env_directory::env_cb_directory, env_gamepads_io::env_cb_gamepad_io,
         env_option::env_cb_option, env_video::env_cb_av,
     },
     libretro_sys::{
         binding_libretro::{
+            retro_language::{self, RETRO_LANGUAGE_PORTUGUESE_BRAZIL}, retro_log_level,
+            retro_perf_callback, retro_rumble_effect,
             RETRO_ENVIRONMENT_GET_LANGUAGE, RETRO_ENVIRONMENT_GET_LOG_INTERFACE,
             RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, RETRO_ENVIRONMENT_GET_PERF_INTERFACE,
-            RETRO_ENVIRONMENT_GET_VARIABLE, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
-            RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
-            retro_language::{self, RETRO_LANGUAGE_PORTUGUESE_BRAZIL},
-            retro_log_level, retro_perf_callback, retro_rumble_effect,
+            RETRO_ENVIRONMENT_GET_VARIABLE,
+            RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
         },
         binding_log_interface::configure_log_interface,
     },
@@ -22,8 +22,8 @@ use crate::{
         core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
         get_cpu_features, get_features_get_time_usec,
     },
+    RetroCoreIns,
 };
-use crate::{av_info::AvInfo, tools::validation::InputValidator};
 use generics::error_handle::ErrorHandle;
 use std::sync::Arc;
 use std::{
@@ -205,7 +205,7 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
 
                     match result {
                         Ok(_) => {
-                            let mut perf = *(data as *mut retro_perf_callback);
+                            let perf = &mut *(data as *mut retro_perf_callback);
 
                             perf.get_time_usec = Some(get_features_get_time_usec);
                             perf.get_cpu_features = Some(get_cpu_features);
@@ -253,8 +253,8 @@ mod test_environment {
     use crate::{core_env::environment::CORE_CONTEXT, test_tools};
     use generics::error_handle::ErrorHandle;
     use libretro_sys::binding_libretro::{
-        RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
-        retro_pixel_format,
+        retro_pixel_format, RETRO_ENVIRONMENT_GET_INPUT_BITMASKS,
+        RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
     };
     use std::{ffi::c_void, ptr::addr_of};
 
