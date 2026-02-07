@@ -10,7 +10,7 @@ mod app_dispatcher;
 mod device_listener;
 mod tinic;
 
-pub use app::listener::*;
+pub use app::{GameInstance, listener::*};
 pub use app_dispatcher::GameInstanceDispatchers;
 pub use generics::error_handle::ErrorHandle;
 pub use generics::retro_paths::RetroPaths;
