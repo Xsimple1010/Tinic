@@ -85,11 +85,11 @@ impl Tinic {
     }
 
     pub fn save_state(&self, slot: usize) -> Option<(String, String)> {
-        CHANNEL.save_state(slot)
+        task::block_on(CHANNEL.save_state(slot))
     }
 
     pub fn load_state(&self, slot: usize) -> bool {
-        CHANNEL.load_state(slot)
+        task::block_on(CHANNEL.load_state(slot))
     }
 
     pub fn connect_device(device: Device) {
