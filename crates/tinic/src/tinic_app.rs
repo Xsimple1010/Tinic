@@ -66,10 +66,10 @@ impl TinicGameInstance {
         self.default_slot = slot;
     }
 
-    pub fn connect_device(&self, devide: Device) {
+    pub fn connect_device(&self, device: Device) {
         let _ = self
             .proxy
-            .send_event(GameInstanceActions::ConnectDevice(devide));
+            .send_event(GameInstanceActions::ConnectDevice(device));
     }
 }
 
