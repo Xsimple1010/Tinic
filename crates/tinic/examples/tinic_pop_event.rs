@@ -18,8 +18,8 @@ fn main() -> Result<(), ErrorHandle> {
         sys_dir: create_test_work_dir_path(test_dir).display().to_string(),
     };
 
-    // Aqui você tem controle total sobre o loop de jogo, mas voce não pode criar outro game_instance
-    // se precisar criar varias games instances uma após a outra use Tinic::run_app_on_demand
+    // Aqui você tem controle total sobre o loop de jogo, mas você não pode criar outro game_instance
+    // se precisar criar várias games instances uma após a outra use Tinic::run_app_on_demand
     let mut game_instance = tinic.create_game_instance(game_info)?;
     loop {
         let status = tinic.pop_event(&mut game_instance);
