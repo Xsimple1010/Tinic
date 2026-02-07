@@ -8,7 +8,7 @@ members = [
     "crates/generics",
     "crates/libretro_sys",
     "crates/tinic_super",
-    "crates/retro_audio", "crates/tinic_ipc", "crates/tinic_ipc_protocol",
+    "crates/retro_audio", "crates/tinic_ipc", "crates/tinic_ipc_protocol", "crates/tinic_database",
 ]
 default-members = ["crates/tinic", "crates/tinic_ipc"]
 
