@@ -15,7 +15,7 @@ use winit::{
 };
 
 pub struct Tinic {
-    pub retro_controle: Option<Arc<RetroController>>,
+    pub retro_controller: Option<Arc<RetroController>>,
     event_loop: Option<EventLoop<GameInstanceActions>>,
     game_dispatchers: GameInstanceDispatchers,
     window_listener: Option<Arc<Box<dyn WindowListener>>>,
@@ -42,7 +42,7 @@ impl Tinic {
 
         Ok(Self {
             game_dispatchers,
-            retro_controle: None,
+            retro_controller: None,
             event_loop: Some(event_loop),
             window_listener: None,
         })
@@ -57,7 +57,7 @@ impl Tinic {
 
         * **Warning:** The control listener must be set **before creating a `GameInstance`**.
     "]
-    pub fn set_controle_listener(
+    pub fn set_controller_listener(
         &mut self,
         listener: Box<dyn DeviceListener>,
     ) -> Result<(), ErrorHandle> {
@@ -68,7 +68,7 @@ impl Tinic {
 
         let retro_controle = RetroController::new(Box::new(devices_listener))?;
 
-        self.retro_controle.replace(Arc::new(retro_controle));
+        self.retro_controller.replace(Arc::new(retro_controle));
         Ok(())
     }
 
@@ -106,7 +106,7 @@ impl Tinic {
         &mut self,
         game_info: TinicGameInfo,
     ) -> Result<GameInstance, ErrorHandle> {
-        let retro_controle = match &self.retro_controle {
+        let retro_controle = match &self.retro_controller {
             Some(re) => re.clone(),
             None => {
                 return Err(ErrorHandle::new(

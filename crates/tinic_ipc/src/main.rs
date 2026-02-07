@@ -18,7 +18,7 @@ fn main() -> Result<(), ErrorHandle> {
     // setup controle events
     let game_dispatchers = tinic.get_game_dispatchers();
     let app_state = AppState::new(game_dispatchers);
-    tinic.set_controle_listener(Box::new(DeviceEventHandle))?;
+    tinic.set_controller_listener(Box::new(DeviceEventHandle))?;
 
     let window_event = WindowEvents {
         app_state: app_state.clone(),
