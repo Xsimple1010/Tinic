@@ -5,6 +5,7 @@ use crate::RetroEnvCallbacks;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
+use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
@@ -19,7 +20,9 @@ pub struct RetroContext {
 
 impl Drop for RetroContext {
     fn drop(&mut self) {
-        let _ = self.core.de_init();
+        if self.core.initialized.load(Ordering::SeqCst) {
+            let _ = self.core.de_init();
+        }
     }
 }
 
