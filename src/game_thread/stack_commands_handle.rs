@@ -1,6 +1,5 @@
 #![allow(unused_imports)]
-
-use crate::channel::ThreadChannel;
+use crate::channel::{ChannelNotify, ThreadChannel};
 use crate::thread_stack::game_stack::{
     GameStack,
     GameStackCommand::{
@@ -63,7 +62,7 @@ fn create_retro_contexts(
 }
 
 pub fn stack_commands_handle(
-    channel: &Arc<ThreadChannel>,
+    channel_notify: &ChannelNotify,
     core_ctx: &mut Option<RetroAB>,
     controller_ctx: &Arc<Mutex<RetroAbController>>,
     av_ctx: &mut Option<(RetroAvCtx, EventPump)>,
@@ -72,7 +71,7 @@ pub fn stack_commands_handle(
 ) -> bool {
     let mut need_stop = false;
 
-    for cmd in channel.read_game_stack() {
+    for cmd in channel_notify.read_game_stack() {
         match cmd {
             Quit => {
                 need_stop = true;
@@ -103,14 +102,15 @@ pub fn stack_commands_handle(
                             }
                         }
 
-                        channel.set_game_is_loaded(Some(retro_ab.core().options.clone()));
+                        channel_notify
+                            .notify_main_stack(GameLoaded(Some(retro_ab.core().options.clone())));
 
                         core_ctx.replace(retro_ab);
                         av_ctx.replace(av);
                     }
                     Err(e) => {
                         println!("{:?}", e);
-                        channel.set_game_is_loaded(None);
+                        channel_notify.notify_main_stack(GameLoaded(None));
                         need_stop = true;
                         break;
                     }

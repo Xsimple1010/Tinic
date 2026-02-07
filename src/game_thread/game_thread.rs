@@ -1,4 +1,4 @@
-use crate::channel::ThreadChannel;
+use crate::channel::ChannelNotify;
 use crate::game_thread::game_window_handle::game_window_handle;
 use crate::game_thread::stack_commands_handle::stack_commands_handle;
 use retro_ab::erro_handle::ErroHandle;
@@ -41,7 +41,7 @@ impl GameThread {
         }
     }
 
-    pub fn start(&mut self, channel: Arc<ThreadChannel>) -> Result<(), ErroHandle> {
+    pub fn start(&mut self, channel_notify: ChannelNotify) -> Result<(), ErroHandle> {
         match self.is_running.lock() {
             Ok(mut is_running) => {
                 if !(*is_running) {
@@ -63,12 +63,12 @@ impl GameThread {
             }
         }
 
-        self.spawn_game_thread(channel);
+        self.spawn_game_thread(channel_notify);
 
         Ok(())
     }
 
-    fn spawn_game_thread(&self, channel: Arc<ThreadChannel>) {
+    fn spawn_game_thread(&self, channel_notify: ChannelNotify) {
         let controller_ctx = self.controller_ctx.clone();
         let is_running = self.is_running.clone();
 
@@ -85,7 +85,7 @@ impl GameThread {
                 can_run
             }) {
                 if stack_commands_handle(
-                    &channel,
+                    &channel_notify,
                     &mut retro_ab,
                     &controller_ctx,
                     &mut av_ctx,
@@ -99,21 +99,20 @@ impl GameThread {
                     if let Some(retro_ab) = &retro_ab {
                         if let Err(e) = try_render_frame(retro_ab, av, pause_request_new_frames) {
                             println!("{:?}", e);
-                            channel.quit();
-                            continue;
+                            break;
                         }
                     }
 
                     game_window_handle(
                         event_pump,
-                        &channel,
+                        &channel_notify,
                         pause_request_new_frames,
                         use_full_screen_mode,
                     );
                 }
             }
 
-            channel.clear_game_stack();
+            channel_notify.clear_game_stack();
 
             //Gracas ao mutex is-running pode ser que algo externo atrapalhe a leitura dos comandos da stack,
             //então so para garantir que essa thread será fechada dando a posse da leitura dos inputs para a

@@ -40,7 +40,6 @@ impl Drop for Tinic {
 }
 
 impl Tinic {
-    //noinspection RsPlaceExpression
     pub fn new(listener: Option<DeviceStateListener>) -> Result<Tinic, ErroHandle> {
         match DEVICE_STATE_LISTENER.write() {
             Ok(mut device_listener) => *device_listener = listener,
@@ -69,7 +68,7 @@ impl Tinic {
         rom_path: &str,
         paths: Paths,
     ) -> Result<bool, ErroHandle> {
-        self.game_thread.start(CHANNEL.clone())?;
+        self.game_thread.start(CHANNEL.get_notify())?;
 
         let (loaded, options) = task::block_on(CHANNEL.load_game(core_path, rom_path, paths));
         self.core_options = options;

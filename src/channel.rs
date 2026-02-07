@@ -15,9 +15,9 @@ pub struct ThreadChannel {
 
 const MAX_TIME_TO_AWAIT: u64 = 3;
 
-fn await_time_lapse<F>(mut callback: F)
+fn wait_response<C, S: RetroStackFn<C>, CA>(stack: &S, mut callback: CA)
 where
-    F: FnMut() -> bool,
+    CA: FnMut(&C) -> bool,
 {
     let max_time_lapse = Duration::from_secs(MAX_TIME_TO_AWAIT);
     let mut last_time = Instant::now();
@@ -29,9 +29,15 @@ where
         if time_lapse >= max_time_lapse {
             break 'running;
         } else {
-            if callback() {
-                break 'running;
-            };
+            let commands = stack.read();
+            for index in 0..commands.len() {
+                if let Some(cmd) = commands.get(index) {
+                    if callback(cmd) {
+                        stack.remove_index(index);
+                        break 'running;
+                    };
+                }
+            }
         }
 
         last_time = now;
@@ -46,12 +52,8 @@ impl ThreadChannel {
         }
     }
 
-    pub fn read_game_stack(&self) -> Vec<GameStackCommand> {
-        self.game_stack.read_and_clear()
-    }
-
-    pub fn clear_game_stack(&self) {
-        self.game_stack.clear()
+    pub fn get_notify(&self) -> ChannelNotify {
+        ChannelNotify::from(self.game_stack.clone(), self.main_stack.clone())
     }
 
     //####################### ações relacionadas ao carregamento de uma rom #######################
@@ -70,23 +72,16 @@ impl ThreadChannel {
         let mut core_options: Option<Arc<OptionManager>> = None;
         let mut rom_loaded = false;
 
-        await_time_lapse(|| {
-            let commands = self.main_stack.read();
-            for index in 0..commands.len() {
-                if let Some(command) = commands.get(index) {
-                    return match command {
-                        GameLoaded(options) => {
-                            self.main_stack.remove_index(index);
-                            core_options = options.clone();
-                            rom_loaded = options.is_none();
+        wait_response(&self.main_stack, |command| {
+            return match command {
+                GameLoaded(options) => {
+                    core_options = options.clone();
+                    rom_loaded = options.is_none();
 
-                            true
-                        }
-                    };
+                    true
                 }
-            }
-
-            false
+                _ => false,
+            };
         });
 
         (rom_loaded, core_options)
@@ -97,7 +92,7 @@ impl ThreadChannel {
     }
 
     // ################### OUTAS AÇÕES MAIS GENÉRICAS DO CORE FICAM AQUI! ###########################
-    pub fn save_state(&self, slot: usize) {
+    pub fn save_state(&self, slot: usize) -> Option<(String, String)> {
         self.game_stack.push(GameStackCommand::SaveState(slot));
     }
 
@@ -125,12 +120,42 @@ impl ThreadChannel {
             .push(GameStackCommand::DeviceConnected(device))
     }
 
-    //######################### AÇÕES RELACIONAS AO VIDEO FIRAM AQUI! ##############################
+    //######################### AÇÕES RELACIONAS AO VIDEO FICAM AQUI! ##############################
     pub fn enable_full_screen(&self) {
         self.game_stack.push(GameStackCommand::EnableFullScreen);
     }
 
     pub fn disable_full_screen(&self) {
         self.game_stack.push(GameStackCommand::DisableFullScreen);
+    }
+}
+
+pub struct ChannelNotify {
+    game_stack: GameStack,
+    main_stack: MainStack,
+}
+
+impl ChannelNotify {
+    fn from(game_stack: GameStack, main_stack: MainStack) -> Self {
+        Self {
+            game_stack,
+            main_stack,
+        }
+    }
+
+    pub fn notify_main_stack(&self, command: MainStackCommand) {
+        self.main_stack.push(command);
+    }
+
+    pub fn notify_game_stack(&self, command: GameStackCommand) {
+        self.game_stack.push(command);
+    }
+
+    pub fn read_game_stack(&self) -> Vec<GameStackCommand> {
+        self.game_stack.read_and_clear()
+    }
+
+    pub fn clear_game_stack(&self) {
+        self.game_stack.clear()
     }
 }
