@@ -27,8 +27,8 @@ impl Tinic {
         let dispatcher = TMutex::new(None);
 
         let devices_listener = DeviceHandle {
-            listener,
-            dispatcher: dispatcher.clone(),
+            extern_listener: listener,
+            app_proxy: dispatcher.clone(),
         };
         let controller = Arc::new(RetroController::new(Box::new(devices_listener))?);
 
@@ -78,48 +78,48 @@ impl Tinic {
 
 #[derive(Debug)]
 struct DeviceHandle {
-    listener: Box<dyn DeviceListener>,
-    dispatcher: ArcTMutex<Option<GameInstanceDispatchers>>,
+    extern_listener: Box<dyn DeviceListener>,
+    app_proxy: ArcTMutex<Option<GameInstanceDispatchers>>,
 }
 
 impl DeviceListener for DeviceHandle {
     fn connected(&self, device: RetroGamePad) {
-        let mut invalid_dispatch = false;
+        let mut invalid_proxy = false;
 
-        if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref() {
+        if let Some(dispatcher) = self.app_proxy.load_or(None).as_ref() {
             if dispatcher.disable_keyboard().is_err() {
-                invalid_dispatch = true;
+                invalid_proxy = true;
             }
 
             if dispatcher.connect_device(device.clone()).is_err() {
-                invalid_dispatch = true;
+                invalid_proxy = true;
             }
         }
 
-        if invalid_dispatch {
-            self.dispatcher.store(None);
+        if invalid_proxy {
+            self.app_proxy.store(None);
         }
 
-        self.listener.connected(device);
+        self.extern_listener.connected(device);
     }
 
     fn disconnected(&self, device: RetroGamePad) {
-        let mut invalid_dispatch = false;
+        let mut invalid_proxy = false;
 
-        if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref()
+        if let Some(dispatcher) = self.app_proxy.load_or(None).as_ref()
             && dispatcher.enable_keyboard().is_err()
         {
-            invalid_dispatch = true;
+            invalid_proxy = true;
         }
 
-        if invalid_dispatch {
-            self.dispatcher.store(None);
+        if invalid_proxy {
+            self.app_proxy.store(None);
         }
 
-        self.listener.disconnected(device);
+        self.extern_listener.disconnected(device);
     }
 
     fn button_pressed(&self, button: String, device: RetroGamePad) {
-        self.listener.button_pressed(button, device);
+        self.extern_listener.button_pressed(button, device);
     }
 }
