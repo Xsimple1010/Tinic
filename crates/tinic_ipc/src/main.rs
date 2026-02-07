@@ -4,14 +4,17 @@ mod device_listener;
 mod game_loop;
 mod io;
 
-use crate::app_state::AppState;
+use crate::app_state::{AppState, AppStateHandle};
 use crate::device_listener::DeviceEventHandle;
 use crate::game_loop::game_loop;
 use crate::io::stdin_reader::StdinReader;
 use crate::io::stdout_writer::StdoutWriter;
+use std::sync::atomic::Ordering;
 use tinic::{ErrorHandle, Tinic, WindowListener};
 
-struct WindowEvents;
+struct WindowEvents {
+    app_state: AppStateHandle,
+}
 
 impl WindowListener for WindowEvents {
     fn window_closed(&self) {
@@ -23,10 +26,12 @@ impl WindowListener for WindowEvents {
     }
 
     fn game_loaded_result(&self, suss: bool) {
+        self.app_state.game_loaded.store(suss, Ordering::SeqCst);
         let _ = StdoutWriter::game_loaded(suss);
     }
 
     fn game_closed(&self) {
+        self.app_state.game_loaded.store(false, Ordering::SeqCst);
         let _ = StdoutWriter::game_closed();
     }
 
@@ -63,7 +68,9 @@ fn main() -> Result<(), ErrorHandle> {
     };
     tinic.set_controle_listener(Box::new(controle_event))?;
 
-    let window_event = WindowEvents;
+    let window_event = WindowEvents {
+        app_state: app_state.clone(),
+    };
     tinic.set_window_listener(Box::new(window_event));
 
     // App config
