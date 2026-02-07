@@ -18,6 +18,10 @@ pub(crate) fn read_opt_u64(stmt: &sqlite::Statement, idx: usize) -> Option<u64> 
         .map(|v| v as u64)
 }
 
+pub(crate) fn read_opt_i64(stmt: &sqlite::Statement, idx: usize) -> Option<i64> {
+    stmt.read::<Option<i64>, _>(idx).ok().flatten().map(|v| v)
+}
+
 pub(crate) fn read_game_info(stmt: &sqlite::Statement) -> sqlite::Result<GameInfoInDb> {
     Ok(GameInfoInDb {
         name: read_opt_string(stmt, 1),
@@ -41,5 +45,6 @@ pub(crate) fn read_game_info(stmt: &sqlite::Statement) -> sqlite::Result<GameInf
         crc32: read_opt_u32(stmt, 16),
 
         rumble: stmt.read::<i64, _>(17)? != 0,
+        last_played_at: read_opt_i64(stmt, 18),
     })
 }

@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use sqlite::Value;
 
 #[derive(Debug, Default)]
@@ -19,14 +21,24 @@ pub struct GameInfoInDb {
     pub rom_path: Option<String>,
     pub rumble: bool,
     pub console_name: Option<String>,
+    pub last_played_at: Option<i64>,
+}
+
+pub(crate) fn now_timestamp() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64
 }
 
 #[derive(Debug)]
 pub struct GameInfoPagination {
-    pub id: i64,
+    pub crc32: Option<u32>,
     pub name: Option<String>,
     pub rom_path: String,
+    pub core_path: Option<String>,
     pub console_name: Option<String>,
+    pub last_played_at: Option<i64>,
 }
 
 pub(crate) fn opt_str(v: &Option<String>) -> Value {
@@ -52,4 +64,11 @@ pub(crate) fn opt_u32(v: Option<u32>) -> Value {
 
 pub(crate) fn opt_bool(v: bool) -> Value {
     Value::Integer(if v { 1 } else { 0 })
+}
+
+pub(crate) fn opt_time(v: Option<i64>) -> Value {
+    match v {
+        Some(n) => Value::Integer(n),
+        None => Value::Null,
+    }
 }

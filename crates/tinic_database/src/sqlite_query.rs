@@ -23,7 +23,8 @@ pub fn get_create_game_table_query() -> &'static str {
         size INTEGER,
         crc32 INTEGER,
 
-        rumble INTEGER NOT NULL DEFAULT 0
+        rumble INTEGER DEFAULT 0,
+        last_played_at INTEGER DEFAULT 0
     );
 
     CREATE INDEX IF NOT EXISTS idx_game_crc32 ON game_info (crc32);
@@ -31,6 +32,7 @@ pub fn get_create_game_table_query() -> &'static str {
     CREATE INDEX IF NOT EXISTS idx_game_name ON game_info (name);
     CREATE INDEX IF NOT EXISTS idx_game_serial ON game_info (serial);
     CREATE INDEX IF NOT EXISTS idx_game_console_name ON game_info (console_name);
+    CREATE INDEX IF NOT EXISTS idx_game_last_played ON game_info (last_played_at DESC);
 
     CREATE UNIQUE INDEX IF NOT EXISTS ux_game_crc_console ON game_info (crc32, console_name);
     "
@@ -77,11 +79,16 @@ pub(crate) fn get_select_console_names_query() -> &'static str {
 
 pub(crate) fn get_game_pagination_query() -> &'static str {
     "
-        SELECT
-        id,
+    SELECT
+        crc32,
         name,
         rom_path,
-        console_name
-        FROM game_info WHERE rom_path IS NOT NULL ORDER BY id LIMIT ? OFFSET ?
+        core_path,
+        console_name,
+        last_played_at
+    FROM game_info
+    WHERE rom_path IS NOT NULL
+    ORDER BY last_played_at DESC NULLS LAST
+    LIMIT ? OFFSET ?
     "
 }

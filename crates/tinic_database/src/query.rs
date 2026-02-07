@@ -1,9 +1,11 @@
-use crate::model::{opt_bool, opt_str, opt_u32, opt_u64, GameInfoInDb, GameInfoPagination};
+use crate::model::{
+    GameInfoInDb, GameInfoPagination, now_timestamp, opt_bool, opt_str, opt_time, opt_u32, opt_u64,
+};
 use crate::sqlite_query::{
     delete_all_games_query, get_create_game_table_query, get_game_pagination_query,
     get_insert_game_query, get_select_console_names_query,
 };
-use crate::sqlite_query_tools::read_game_info;
+use crate::sqlite_query_tools::{read_game_info, read_opt_u32};
 use crate::tinic_database_connection::TinicDbConnection;
 use generics::error_handle::ErrorHandle;
 use sqlite::Value;
@@ -45,6 +47,7 @@ pub fn insert_game_infos(
             stmt.bind((16, opt_u32(game.crc32)))?;
 
             stmt.bind((17, opt_bool(game.rumble)))?;
+            stmt.bind((17, opt_time(game.last_played_at)))?;
 
             stmt.next()?; // executa o INSERT
             stmt.reset()?; // LIMPA os binds para o próximo loop
@@ -124,10 +127,12 @@ pub fn list_games_with_rom_path_paginated(
 
         while let sqlite::State::Row = stmt.next()? {
             games.push(GameInfoPagination {
-                id: stmt.read(0)?,
+                crc32: read_opt_u32(&stmt, 0),
                 name: stmt.read(1)?,
                 rom_path: stmt.read(2)?,
-                console_name: stmt.read(3)?,
+                core_path: stmt.read(3)?,
+                console_name: stmt.read(4)?,
+                last_played_at: stmt.read(5)?,
             });
         }
 
@@ -180,6 +185,24 @@ pub fn update_game_paths(
             stmt.bind((1, rom_path))?;
             stmt.bind((2, core_path))?;
             stmt.bind((3, rom_name))?;
+
+            stmt.next()?;
+            Ok(conn.change_count())
+        },
+    )
+}
+
+pub fn update_played_at(db: &TinicDbConnection, game_crc: u32) -> Result<usize, ErrorHandle> {
+    db.with_statement(
+        "
+        UPDATE game_info
+        SET
+            last_played_at = ?
+        WHERE crc32 = ?
+        ",
+        |stmt, conn| {
+            stmt.bind((1, now_timestamp()))?;
+            stmt.bind((2, opt_u32(Some(game_crc))))?;
 
             stmt.next()?;
             Ok(conn.change_count())
