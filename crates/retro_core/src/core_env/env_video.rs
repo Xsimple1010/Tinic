@@ -124,11 +124,6 @@ pub unsafe fn env_cb_av(cmd: c_uint, data: *mut c_void) -> bool {
                 _ => false,
             };
         }
-        RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS => {
-            #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS");
-            false
-        }
         RETRO_ENVIRONMENT_SET_PIXEL_FORMAT => {
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_PIXEL_FORMAT -> ok");
