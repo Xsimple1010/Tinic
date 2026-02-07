@@ -105,6 +105,9 @@ impl OptionManager {
             if !visibility && core_opt.need_update.load(Ordering::SeqCst) {
                 core_opt.need_update.store(false, Ordering::SeqCst);
                 self.updated_count.fetch_sub(1, Ordering::SeqCst);
+            } else if visibility && !core_opt.need_update.load(Ordering::SeqCst) {
+                core_opt.need_update.store(true, Ordering::SeqCst);
+                self.updated_count.fetch_add(1, Ordering::SeqCst);
             }
         }
     }

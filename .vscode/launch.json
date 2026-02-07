@@ -20,8 +20,8 @@
                 
             },
             "args": [
-                "--core=C:/RetroArch-Win64/cores/mednafen_psx_hw_libretro.dll",
-                "--rom=C:/Users/aderv/Downloads/MegaManX6.chd"
+                "--core=C:/RetroArch-Win64/cores/snes9x_libretro.dll",
+                "--rom=./roms/test.smc"
             ],
             "cwd": "${workspaceFolder}"
         },

@@ -17,7 +17,7 @@ use super::{
 };
 use generics::erro_handle::ErroHandle;
 use retro_core::core::{AvInfo, Geometry};
-use std::mem::size_of;
+use std::{mem::size_of, sync::atomic::Ordering};
 use std::{rc::Rc, sync::Arc};
 
 pub struct Render {
@@ -141,27 +141,27 @@ impl Render {
         let g_api = &av_info.video.graphic_api;
         let geo = &av_info.video.geometry;
 
-        if *g_api.depth.read().unwrap() && *g_api.stencil.read().unwrap() {
+        if g_api.depth.load(Ordering::SeqCst) && g_api.stencil.load(Ordering::SeqCst) {
             let new_rbo = RenderBuffer::new(gl.clone());
 
             new_rbo.bind();
             new_rbo.storage(
                 DEPTH24_STENCIL8,
-                *geo.max_width.read().unwrap() as i32,
-                *geo.max_height.read().unwrap() as i32,
+                geo.max_width.load(Ordering::SeqCst) as i32,
+                geo.max_height.load(Ordering::SeqCst) as i32,
             );
 
             fbo.attach_render_buffer(DEPTH_STENCIL_ATTACHMENT, new_rbo.get_id());
 
             rbo.replace(new_rbo);
-        } else if *g_api.depth.read().unwrap() {
+        } else if g_api.depth.load(Ordering::SeqCst) {
             let new_rbo = RenderBuffer::new(gl.clone());
 
             new_rbo.bind();
             new_rbo.storage(
                 DEPTH_COMPONENT24,
-                *geo.max_width.read().unwrap() as i32,
-                *geo.max_height.read().unwrap() as i32,
+                geo.max_width.load(Ordering::SeqCst) as i32,
+                geo.max_height.load(Ordering::SeqCst) as i32,
             );
 
             fbo.attach_render_buffer(DEPTH_ATTACHMENT, new_rbo.get_id());

@@ -10,6 +10,7 @@ use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 pub use libretro_sys::binding_libretro::retro_pixel_format;
 use libretro_sys::binding_libretro::LibretroRaw;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
@@ -22,9 +23,9 @@ pub struct CoreWrapper {
     /// [RetroContext] dentro das callbacks fornecidas por [environment],
     pub retro_ctx_associated: Uuid,
     pub rom_name: Mutex<String>,
-    pub initialized: Mutex<bool>,
-    pub game_loaded: Mutex<bool>,
-    pub support_no_game: Mutex<bool>,
+    pub initialized: AtomicBool,
+    pub game_loaded: AtomicBool,
+    pub support_no_game: AtomicBool,
     pub language: Mutex<retro_language>,
     pub av_info: Arc<AvInfo>,
     pub system: System,
@@ -53,9 +54,9 @@ impl CoreWrapper {
 
         let core = Arc::new(CoreWrapper {
             raw: Arc::new(raw),
-            initialized: Mutex::new(false),
-            game_loaded: Mutex::new(false),
-            support_no_game: Mutex::new(false),
+            initialized: AtomicBool::new(false),
+            game_loaded: AtomicBool::new(false),
+            support_no_game: AtomicBool::new(false),
             av_info: Arc::new(AvInfo::new(graphic_api)),
             rom_name: Mutex::new("".to_string()),
             system,
@@ -93,7 +94,7 @@ impl CoreWrapper {
     }
 
     pub fn init(&self) -> Result<(), ErroHandle> {
-        if *self.game_loaded.lock().unwrap() || *self.initialized.lock().unwrap() {
+        if self.game_loaded.load(Ordering::SeqCst) || self.initialized.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Para inicializar um novo núcleo e necessário descarrega o núcleo atual"
@@ -102,7 +103,7 @@ impl CoreWrapper {
         }
 
         unsafe {
-            *self.initialized.lock().unwrap() = true;
+            self.initialized.store(true, Ordering::SeqCst);
             self.raw.retro_init();
 
             Ok(())
@@ -110,14 +111,14 @@ impl CoreWrapper {
     }
 
     pub fn load_game(&self, path: &str) -> Result<bool, ErroHandle> {
-        if *self.game_loaded.lock().unwrap() {
+        if self.game_loaded.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Ja existe uma rom carregada no momento".to_string(),
             });
         }
 
-        if !*self.initialized.lock().unwrap() {
+        if !self.initialized.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Para carregar uma rom o núcleo deve esta inicializado".to_string(),
@@ -126,7 +127,7 @@ impl CoreWrapper {
 
         let state = RomTools::create_game_info(self, path)?;
 
-        *self.game_loaded.lock().unwrap() = state;
+        self.game_loaded.store(true, Ordering::SeqCst);
         *self.rom_name.lock().unwrap() = RomTools::get_rom_name(&PathBuf::from(path))?;
 
         self.av_info.update_av_info(&self.raw);
@@ -134,14 +135,14 @@ impl CoreWrapper {
     }
 
     pub fn reset(&self) -> Result<(), ErroHandle> {
-        if !*self.initialized.lock().unwrap() {
+        if !self.initialized.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "O núcleo nao foi inicializado".to_string(),
             });
         }
 
-        if !*self.game_loaded.lock().unwrap() {
+        if !self.game_loaded.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Nao ha nenhuma rum carregada no momento".to_string(),
@@ -156,14 +157,14 @@ impl CoreWrapper {
     }
 
     pub fn run(&self) -> Result<(), ErroHandle> {
-        if !*self.initialized.lock().unwrap() {
+        if !self.initialized.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "O núcleo nao foi inicializado".to_string(),
             });
         }
 
-        if !*self.game_loaded.lock().unwrap() {
+        if !self.game_loaded.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Nao ha nenhuma rum carregada no momento".to_string(),
@@ -185,7 +186,7 @@ impl CoreWrapper {
                     unsafe {
                         self.raw.retro_deinit();
                     }
-                    *self.initialized.lock().unwrap() = false;
+                    self.initialized.store(false, Ordering::SeqCst);
                     environment::delete_local_core_ctx();
 
                     return Err(e);
@@ -196,14 +197,14 @@ impl CoreWrapper {
         unsafe {
             self.raw.retro_deinit();
         }
-        *self.initialized.lock().unwrap() = false;
+        self.initialized.store(false, Ordering::SeqCst);
         environment::delete_local_core_ctx();
 
         Ok(())
     }
 
     pub fn connect_controller(&self, port: u32, controller: u32) -> Result<(), ErroHandle> {
-        if !*self.initialized.lock().unwrap() {
+        if !self.initialized.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Nao é possível conectar um controle pois nenhum núcleo foi inicializado"
@@ -219,14 +220,14 @@ impl CoreWrapper {
     }
 
     pub fn unload_game(&self) -> Result<(), ErroHandle> {
-        if !*self.game_loaded.lock().unwrap() {
+        if !self.game_loaded.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "A rom ja foi descarregada anteriormente".to_string(),
             });
         }
 
-        if !*self.initialized.lock().unwrap() {
+        if !self.initialized.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Para descarregar uma rom o núcleo deve esta inicializado".to_string(),
@@ -236,20 +237,20 @@ impl CoreWrapper {
         unsafe {
             self.raw.retro_unload_game();
         }
-        *self.game_loaded.lock().unwrap() = false;
+        self.game_loaded.store(false, Ordering::SeqCst);
 
         Ok(())
     }
 
     pub fn save_state(&self, slot: usize) -> Result<String, ErroHandle> {
-        if !*self.game_loaded.lock().unwrap() {
+        if !self.game_loaded.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Uma rom precisa ser carregada primeiro".to_string(),
             });
         }
 
-        if !*self.initialized.lock().unwrap() {
+        if !self.initialized.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Para salva um state o núcleo deve esta inicializado".to_string(),
@@ -260,14 +261,14 @@ impl CoreWrapper {
     }
 
     pub fn load_state(&self, slot: usize) -> Result<(), ErroHandle> {
-        if !*self.game_loaded.lock().unwrap() {
+        if !self.game_loaded.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Uma rom precisa ser carregada primeiro".to_string(),
             });
         }
 
-        if !*self.initialized.lock().unwrap() {
+        if !self.initialized.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "Para carregar um state o núcleo deve esta inicializado".to_string(),

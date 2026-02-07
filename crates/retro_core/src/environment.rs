@@ -58,12 +58,14 @@ pub struct RetroEnvCallbacks {
 
 static mut CORE_CONTEXT: Option<Arc<CoreWrapper>> = None;
 
+//noinspection RsPlaceExpression
 pub fn configure(core_ctx: Arc<CoreWrapper>) {
     unsafe {
         CORE_CONTEXT = Some(core_ctx);
     }
 }
 
+//noinspection RsPlaceExpression
 pub fn delete_local_core_ctx() {
     unsafe {
         CORE_CONTEXT = None;
@@ -199,7 +201,9 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
 
             match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => {
-                    *core_ctx.support_no_game.lock().unwrap() = *(data as *mut bool);
+                    core_ctx
+                        .support_no_game
+                        .store(*(data as *mut bool), Ordering::SeqCst);
                 }
                 None => return false,
             }
@@ -387,7 +391,7 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
                     let key = get_str_from_ptr(raw_variable.key);
 
                     return match core_ctx.options.get_opt_value(&key) {
-                        Some((value)) => {
+                        Some(value) => {
                             let new_value = make_c_string(&value).unwrap();
 
                             return binding_log_interface::set_new_value_variable(
@@ -530,31 +534,54 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
 
             match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => {
-                    *core_ctx.av_info.video.graphic_api.depth.write().unwrap() = data.depth;
-                    *core_ctx.av_info.video.graphic_api.stencil.write().unwrap() = data.stencil;
-                    *core_ctx
+                    core_ctx
+                        .av_info
+                        .video
+                        .graphic_api
+                        .depth
+                        .store(data.depth, Ordering::SeqCst);
+
+                    core_ctx
+                        .av_info
+                        .video
+                        .graphic_api
+                        .stencil
+                        .store(data.stencil, Ordering::SeqCst);
+
+                    core_ctx
                         .av_info
                         .video
                         .graphic_api
                         .bottom_left_origin
-                        .write()
-                        .unwrap() = data.bottom_left_origin;
-                    *core_ctx.av_info.video.graphic_api.minor.write().unwrap() = data.version_minor;
-                    *core_ctx.av_info.video.graphic_api.major.write().unwrap() = data.version_major;
-                    *core_ctx
+                        .store(data.bottom_left_origin, Ordering::SeqCst);
+
+                    core_ctx
+                        .av_info
+                        .video
+                        .graphic_api
+                        .minor
+                        .store(data.version_minor, Ordering::SeqCst);
+
+                    core_ctx
+                        .av_info
+                        .video
+                        .graphic_api
+                        .major
+                        .store(data.version_major, Ordering::SeqCst);
+
+                    core_ctx
                         .av_info
                         .video
                         .graphic_api
                         .cache_context
-                        .write()
-                        .unwrap() = data.cache_context;
-                    *core_ctx
+                        .store(data.cache_context, Ordering::SeqCst);
+
+                    core_ctx
                         .av_info
                         .video
                         .graphic_api
                         .debug_context
-                        .write()
-                        .unwrap() = data.debug_context;
+                        .store(data.debug_context, Ordering::SeqCst);
 
                     data.get_current_framebuffer = Some(get_current_frame_buffer);
 
@@ -565,7 +592,7 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
                 _ => return false,
             }
 
-            return false;
+            return true;
         }
         RETRO_ENVIRONMENT_SET_VARIABLE => {
             // #[cfg(feature = "core_logs")]

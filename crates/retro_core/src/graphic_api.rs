@@ -1,5 +1,8 @@
 use libretro_sys::binding_libretro::retro_hw_context_type;
-use std::sync::RwLock;
+use std::sync::{
+    atomic::{AtomicBool, AtomicU32},
+    RwLock,
+};
 
 #[derive(Debug)]
 pub struct GraphicApi {
@@ -10,27 +13,27 @@ pub struct GraphicApi {
     pub fbo: RwLock<Option<usize>>,
 
     #[doc = " Set if render buffers should have depth component attached.\n TODO: Obsolete."]
-    pub depth: RwLock<bool>,
+    pub depth: AtomicBool,
 
     #[doc = " Set if stencil buffers should be attached.\n TODO: Obsolete."]
-    pub stencil: RwLock<bool>,
+    pub stencil: AtomicBool,
 
     #[doc = " Use conventional bottom-left origin convention. If false,
     standard libretro top-left origin semantics are used.
     TODO: Move to GL specific interface."]
-    pub bottom_left_origin: RwLock<bool>,
+    pub bottom_left_origin: AtomicBool,
 
     #[doc = " Major version number for core GL context or GLES 3.1+."]
-    pub major: RwLock<u32>,
+    pub major: AtomicU32,
 
     #[doc = " Minor version number for core GL context or GLES 3.1+."]
-    pub minor: RwLock<u32>,
+    pub minor: AtomicU32,
 
     #[doc = " If this is true, the frontend will go very far to avoid\n resetting context in scenarios like toggling full_screen, etc. TODO: Obsolete? Maybe frontend should just always assume this ..."]
-    pub cache_context: RwLock<bool>,
+    pub cache_context: AtomicBool,
 
     #[doc = " Creates a debug context."]
-    pub debug_context: RwLock<bool>,
+    pub debug_context: AtomicBool,
 }
 
 impl Default for GraphicApi {
@@ -38,13 +41,13 @@ impl Default for GraphicApi {
         GraphicApi {
             context_type: retro_hw_context_type::RETRO_HW_CONTEXT_NONE,
             fbo: RwLock::new(None),
-            depth: RwLock::new(false),
-            stencil: RwLock::new(false),
-            bottom_left_origin: RwLock::new(false),
-            major: RwLock::new(0),
-            minor: RwLock::new(0),
-            cache_context: RwLock::new(false),
-            debug_context: RwLock::new(false),
+            depth: AtomicBool::new(false),
+            stencil: AtomicBool::new(false),
+            bottom_left_origin: AtomicBool::new(false),
+            major: AtomicU32::new(0),
+            minor: AtomicU32::new(0),
+            cache_context: AtomicBool::new(false),
+            debug_context: AtomicBool::new(false),
         }
     }
 }

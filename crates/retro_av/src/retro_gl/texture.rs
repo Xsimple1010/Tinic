@@ -3,7 +3,11 @@ use crate::video::RawTextureData;
 use generics::erro_handle::ErroHandle;
 use gl::types::GLuint;
 use retro_core::core::AvInfo;
-use std::{ptr::null, rc::Rc, sync::Arc};
+use std::{
+    ptr::null,
+    rc::Rc,
+    sync::{atomic::Ordering, Arc},
+};
 
 pub type TexturePosition = [f32; 2];
 
@@ -68,8 +72,8 @@ impl Texture2D {
                 gl::TEXTURE_2D,
                 0,
                 gl::RGBA8 as i32,
-                *geo.max_width.read().unwrap() as i32,
-                *geo.max_height.read().unwrap() as i32,
+                geo.max_width.load(Ordering::SeqCst) as i32,
+                geo.max_height.load(Ordering::SeqCst) as i32,
                 0,
                 pixel.typ,
                 pixel.format,

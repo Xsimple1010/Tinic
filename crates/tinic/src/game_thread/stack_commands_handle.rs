@@ -23,7 +23,9 @@ use retro_controllers::{
 use retro_core::{core::RetroEnvCallbacks, RetroCore};
 use std::sync::{Arc, Mutex};
 
-fn teste() {}
+fn teste() {
+    println!("context reset & context destroy")
+}
 
 fn create_retro_contexts(
     core_path: String,

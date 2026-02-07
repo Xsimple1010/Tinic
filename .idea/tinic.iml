@@ -13,6 +13,8 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/generics/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/libretro_sys/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/retro_controllers/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/retro_av/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/retro_core/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/crates/retro_ab_av/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>

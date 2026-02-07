@@ -5,6 +5,7 @@ use libretro_sys::binding_libretro::retro_game_info;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::fs;
 use std::io::Write;
+use std::sync::atomic::Ordering;
 use std::{
     ffi::CString,
     fs::File,
@@ -68,9 +69,7 @@ impl RomTools {
         let path = make_c_string(f_path.to_str().unwrap())?;
         let mut size = 0;
 
-        let need_full_path = *ctx.system.info.need_full_path.read().unwrap();
-
-        if !need_full_path {
+        if !ctx.system.info.need_full_path.load(Ordering::SeqCst) {
             let mut file = File::open(&f_path).unwrap();
 
             size = file.metadata().unwrap().len() as usize;

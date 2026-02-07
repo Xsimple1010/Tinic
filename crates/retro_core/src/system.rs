@@ -7,6 +7,7 @@ use libretro_sys::binding_libretro::{
     retro_subsystem_info, retro_subsystem_memory_info, retro_subsystem_rom_info, retro_system_info,
     LibretroRaw,
 };
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::RwLock;
 
 #[derive(Default, Debug)]
@@ -14,30 +15,30 @@ pub struct SysInfo {
     pub library_name: RwLock<String>,
     pub library_version: RwLock<String>,
     pub valid_extensions: RwLock<String>,
-    pub need_full_path: RwLock<bool>,
-    pub block_extract: RwLock<bool>,
+    pub need_full_path: AtomicBool,
+    pub block_extract: AtomicBool,
 }
 
 #[derive(Default, Debug)]
 pub struct MemoryInfo {
     pub extension: RwLock<String>,
-    pub type_: RwLock<u32>,
+    pub type_: AtomicU32,
 }
 
 #[derive(Default, Debug)]
 pub struct SubSystemRomInfo {
     pub desc: RwLock<String>,
     pub valid_extensions: RwLock<String>,
-    pub need_full_path: RwLock<bool>,
-    pub block_extract: RwLock<bool>,
-    pub required: RwLock<bool>,
+    pub need_full_path: AtomicBool,
+    pub block_extract: AtomicBool,
+    pub required: AtomicBool,
     pub memory: MemoryInfo,
-    pub num_memory: RwLock<u32>,
+    pub num_memory: AtomicU32,
 }
 
 #[derive(Default, Debug)]
 pub struct SubSystemInfo {
-    pub id: RwLock<u32>,
+    pub id: AtomicU32,
     pub desc: RwLock<String>,
     pub ident: RwLock<String>,
     pub roms: RwLock<Vec<SubSystemRomInfo>>,
@@ -70,8 +71,8 @@ impl System {
                     library_name: RwLock::new(get_str_from_ptr(sys_info.library_name)),
                     library_version: RwLock::new(get_str_from_ptr(sys_info.library_version)),
                     valid_extensions: RwLock::new(get_str_from_ptr(sys_info.valid_extensions)),
-                    need_full_path: RwLock::new(sys_info.need_fullpath),
-                    block_extract: RwLock::new(sys_info.block_extract),
+                    need_full_path: AtomicBool::new(sys_info.need_fullpath),
+                    block_extract: AtomicBool::new(sys_info.block_extract),
                 },
             }
         }
@@ -85,7 +86,7 @@ impl System {
 
             let subsystem = SubSystemInfo::default();
 
-            *subsystem.id.write().unwrap() = raw_sys.id;
+            subsystem.id.store(raw_sys.id, Ordering::SeqCst);
             *subsystem.desc.write().unwrap() = get_str_from_ptr(raw_sys.desc);
             *subsystem.ident.write().unwrap() = get_str_from_ptr(raw_sys.ident);
 
@@ -101,13 +102,13 @@ impl System {
                 subsystem.roms.write().unwrap().push(SubSystemRomInfo {
                     desc: get_string_rwlock_from_ptr(rom.desc),
                     valid_extensions: get_string_rwlock_from_ptr(rom.valid_extensions),
-                    need_full_path: RwLock::new(rom.need_fullpath),
-                    block_extract: RwLock::new(rom.block_extract),
-                    required: RwLock::new(rom.required),
-                    num_memory: RwLock::new(rom.num_memory),
+                    need_full_path: AtomicBool::new(rom.need_fullpath),
+                    block_extract: AtomicBool::new(rom.block_extract),
+                    required: AtomicBool::new(rom.required),
+                    num_memory: AtomicU32::new(rom.num_memory),
                     memory: MemoryInfo {
                         extension: get_string_rwlock_from_ptr(memory.extension),
-                        type_: RwLock::new(memory.type_),
+                        type_: AtomicU32::new(memory.type_),
                     },
                 });
             }
@@ -121,6 +122,7 @@ impl System {
 #[cfg(test)]
 mod test_system {
     use crate::{system::System, test_tools};
+    use std::sync::atomic::Ordering;
 
     #[test]
     fn test_get_sys_info() {
@@ -143,8 +145,8 @@ mod test_system {
             "smc|sfc|swc|fig|bs|st".to_owned()
         );
 
-        assert_eq!(*sys.info.block_extract.read().unwrap(), false);
+        assert_eq!(sys.info.block_extract.load(Ordering::SeqCst), false);
 
-        assert_eq!(*sys.info.need_full_path.read().unwrap(), false);
+        assert_eq!(sys.info.need_full_path.load(Ordering::SeqCst), false);
     }
 }

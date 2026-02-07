@@ -3,6 +3,7 @@ use crate::graphic_api::GraphicApi;
 use libretro_sys::binding_libretro::{
     retro_game_geometry, retro_system_av_info, retro_system_timing, LibretroRaw,
 };
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex, RwLock};
 
 #[derive(Default, Debug)]
@@ -16,16 +17,16 @@ pub struct Timing {
 #[derive(Debug, Default)]
 pub struct Geometry {
     #[doc = "Nominal video width of game."]
-    pub base_width: RwLock<u32>,
+    pub base_width: AtomicU32,
 
     #[doc = "Nominal video height of game."]
-    pub base_height: RwLock<u32>,
+    pub base_height: AtomicU32,
 
     #[doc = "Maximum possible width of game."]
-    pub max_width: RwLock<u32>,
+    pub max_width: AtomicU32,
 
     #[doc = "Maximum possible height of game."]
-    pub max_height: RwLock<u32>,
+    pub max_height: AtomicU32,
 
     #[doc = "Nominal aspect ratio of game. If
     aspect_ratio is <= 0.0, an aspect ratio
@@ -83,10 +84,18 @@ impl AvInfo {
         let geometry_ctx = &self.video.geometry;
 
         *geometry_ctx.aspect_ratio.write().unwrap() = raw_geometry.aspect_ratio;
-        *geometry_ctx.base_height.write().unwrap() = raw_geometry.base_height;
-        *geometry_ctx.base_width.write().unwrap() = raw_geometry.base_width;
-        *geometry_ctx.max_height.write().unwrap() = raw_geometry.max_height;
-        *geometry_ctx.max_width.write().unwrap() = raw_geometry.max_width;
+        geometry_ctx
+            .base_height
+            .store(raw_geometry.base_height, Ordering::SeqCst);
+        geometry_ctx
+            .base_width
+            .store(raw_geometry.base_width, Ordering::SeqCst);
+        geometry_ctx
+            .max_height
+            .store(raw_geometry.max_height, Ordering::SeqCst);
+        geometry_ctx
+            .max_width
+            .store(raw_geometry.max_width, Ordering::SeqCst);
     }
 
     fn _set_timing(&self, raw_system_timing: *const retro_system_timing) {

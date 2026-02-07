@@ -1,6 +1,6 @@
-use retro_core::core::Geometry;
-
 use super::texture::TexturePosition;
+use retro_core::core::Geometry;
+use std::sync::atomic::Ordering;
 
 pub type Pos = [f32; 2];
 #[repr(C, packed)]
@@ -34,8 +34,8 @@ pub fn new_vertex(
 }
 
 fn resize_texture(geo: &Geometry, origin_w: f32, origin_h: f32) -> (f32, f32) {
-    let bottom = origin_h / *geo.max_height.read().unwrap() as f32;
-    let right = origin_w / *geo.max_width.read().unwrap() as f32;
+    let bottom = origin_h / geo.max_height.load(Ordering::SeqCst) as f32;
+    let right = origin_w / geo.max_width.load(Ordering::SeqCst) as f32;
 
     (bottom, right)
 }

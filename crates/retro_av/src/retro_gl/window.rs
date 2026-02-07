@@ -8,6 +8,7 @@ use sdl2::{
     video::{GLContext, GLProfile, Window},
     Sdl, VideoSubsystem,
 };
+use std::sync::atomic::Ordering;
 use std::{rc::Rc, sync::Arc};
 
 pub struct GlWindow {
@@ -92,8 +93,8 @@ impl GlWindow {
         let win_result = video
             .window(
                 "retro_av",
-                *geo.base_width.read().unwrap(),
-                *geo.base_height.read().unwrap(),
+                geo.base_width.load(Ordering::SeqCst),
+                geo.base_height.load(Ordering::SeqCst),
             )
             .opengl()
             .maximized()
@@ -111,8 +112,8 @@ impl GlWindow {
                 let _ = video.gl_set_swap_interval(1);
 
                 let result = window.set_minimum_size(
-                    *av_info.video.geometry.base_width.read().unwrap(),
-                    *av_info.video.geometry.base_height.read().unwrap(),
+                    av_info.video.geometry.base_width.load(Ordering::SeqCst),
+                    av_info.video.geometry.base_height.load(Ordering::SeqCst),
                 );
 
                 if let Err(e) = result {
