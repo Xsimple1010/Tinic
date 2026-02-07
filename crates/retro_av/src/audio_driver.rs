@@ -146,7 +146,7 @@ impl AudioDriver {
         let config = device
             .default_output_config()
             .map_err(|e| ErrorHandle::new(&e.to_string()))?;
-        let sample_rate = config.sample_rate().0;
+        let sample_rate = config.sample_rate();
 
         let channels = config.channels();
 
