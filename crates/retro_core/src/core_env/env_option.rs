@@ -47,11 +47,9 @@ pub unsafe fn env_cb_option(
                 "ptr data in RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL",
             )?;
 
-            let _ = unsafe {
-                core_ctx
-                    .options
-                    .convert_option_v2_intl(data as *mut retro_core_options_v2_intl)
-            };
+            let options = unsafe { &mut *(data as *mut retro_core_options_v2_intl) };
+
+            let _ = core_ctx.options.convert_option_v2_intl(options);
             let _ = core_ctx.options.try_reload_pref_option();
 
             Ok(true)
@@ -64,7 +62,7 @@ pub unsafe fn env_cb_option(
                 data,
                 "ptr data in RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY",
             )?;
-            let option = unsafe { *(data as *mut retro_core_option_display) };
+            let option = unsafe { &mut *(data as *mut retro_core_option_display) };
             let key = unsafe { InputValidator::read_safe_c_string(option.key, 255)? };
 
             let _ = core_ctx.options.change_visibility(&key, option.visible);
@@ -103,19 +101,16 @@ pub unsafe fn env_cb_option(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_VARIABLE -> ok");
 
-            let raw_variable = data as *const retro_variable;
-
-            if raw_variable.is_null() {
-                return Ok(true);
-            }
-
             let options_manager = &core_ctx.options;
-
             if options_manager.updated_count.load(Ordering::SeqCst) < 1 {
                 return Ok(false);
             }
 
-            let raw_variable = unsafe { *(data as *const retro_variable) };
+            if InputValidator::validate_non_null_ptr(data, "ptr data in RETRO_ENVIRONMENT_GET_VARIABLE").is_err() {
+                return Ok(false);
+            }
+            
+            let raw_variable = unsafe { &mut *(data as *mut retro_variable) };
             let key = get_str_from_ptr(raw_variable.key);
 
             match options_manager.get_opt_value(&key)? {

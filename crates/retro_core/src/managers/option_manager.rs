@@ -1,5 +1,4 @@
 use crate::tools::ffi_tools::get_arc_string_from_ptr;
-use crate::tools::validation::InputValidator;
 use crate::{
     libretro_sys::binding_libretro::{
         retro_core_option_v2_category, retro_core_option_v2_definition, retro_core_options_v2_intl,
@@ -295,34 +294,30 @@ impl OptionManager {
         Ok(())
     }
 
-    
-    
-    pub unsafe fn convert_option_v2_intl(
+    pub fn convert_option_v2_intl(
         &self,
-        option_intl_v2: *mut retro_core_options_v2_intl,
+        option_intl_v2: &mut retro_core_options_v2_intl,
     ) -> Result<(), ErrorHandle> {
-        InputValidator::validate_non_null_mut_ptr(option_intl_v2, "option_intl_v2")?;
-
-        let option_intl_v2 = unsafe { &mut *option_intl_v2 };
-
-        unsafe {
-            if option_intl_v2.local.is_null() {
-                let us = option_intl_v2
+        if option_intl_v2.local.is_null() {
+            let us = unsafe {
+                option_intl_v2
                     .us
                     .as_ref()
-                    .ok_or_else(|| ErrorHandle::new("us is null in option_v2_intl"))?;
+                    .ok_or_else(|| ErrorHandle::new("us is null in option_v2_intl"))?
+            };
 
-                self.get_v2_intl_definitions(us.definitions)?;
-                self.get_v2_intl_category(us.categories)?;
-            } else {
-                let local = option_intl_v2
+            self.get_v2_intl_definitions(us.definitions)?;
+            self.get_v2_intl_category(us.categories)?;
+        } else {
+            let local = unsafe {
+                option_intl_v2
                     .local
                     .as_ref()
-                    .ok_or_else(|| ErrorHandle::new("local is null in option_v2_intl"))?;
+                    .ok_or_else(|| ErrorHandle::new("local is null in option_v2_intl"))?
+            };
 
-                self.get_v2_intl_definitions(local.definitions)?;
-                self.get_v2_intl_category(local.categories)?;
-            }
+            self.get_v2_intl_definitions(local.definitions)?;
+            self.get_v2_intl_category(local.categories)?;
         }
 
         Ok(())
