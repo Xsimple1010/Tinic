@@ -12,7 +12,7 @@ use crate::{
     tools::validation::InputValidator,
     RetroCoreIns,
 };
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 #[cfg(feature = "hw")]
 use std::{ffi::c_char, mem};
 use std::{

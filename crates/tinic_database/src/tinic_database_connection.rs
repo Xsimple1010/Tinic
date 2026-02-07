@@ -1,5 +1,5 @@
-use generics::error_handle::ErrorHandle;
-use generics::types::{ArcTMutex, TMutex};
+use tinic_generics::error_handle::ErrorHandle;
+use tinic_generics::types::{ArcTMutex, TMutex};
 use sqlite::Connection;
 use std::path::PathBuf;
 use std::sync::MutexGuard;

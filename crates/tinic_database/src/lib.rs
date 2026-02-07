@@ -14,7 +14,7 @@ mod tests {
         update_played_at,
     };
     use crate::tinic_database_connection::TinicDbConnection;
-    use generics::error_handle::ErrorHandle;
+    use tinic_generics::error_handle::ErrorHandle;
 
     #[test]
     fn start_connection() -> Result<(), ErrorHandle> {

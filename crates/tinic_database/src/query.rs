@@ -7,7 +7,7 @@ use crate::sqlite_query::{
 };
 use crate::sqlite_query_tools::{read_game_info, read_opt_u32};
 use crate::tinic_database_connection::TinicDbConnection;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use sqlite::Value;
 
 pub fn create_game_table(connection: &TinicDbConnection) -> Result<(), ErrorHandle> {

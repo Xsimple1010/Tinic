@@ -2,7 +2,7 @@ use crate::{
     tools::{ffi_tools::get_str_from_ptr, validation::InputValidator},
     RetroCoreIns,
 };
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use libretro_sys::{
     binding_libretro::{
         retro_core_option_display, retro_core_options_v2_intl,
