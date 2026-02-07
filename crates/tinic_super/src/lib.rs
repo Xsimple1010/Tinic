@@ -10,16 +10,21 @@ pub mod tinic_super;
 mod tools;
 
 pub use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
-pub use rdb_manager::game_identifier::GameIdentifier;
-pub use tools::download::DownloadProgress;
+pub use tools::{download::DownloadProgress, game_identifier::GameIdentifier};
 
 #[cfg(test)]
 mod test {
     use crate::{
-        event::TinicSuperEventListener, infos::model::CoreInfo, rdb_manager::game_model::GameInfo,
-        tinic_super::TinicSuper, tools::download::DownloadProgress,
+        event::TinicSuperEventListener,
+        infos::model::CoreInfo,
+        rdb_manager::game_model::GameInfo,
+        tinic_super::TinicSuper,
+        tools::{
+            download::{DownloadProgress, download_file},
+            game_identifier::GameIdentifier,
+        },
     };
-    use generics::retro_paths::RetroPaths;
+    use generics::{constants::ROM_FOR_TEST, retro_paths::RetroPaths};
     use std::{collections::HashSet, path::PathBuf, sync::Arc};
 
     struct TinicSuperListener;
@@ -197,6 +202,38 @@ mod test {
         assert!(box_path.exists(), "box img não foi salvo!");
         assert!(snap_path.exists(), "snap img não foi salvo!");
         assert!(title_path.exists(), "title img não foi salvo!");
+
+        clean_up(&work_dir).await;
+    }
+
+    #[tokio::test]
+    async fn rom_identifier() {
+        let (tinic_super, work_dir) = setup("tinic_super..rom_identifier").await;
+
+        let path = download_file(
+            ROM_FOR_TEST,
+            "Forgotten In Time (Demo).nes",
+            tinic_super.retro_paths.temps.to_string().into(),
+            false,
+            Arc::new(TinicSuperListener),
+        )
+        .await
+        .unwrap();
+
+        let ident = GameIdentifier::new(path).await.unwrap();
+
+        assert_eq!(
+            ident.path,
+            PathBuf::from(format!(
+                "{}/Forgotten In Time (Demo).nes",
+                tinic_super.retro_paths.temps.to_string()
+            ))
+        );
+        assert_eq!(ident.file_name, "Forgotten In Time (Demo)");
+        assert_eq!(ident.crc, 2795144467);
+        assert_eq!(ident.size, 524304);
+
+        println!("{ident:?}");
 
         clean_up(&work_dir).await;
     }
