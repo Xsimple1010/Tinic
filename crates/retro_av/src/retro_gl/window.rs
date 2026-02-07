@@ -5,18 +5,23 @@ use libretro_sys::binding_libretro::retro_hw_context_type::{
     RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
 };
 use retro_core::av_info::AvInfo;
-use sdl2::video::FullScreenType;
-use sdl2::{
-    video::{GLContext, GLProfile, Window},
-    Sdl, VideoSubsystem,
-};
+use std::ptr::null;
 use std::{cell::UnsafeCell, sync::atomic::Ordering};
 use std::{rc::Rc, sync::Arc};
+use winit::event_loop::ActiveEventLoop;
+
+use super::*;
+use crate::glutin::config::{Config, ConfigTemplateBuilder};
+use glutin_winit::DisplayBuilder;
+use std::error::Error;
+use std::num::NonZeroU32;
+use winit::window::Window;
+use winit::window::WindowAttributes;
 
 pub struct GlWindow {
-    video: VideoSubsystem,
+    // video: VideoSubsystem,
     window: Window,
-    gl_ctx: Option<GLContext>,
+    // gl_ctx: Option<GLContext>,
     render: Render,
     av_info: Arc<AvInfo>,
 }
@@ -31,38 +36,36 @@ impl Drop for GlWindow {
         // Destruir a janela
         SDL_DestroyWindow(window);
         */
-        {
-            self.gl_ctx.take();
-        }
+        // {
+        //     self.gl_ctx.take();
+        // }
 
-        self.video.gl_unload_library();
+        // self.video.gl_unload_library();
     }
 }
 
 impl RetroVideoAPi for GlWindow {
     fn get_window_id(&self) -> u32 {
-        self.window.id()
+        0
     }
 
     fn draw_new_frame(&self, texture: &UnsafeCell<RawTextureData>) {
-        let (width, height) = self.window.size();
+        // let (width, height) = self.window.size();
 
-        self.render.draw_new_frame(
-            texture,
-            &self.av_info.video.geometry,
-            width as i32,
-            height as i32,
-        );
+        // self.render.draw_new_frame(
+        //     texture,
+        //     &self.av_info.video.geometry,
+        //     width as i32,
+        //     height as i32,
+        // );
 
-        self.window.gl_swap_window();
+        // self.window.gl_swap_window();
     }
 
-    fn resize(&mut self, (width, height): (u32, u32)) {
-        self.window.set_size(width, height).unwrap();
-    }
+    fn resize(&mut self, (width, height): (u32, u32)) {}
 
     fn get_proc_address(&self, proc_name: &str) -> *const () {
-        self.video.gl_get_proc_address(proc_name)
+        null()
     }
 
     fn context_destroy(&mut self) {
@@ -73,96 +76,37 @@ impl RetroVideoAPi for GlWindow {
         println!("context_reset");
     }
 
-    fn enable_full_screen(&mut self) {
-        self.window.set_fullscreen(FullScreenType::True).unwrap()
-    }
+    fn enable_full_screen(&mut self) {}
 
-    fn disable_full_screen(&mut self) {
-        self.window.set_fullscreen(FullScreenType::Off).unwrap()
-    }
+    fn disable_full_screen(&mut self) {}
 }
 
 impl GlWindow {
-    pub fn new(sdl: &Sdl, av_info: &Arc<AvInfo>) -> Result<GlWindow, ErroHandle> {
-        let video = match sdl.video() {
-            Ok(sdl) => sdl,
-            Err(message) => return Err(ErroHandle { message }),
-        };
+    pub fn new(
+        av_info: &Arc<AvInfo>,
+        event_loop: &ActiveEventLoop,
+    ) -> Result<GlWindow, ErroHandle> {
+        use glutin::prelude::*;
+        use raw_window_handle::HasWindowHandle;
 
-        let graphic_api = &av_info.video.graphic_api;
-        let gl_attr = video.gl_attr();
+        let attributes = Window::default_attributes()
+            .with_title("Simple Glium Window")
+            .with_inner_size(winit::dpi::PhysicalSize::new(800, 480));
+        let template = ConfigTemplateBuilder::new();
 
-        match graphic_api.context_type {
-            RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_NONE => {
-                gl_attr.set_context_profile(GLProfile::Core);
-            }
-            RETRO_HW_CONTEXT_OPENGL => {
-                gl_attr.set_context_profile(GLProfile::Compatibility);
-            }
-            _ => {
-                return Err(ErroHandle {
-                    message: "api selecionado nao e compatível".to_string(),
-                })
-            }
-        }
+        // First we start by opening a new Window
+        let display_builder = DisplayBuilder::new().with_window_attributes(Some(attributes));
+        let config_template_builder = ConfigTemplateBuilder::new();
+        let (window, gl_config) = event_loop
+            .build(display_builder, config_template_builder, |mut configs| {
+                // Just use the first configuration since we don't have any special preferences here
+                configs.next().unwrap()
+            })
+            .unwrap();
+        let window = window.unwrap();
 
-        let mut major = graphic_api.major.load(Ordering::SeqCst) as u8;
-        let mut minor = graphic_api.minor.load(Ordering::SeqCst) as u8;
-
-        if major == 0 {
-            major = 3;
-            minor = 2;
-        }
-
-        gl_attr.set_context_version(major, minor);
-
-        let geo = &av_info.video.geometry;
-
-        let win_result = video
-            .window(
-                "retro_av",
-                geo.base_width.load(Ordering::SeqCst),
-                geo.base_height.load(Ordering::SeqCst),
-            )
-            .opengl()
-            .maximized()
-            .resizable()
-            .position_centered()
-            .build();
-
-        match win_result {
-            Ok(mut window) => {
-                let gl_ctx = window.gl_create_context().unwrap();
-                let gl = Rc::new(gl::Gl::load_with(|name| {
-                    video.gl_get_proc_address(name) as *const _
-                }));
-
-                let _ = video.gl_set_swap_interval(1);
-
-                let result = window.set_minimum_size(
-                    geo.base_width.load(Ordering::SeqCst),
-                    geo.base_height.load(Ordering::SeqCst),
-                );
-
-                if let Err(e) = result {
-                    return Err(ErroHandle {
-                        message: e.to_string(),
-                    });
-                }
-
-                let render = Render::new(av_info, gl.clone())?;
-
-                Ok(GlWindow {
-                    video,
-                    window,
-                    gl_ctx: Some(gl_ctx),
-                    render,
-                    av_info: av_info.clone(),
-                })
-            }
-            Err(e) => Err(ErroHandle {
-                message: e.to_string(),
-            }),
-        }
+        Err(ErroHandle {
+            message: "dss".to_string(),
+        })
     }
 }

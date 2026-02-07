@@ -1,4 +1,7 @@
-use crate::{print_scree::PrintScree, retro_gl::window::GlWindow};
+use crate::{
+    print_scree::PrintScree,
+    retro_gl::{ds::RetroGlWindow, render::Render},
+};
 use generics::{
     erro_handle::ErroHandle,
     types::{ArcTMuxte, TMutex},
@@ -7,14 +10,15 @@ use libretro_sys::binding_libretro::retro_hw_context_type::{
     RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
 };
 use retro_core::{av_info::AvInfo, RetroVideoEnvCallbacks};
-use sdl2::Sdl;
 use std::{
     cell::UnsafeCell,
     ffi::{c_uint, c_void},
     path::{Path, PathBuf},
     ptr::null,
+    rc::Rc,
     sync::Arc,
 };
+use winit::event_loop::ActiveEventLoop;
 
 pub struct RawTextureData {
     pub data: *const c_void,
@@ -47,20 +51,14 @@ pub trait RetroVideoAPi {
 }
 
 pub struct RetroVideo {
-    window_ctx: ArcTMuxte<Option<Box<dyn RetroVideoAPi>>>,
+    window_ctx: RetroGlWindow,
     texture: ArcTMuxte<UnsafeCell<RawTextureData>>,
-}
-
-impl Default for RetroVideo {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl RetroVideo {
     pub fn new() -> Self {
         Self {
-            window_ctx: TMutex::new(None),
+            window_ctx: RetroGlWindow::new(),
             texture: TMutex::new(UnsafeCell::new(RawTextureData {
                 data: null(),
                 pitch: 0,
@@ -71,12 +69,15 @@ impl RetroVideo {
     }
 
     //noinspection RsPlaceExpression
-    pub fn init(&mut self, sdl: &Sdl, av_info: &Arc<AvInfo>) -> Result<(), ErroHandle> {
+    pub fn init(
+        &mut self,
+        av_info: &Arc<AvInfo>,
+        event_loop: &ActiveEventLoop,
+    ) -> Result<(), ErroHandle> {
         match &av_info.video.graphic_api.context_type {
             RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_OPENGL | RETRO_HW_CONTEXT_NONE => {
-                self.window_ctx
-                    .try_load()?
-                    .replace(Box::new(GlWindow::new(sdl, av_info)?));
+                self.window_ctx.build(event_loop, av_info);
+
                 Ok(())
             }
             // RETRO_HW_CONTEXT_VULKAN => {}
@@ -86,34 +87,22 @@ impl RetroVideo {
         }
     }
 
-    pub fn draw_new_frame(&self) -> Result<(), ErroHandle> {
-        let mut window = self.window_ctx.try_load()?;
+    pub fn request_redraw(&self) {
+        self.window_ctx.request_redraw();
+    }
 
-        if let Some(window) = &mut *window {
-            let texture = &*self.texture.try_load()?;
-            window.draw_new_frame(texture);
-        }
+    pub fn draw_new_frame(&self, av_info: &Arc<AvInfo>) -> Result<(), ErroHandle> {
+        let texture = &*self.texture.try_load()?;
 
+        self.window_ctx.try_render(texture, &av_info.video.geometry);
         Ok(())
     }
 
     pub fn get_window_id(&self) -> Result<u32, ErroHandle> {
-        let mut window = self.window_ctx.try_load()?;
-
-        if let Some(window) = &mut *window {
-            Ok(window.get_window_id())
-        } else {
-            Ok(0)
-        }
+        Ok(0)
     }
 
     pub fn resize(&self, new_size: (u32, u32)) -> Result<(), ErroHandle> {
-        let mut window = self.window_ctx.try_load()?;
-
-        if let Some(window) = &mut *window {
-            window.resize(new_size);
-        }
-
         Ok(())
     }
 
@@ -126,36 +115,22 @@ impl RetroVideo {
     }
 
     pub fn disable_full_screen(&self) -> Result<(), ErroHandle> {
-        let mut window = self.window_ctx.try_load()?;
-
-        if let Some(window) = &mut *window {
-            window.disable_full_screen();
-        }
-
         Ok(())
     }
 
     pub fn enable_full_screen(&self) -> Result<(), ErroHandle> {
-        let mut window = self.window_ctx.try_load()?;
-
-        if let Some(window) = &mut *window {
-            window.enable_full_screen();
-        }
-
         Ok(())
     }
 
     pub fn get_core_cb(&self) -> RetroVideoCb {
         RetroVideoCb {
             texture: self.texture.clone(),
-            window_ctx: self.window_ctx.clone(),
         }
     }
 }
 
 pub struct RetroVideoCb {
-    pub window_ctx: ArcTMuxte<Option<Box<dyn RetroVideoAPi>>>,
-    pub texture: ArcTMuxte<UnsafeCell<RawTextureData>>,
+    texture: ArcTMuxte<UnsafeCell<RawTextureData>>,
 }
 
 impl RetroVideoEnvCallbacks for RetroVideoCb {
@@ -177,33 +152,15 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
         Ok(())
     }
 
-    fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErroHandle> {
-        let win_guard = self.window_ctx.try_load()?;
-
-        if let Some(window) = &*win_guard {
-            Ok(window.get_proc_address(proc_name))
-        } else {
-            Ok(null())
-        }
+    fn get_proc_address(&self, _proc_name: &str) -> Result<*const (), ErroHandle> {
+        Ok(null())
     }
 
     fn context_destroy(&self) -> Result<(), ErroHandle> {
-        let mut win_guard = self.window_ctx.try_load()?;
-
-        if let Some(ref mut window) = &mut *win_guard {
-            window.context_destroy();
-        }
-
         Ok(())
     }
 
     fn context_reset(&self) -> Result<(), ErroHandle> {
-        let mut win_guard = self.window_ctx.try_load()?;
-
-        if let Some(ref mut window) = &mut *win_guard {
-            window.context_reset();
-        }
-
         Ok(())
     }
 }

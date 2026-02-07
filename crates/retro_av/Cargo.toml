@@ -8,10 +8,13 @@ edition = "2021"
 [dependencies]
 retro_core.workspace = true
 rodio.workspace = true
-sdl2.workspace = true
 image.workspace = true
 libretro_sys.workspace = true
 generics.workspace = true
+winit.workspace = true
+glutin.workspace = true
+raw-window-handle.workspace = true
+glutin-winit.workspace = true
 
 [build-dependencies]
 cfg_aliases.workspace = true

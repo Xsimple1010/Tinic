@@ -15,8 +15,9 @@ use super::{
 };
 use crate::video::RawTextureData;
 use generics::erro_handle::ErroHandle;
+use glutin::prelude::GlDisplay;
 use retro_core::av_info::{AvInfo, Geometry};
-use std::{cell::UnsafeCell, mem::size_of, sync::atomic::Ordering};
+use std::{cell::UnsafeCell, ffi::CString, mem::size_of, sync::atomic::Ordering};
 use std::{rc::Rc, sync::Arc};
 
 pub struct Render {
@@ -94,7 +95,7 @@ impl Render {
         }
     }
 
-    pub fn new(av_info: &Arc<AvInfo>, gl: Rc<gl::Gl>) -> Result<Render, ErroHandle> {
+    pub fn new<D: GlDisplay>(av_info: &Arc<AvInfo>, gl_display: D) -> Result<Render, ErroHandle> {
         let vertex_shader_src = "
         #version 330 core
         in vec2 i_pos;
@@ -120,6 +121,11 @@ impl Render {
             FragColor = texture2D(u_tex, f_t_pos);
         }
         ";
+
+        let gl = Rc::new(gl::Gl::load_with(|symbol| {
+            let symbol = CString::new(symbol).unwrap();
+            gl_display.get_proc_address(symbol.as_c_str()).cast()
+        }));
 
         let vertex_shader = Shader::new(gl::VERTEX_SHADER, vertex_shader_src, gl.clone())?;
         let frag_shader = Shader::new(gl::FRAGMENT_SHADER, fragment_shader_src, gl.clone())?;
