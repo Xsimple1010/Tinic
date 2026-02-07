@@ -1,6 +1,9 @@
 use crate::tools::ffi_tools::get_str_from_ptr;
-use generics::constants::{
-    MAX_CORE_CONTROLLER_INFO_TYPES, MAX_CORE_SUBSYSTEM_INFO, MAX_CORE_SUBSYSTEM_ROM_INFO,
+use generics::{
+    constants::{
+        MAX_CORE_CONTROLLER_INFO_TYPES, MAX_CORE_SUBSYSTEM_INFO, MAX_CORE_SUBSYSTEM_ROM_INFO,
+    },
+    erro_handle::ErroHandle,
 };
 use libretro_sys::binding_libretro::{
     retro_controller_description, retro_controller_info, retro_subsystem_info,
@@ -84,8 +87,11 @@ impl System {
         }
     }
 
-    pub fn get_subsystem(&self, raw_subsystem: [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]) {
-        self.subsystem.write().unwrap().clear();
+    pub fn get_subsystem(
+        &self,
+        raw_subsystem: [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO],
+    ) -> Result<(), ErroHandle> {
+        self.subsystem.write()?.clear();
 
         for raw_sys in raw_subsystem {
             if raw_sys.ident.is_null() {
@@ -122,15 +128,17 @@ impl System {
                 roms: RwLock::new(roms),
             };
 
-            self.subsystem.write().unwrap().push(subsystem);
+            self.subsystem.write()?.push(subsystem);
         }
+
+        Ok(())
     }
 
     pub fn get_ports(
         &self,
         raw_ctr_infos: [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES],
-    ) {
-        self.ports.write().unwrap().clear();
+    ) -> Result<(), ErroHandle> {
+        self.ports.write()?.clear();
 
         for raw_ctr_info in raw_ctr_infos {
             if raw_ctr_info.types.is_null() {
@@ -144,7 +152,7 @@ impl System {
 
             for ctr_type in raw_ctr_types.iter().take(raw_ctr_info.num_types as usize) {
                 if ctr_type.desc.is_null() {
-                    return;
+                    return Ok(());
                 }
 
                 let controller_description = ControllerDescription {
@@ -152,9 +160,10 @@ impl System {
                     id: Arc::new(ctr_type.id),
                 };
 
-                self.ports.write().unwrap().push(controller_description);
+                self.ports.write()?.push(controller_description);
             }
         }
+        Ok(())
     }
 }
 

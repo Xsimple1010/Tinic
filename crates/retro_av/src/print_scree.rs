@@ -1,7 +1,7 @@
 use crate::video::RawTextureData;
 use generics::erro_handle::ErroHandle;
 use image::{ImageBuffer, RgbImage};
-use libretro_sys::binding_libretro::{retro_log_level::RETRO_LOG_ERROR, retro_pixel_format};
+use libretro_sys::binding_libretro::retro_pixel_format;
 use retro_core::av_info::AvInfo;
 use std::{
     cell::UnsafeCell,
@@ -24,7 +24,6 @@ impl PrintScree {
             // retro_pixel_format::RETRO_PIXEL_FORMAT_0RGB1555 => ,
             // retro_pixel_format::RETRO_PIXEL_FORMAT_RGB565 => ,
             _ => Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Formato de pixel desconhecido".to_string(),
             }),
         }
@@ -45,7 +44,6 @@ impl PrintScree {
 
         if buffer.len() != (raw_texture.width * raw_texture.height) as usize * 4 {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Tamanho do buffer video esta errado".to_string(),
             });
         }

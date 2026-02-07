@@ -1,11 +1,8 @@
 use super::{gl::gl, render::Render};
 use crate::video::{RawTextureData, RetroVideoAPi};
 use generics::erro_handle::ErroHandle;
-use libretro_sys::binding_libretro::{
-    retro_hw_context_type::{
-        RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
-    },
-    retro_log_level::RETRO_LOG_ERROR,
+use libretro_sys::binding_libretro::retro_hw_context_type::{
+    RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
 };
 use retro_core::av_info::AvInfo;
 use sdl2::video::FullScreenType;
@@ -89,12 +86,7 @@ impl GlWindow {
     pub fn new(sdl: &Sdl, av_info: &Arc<AvInfo>) -> Result<GlWindow, ErroHandle> {
         let video = match sdl.video() {
             Ok(sdl) => sdl,
-            Err(message) => {
-                return Err(ErroHandle {
-                    level: RETRO_LOG_ERROR,
-                    message,
-                })
-            }
+            Err(message) => return Err(ErroHandle { message }),
         };
 
         let graphic_api = &av_info.video.graphic_api;
@@ -109,7 +101,6 @@ impl GlWindow {
             }
             _ => {
                 return Err(ErroHandle {
-                    level: RETRO_LOG_ERROR,
                     message: "api selecionado nao e compatível".to_string(),
                 })
             }
@@ -155,7 +146,6 @@ impl GlWindow {
 
                 if let Err(e) = result {
                     return Err(ErroHandle {
-                        level: RETRO_LOG_ERROR,
                         message: e.to_string(),
                     });
                 }
@@ -171,7 +161,6 @@ impl GlWindow {
                 })
             }
             Err(e) => Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: e.to_string(),
             }),
         }

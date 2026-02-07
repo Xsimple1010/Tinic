@@ -1,8 +1,5 @@
-use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
-
-use libretro_sys::binding_libretro::retro_log_level;
-
 use crate::erro_handle::ErroHandle;
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 pub type ArcTMuxte<T> = Arc<TMutex<T>>;
 
@@ -50,7 +47,6 @@ impl<T> TMutex<T> {
         match self.value.lock() {
             Ok(v) => Ok(v),
             Err(e) => Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
                 message: e.to_string(),
             }),
         }

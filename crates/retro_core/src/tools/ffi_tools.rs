@@ -1,5 +1,4 @@
 use generics::erro_handle::ErroHandle;
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::ffi::{c_char, CStr, CString};
 use std::sync::Arc;
 
@@ -23,7 +22,6 @@ pub fn make_c_string(rs_string: &str) -> Result<CString, ErroHandle> {
     match CString::new(rs_string) {
         Ok(c_string) => Ok(c_string),
         _ => Err(ErroHandle {
-            level: RETRO_LOG_ERROR,
             message: "Nao foi possível cria uma c_string".to_string(),
         }),
     }

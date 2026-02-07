@@ -1,7 +1,6 @@
 use crate::{
     game_thread::game_thread_handle::GameThread,
     generics::{erro_handle::ErroHandle, retro_paths::RetroPaths},
-    libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR,
     retro_controllers::{
         devices_manager::{Device, DeviceListener},
         RetroController,
@@ -108,7 +107,6 @@ impl Tinic {
         {
             Ok(_) => Ok(()),
             Err(e) => Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: e.to_string(),
             }),
         }
@@ -140,7 +138,6 @@ impl Tinic {
             Ok(path)
         } else {
             Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "retro_path nao foi definido".to_string(),
             })
         }

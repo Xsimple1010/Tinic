@@ -193,6 +193,7 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
 #[cfg(test)]
 mod test_environment {
     use crate::{core_env::environment::CORE_CONTEXT, test_tools};
+    use generics::erro_handle::ErroHandle;
     use libretro_sys::binding_libretro::{
         retro_pixel_format, RETRO_ENVIRONMENT_GET_INPUT_BITMASKS,
         RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
@@ -219,7 +220,7 @@ mod test_environment {
     }
 
     #[test]
-    fn pixel_format() {
+    fn pixel_format() -> Result<(), ErroHandle> {
         cfg_test();
         let pixel = retro_pixel_format::RETRO_PIXEL_FORMAT_RGB565;
         let data = &pixel as *const retro_pixel_format as *mut c_void;
@@ -235,14 +236,16 @@ mod test_environment {
         unsafe {
             match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => assert_eq!(
-                    *core_ctx.av_info.video.pixel_format.read().unwrap(),
+                    *core_ctx.av_info.video.pixel_format.read()?,
                     pixel,
                     "returno inesperado: valor desejado -> {:?}; valor recebido -> {:?}",
                     pixel,
-                    *core_ctx.av_info.video.pixel_format.read().unwrap()
+                    *core_ctx.av_info.video.pixel_format.read()?
                 ),
                 _ => panic!("CORE_CONTEXT nao foi encontrado"),
             }
         }
+
+        Ok(())
     }
 }

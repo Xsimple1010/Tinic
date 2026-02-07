@@ -2,7 +2,6 @@ use crate::devices_manager::DevicesManager;
 use generics::erro_handle::ErroHandle;
 use generics::types::TMutex;
 use generics::{constants::THREAD_SLEEP_TIME, types::ArcTMuxte};
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::sync::Arc;
 use std::{
     thread::{self, sleep},
@@ -34,7 +33,6 @@ impl EventThread {
 
         if self.try_enable_thread() && !self.try_enable_thread() {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Não foi possível iniciar a thread de eventos do gamepad".to_string(),
             });
         }

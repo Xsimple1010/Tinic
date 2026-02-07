@@ -183,8 +183,7 @@ impl Render {
             .video
             .graphic_api
             .fbo
-            .write()
-            .unwrap()
+            .write()?
             .replace(fbo.get_id() as usize);
 
         Ok(Render {

@@ -1,7 +1,7 @@
 use crate::graphic_api::GraphicApi;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::{
-    retro_game_geometry, retro_log_level,
+    retro_game_geometry,
     retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN},
     retro_system_av_info, retro_system_timing, LibretroRaw,
 };
@@ -83,7 +83,6 @@ impl AvInfo {
     ) -> Result<(), ErroHandle> {
         if raw_geometry_ptr.is_null() {
             return Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
                 message: "nao foi possível atualiza a geometria da textura".to_string(),
             });
         }
@@ -97,7 +96,6 @@ impl AvInfo {
             }
             Err(_) => {
                 return Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
                     message: "nao foi possível atualiza o aspect_ratio da textura".to_string(),
                 })
             }
@@ -119,25 +117,17 @@ impl AvInfo {
         Ok(())
     }
 
-    fn _set_timing(&self, raw_system_timing: *const retro_system_timing) {
+    fn _set_timing(&self, raw_system_timing: *const retro_system_timing) -> Result<(), ErroHandle> {
         if raw_system_timing.is_null() {
-            return;
+            return Ok(());
         }
 
         let timing = unsafe { *raw_system_timing };
 
-        *self
-            .timing
-            .fps
-            .write()
-            .expect("Nao foi possível definir um novo valor para timing.fps") = timing.fps;
+        *self.timing.fps.write()? = timing.fps;
+        *self.timing.sample_rate.write()? = timing.sample_rate;
 
-        *self
-            .timing
-            .sample_rate
-            .write()
-            .expect("Nao foi possível definir um novo valor para timing.sample_rate") =
-            timing.sample_rate;
+        Ok(())
     }
 
     pub fn update_av_info(&self, core_raw: &Arc<LibretroRaw>) -> Result<(), ErroHandle> {
@@ -160,7 +150,7 @@ impl AvInfo {
             self.try_set_new_geometry(&raw_av_info.geometry)?;
         }
 
-        self._set_timing(&raw_av_info.timing);
+        self._set_timing(&raw_av_info.timing)?;
 
         Ok(())
     }

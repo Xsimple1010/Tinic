@@ -3,11 +3,8 @@ use generics::{
     erro_handle::ErroHandle,
     types::{ArcTMuxte, TMutex},
 };
-use libretro_sys::binding_libretro::{
-    retro_hw_context_type::{
-        RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
-    },
-    retro_log_level,
+use libretro_sys::binding_libretro::retro_hw_context_type::{
+    RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
 };
 use retro_core::{av_info::AvInfo, RetroVideoEnvCallbacks};
 use sdl2::Sdl;
@@ -84,7 +81,6 @@ impl RetroVideo {
             }
             // RETRO_HW_CONTEXT_VULKAN => {}
             _ => Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
                 message: "suporte para a api selecionada não está disponível".to_owned(),
             }),
         }

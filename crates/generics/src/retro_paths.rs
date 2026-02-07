@@ -1,5 +1,4 @@
 use crate::erro_handle::ErroHandle;
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::fs;
 use std::ops::Not;
 use std::path::Path;
@@ -34,49 +33,42 @@ impl RetroPaths {
     ) -> Result<Self, ErroHandle> {
         if Path::new(&system).exists().not() && fs::create_dir_all(&system).is_err() {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Não foi possível criar a pasta system".to_owned(),
             });
         }
 
         if Path::new(&save).exists().not() && fs::create_dir_all(&save).is_err() {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Não foi possível criar a pasta save".to_owned(),
             });
         }
 
         if Path::new(&opt).exists().not() && fs::create_dir_all(&opt).is_err() {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Não foi possível criar a pasta opt".to_owned(),
             });
         }
 
         if Path::new(&assets).exists().not() && fs::create_dir_all(&assets).is_err() {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Não foi possível criar a pasta assets".to_owned(),
             });
         }
 
         if Path::new(&temps).exists().not() && fs::create_dir_all(&temps).is_err() {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Não foi possível criar a pasta temps".to_owned(),
             });
         }
 
         if Path::new(&cores).exists().not() && fs::create_dir_all(&cores).is_err() {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Não foi possível criar a pasta cores".to_owned(),
             });
         }
 
         if Path::new(&infos).exists().not() && fs::create_dir_all(&infos).is_err() {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Não foi possível criar a pasta infos".to_owned(),
             });
         }

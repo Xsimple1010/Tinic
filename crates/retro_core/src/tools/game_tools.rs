@@ -2,7 +2,6 @@ use super::ffi_tools::make_c_string;
 use crate::system::SysInfo;
 use generics::constants::SAVE_EXTENSION_FILE;
 use generics::erro_handle::ErroHandle;
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use libretro_sys::binding_libretro::{retro_game_info, LibretroRaw};
 use std::fs;
 use std::io::Write;
@@ -20,18 +19,24 @@ fn get_full_path(path: &str) -> Result<PathBuf, ErroHandle> {
     match PathBuf::from(path).canonicalize() {
         Ok(full_path) => Ok(full_path),
         Err(e) => Err(ErroHandle {
-            level: RETRO_LOG_ERROR,
             message: e.to_string(),
         }),
     }
 }
 
 fn valid_rom_extension(valid_extensions: &String, path: &Path) -> Result<(), ErroHandle> {
-    let path_str = path.extension().unwrap().to_str().unwrap();
+    let path_str = path
+        .extension()
+        .ok_or(ErroHandle::new(
+            "Nao foi possível ler as extensões compatíveis com o core",
+        ))?
+        .to_str()
+        .ok_or(ErroHandle::new(
+            "Nao foi possível ler as extensões compatíveis com o core",
+        ))?;
 
     if !valid_extensions.contains(path_str) {
         return Err(ErroHandle {
-            level: RETRO_LOG_ERROR,
             message: "Extensão da rom invalida: valores esperados -> ".to_string()
                 + &valid_extensions.to_string()
                 + "; valor recebido -> "
@@ -54,7 +59,7 @@ fn get_save_path(
     path.push(rom_name);
 
     if !path.exists() {
-        fs::create_dir_all(&path).unwrap();
+        fs::create_dir_all(&path)?;
     }
 
     let file_name = format!("{}.{}", slot, SAVE_EXTENSION_FILE);
@@ -76,18 +81,20 @@ impl RomTools {
         valid_rom_extension(&sys_info.valid_extensions, &f_path)?;
 
         let mut buf = Vec::new();
-        let meta = CString::new("").unwrap();
-        let path = make_c_string(f_path.to_str().unwrap())?;
+        let meta = CString::new("")?;
+        let path = make_c_string(f_path.to_str().ok_or(ErroHandle::new(
+            "nao foi possível transforma o PathBuf da rom para uma string",
+        ))?)?;
         let mut size = 0;
 
         if !*sys_info.need_full_path {
-            let mut file = File::open(&f_path).unwrap();
+            let mut file = File::open(&f_path)?;
 
-            size = file.metadata().unwrap().len() as usize;
+            size = file.metadata()?.len() as usize;
 
             buf = Vec::with_capacity(size);
 
-            file.read_to_end(&mut buf).unwrap();
+            file.read_to_end(&mut buf)?;
         }
 
         let game_info = retro_game_info {
@@ -107,13 +114,18 @@ impl RomTools {
     }
 
     pub fn get_rom_name(path: &Path) -> Result<String, ErroHandle> {
-        let extension = ".".to_owned() + path.extension().unwrap().to_str().unwrap();
+        let extension = ".".to_owned()
+            + path
+                .extension()
+                .ok_or(ErroHandle::new("erro ao tentar recuperar o nome da rom"))?
+                .to_str()
+                .ok_or(ErroHandle::new("erro ao tentar recuperar o nome da rom"))?;
 
         let name = path
             .file_name()
-            .unwrap()
+            .ok_or(ErroHandle::new("erro ao tentar recuperar o nome da rom"))?
             .to_str()
-            .unwrap()
+            .ok_or(ErroHandle::new("erro ao tentar recuperar o nome da rom"))?
             .replace(&extension, "");
 
         Ok(name)
@@ -133,7 +145,6 @@ impl RomTools {
 
         if !state {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "nao foi possível salva o estado atual".to_string(),
             });
         }
@@ -144,7 +155,6 @@ impl RomTools {
             Ok(mut file) => {
                 if let Err(e) = file.write(&data) {
                     return Err(ErroHandle {
-                        level: RETRO_LOG_ERROR,
                         message: e.to_string(),
                     });
                 }
@@ -152,7 +162,6 @@ impl RomTools {
                 Ok(save_path)
             }
             Err(e) => Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: e.to_string(),
             }),
         }
@@ -167,17 +176,16 @@ impl RomTools {
     ) -> Result<(), ErroHandle> {
         let save_path = get_save_path(save_dir, sys_info, rom_name, slot)?;
 
-        let mut save_file = File::open(save_path).unwrap();
+        let mut save_file = File::open(save_path)?;
 
         let mut buff = Vec::new();
-        save_file.read_to_end(&mut buff).unwrap();
+        save_file.read_to_end(&mut buff)?;
 
         let core_expect_size = unsafe { libretro_raw.retro_serialize_size() };
         let buffer_size = buff.len();
 
         if buffer_size != core_expect_size {
             return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "o state escolhido nao e correspondente ao core".to_string(),
             });
         }
@@ -188,7 +196,6 @@ impl RomTools {
 
             if !suss {
                 return Err(ErroHandle {
-                    level: RETRO_LOG_ERROR,
                     message: "o core nao pode carregar o state escolhido".to_string(),
                 });
             }

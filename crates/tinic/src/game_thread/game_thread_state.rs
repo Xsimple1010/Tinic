@@ -4,10 +4,7 @@ use crate::thread_stack::main_stack::MainStackCommand::{
 };
 use generics::constants::SAVE_IMAGE_EXTENSION_FILE;
 use generics::{constants::THREAD_SLEEP_TIME, erro_handle::ErroHandle, retro_paths::RetroPaths};
-use libretro_sys::{
-    binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE,
-    binding_libretro::retro_log_level,
-};
+use libretro_sys::binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE;
 use retro_av::{EventPump, RetroAv};
 use retro_controllers::{devices_manager::Device, RetroController};
 use retro_core::{
@@ -183,7 +180,7 @@ impl ThreadState {
         match &self.retro_core {
             Some(retro_core) => Ok(retro_core.clone()),
             None => Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
+                 
                 message: "erro ao tentar recuperar retro_core".to_string(),
             }),
         }
@@ -193,7 +190,7 @@ impl ThreadState {
         match &self.retro_av {
             Some(retro_av) => Ok(retro_av),
             None => Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
+                 
                 message: "erro ao tentar recuperar retro_av".to_string(),
             }),
         }

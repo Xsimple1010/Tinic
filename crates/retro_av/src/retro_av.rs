@@ -3,7 +3,6 @@ use crate::sync::RetroSync;
 use crate::video::RetroVideo;
 use crate::{audios::RetroAudio, video::RetroVideoCb};
 use generics::erro_handle::ErroHandle;
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use retro_core::av_info::AvInfo;
 use sdl2::{EventPump, Sdl};
 use std::sync::Arc;
@@ -22,12 +21,7 @@ impl RetroAv {
         let _sdl = {
             match sdl2::init() {
                 Ok(sdl) => sdl,
-                Err(message) => {
-                    return Err(ErroHandle {
-                        level: RETRO_LOG_ERROR,
-                        message,
-                    })
-                }
+                Err(message) => return Err(ErroHandle { message }),
             }
         };
 
@@ -49,12 +43,7 @@ impl RetroAv {
 
         let event_pump = match self._sdl.event_pump() {
             Ok(event_pump) => event_pump,
-            Err(message) => {
-                return Err(ErroHandle {
-                    level: RETRO_LOG_ERROR,
-                    message,
-                })
-            }
+            Err(message) => return Err(ErroHandle { message }),
         };
 
         Ok(event_pump)

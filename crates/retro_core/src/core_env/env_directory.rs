@@ -47,7 +47,7 @@ pub unsafe fn env_cb_directory(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut 
             println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
 
             let raw_subsystem = *(data as *mut [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]);
-            core_ctx.system.get_subsystem(raw_subsystem);
+            let _ = core_ctx.system.get_subsystem(raw_subsystem);
 
             true
         }

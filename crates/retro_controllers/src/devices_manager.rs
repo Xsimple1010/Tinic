@@ -5,9 +5,7 @@ use generics::{
     types::{ArcTMuxte, TMutex},
 };
 use gilrs::Gilrs;
-use libretro_sys::binding_libretro::{
-    retro_log_level, retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK,
-};
+use libretro_sys::binding_libretro::{retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK};
 use std::{
     fmt::Debug,
     sync::{
@@ -79,7 +77,6 @@ impl DevicesManager {
             Ok(gilrs) => gilrs,
             Err(e) => {
                 return Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
                     message: e.to_string(),
                 })
             }

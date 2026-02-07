@@ -8,6 +8,7 @@ use crate::{
     tools::mutex_tools::get_string_rwlock_from_ptr,
 };
 use generics::constants::{CORE_OPTION_EXTENSION_FILE, MAX_CORE_OPTIONS};
+use generics::erro_handle::ErroHandle;
 use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 use std::sync::Arc;
 use std::{
@@ -66,13 +67,15 @@ impl OptionManager {
         }
     }
 
-    pub fn update_opt(&self, opt_key: &str, new_value_selected: &str) {
-        self.change_value_selected(opt_key, new_value_selected);
-        self.write_all_options_in_file();
+    pub fn update_opt(&self, opt_key: &str, new_value_selected: &str) -> Result<(), ErroHandle> {
+        self.change_value_selected(opt_key, new_value_selected)?;
+        self.write_all_options_in_file()?;
+
+        Ok(())
     }
 
-    pub fn get_opt_value(&self, opt_key: &str) -> Option<String> {
-        for core_opt in &*self.opts.lock().unwrap() {
+    pub fn get_opt_value(&self, opt_key: &str) -> Result<Option<String>, ErroHandle> {
+        for core_opt in &*self.opts.lock()? {
             if !core_opt.key.clone().to_string().eq(opt_key) {
                 continue;
             }
@@ -86,17 +89,17 @@ impl OptionManager {
 
             match core_opt.selected.read() {
                 Ok(selected_value) => {
-                    return Some(selected_value.clone());
+                    return Ok(Some(selected_value.clone()));
                 }
                 _ => break,
             }
         }
 
-        None
+        Ok(None)
     }
 
-    pub fn change_visibility(&self, key: &String, visibility: bool) {
-        for core_opt in &mut *self.opts.lock().unwrap() {
+    pub fn change_visibility(&self, key: &String, visibility: bool) -> Result<(), ErroHandle> {
+        for core_opt in &mut *self.opts.lock()? {
             if !core_opt.key.to_string().eq(key) {
                 continue;
             }
@@ -111,82 +114,95 @@ impl OptionManager {
                 self.updated_count.fetch_add(1, Ordering::SeqCst);
             }
         }
+
+        Ok(())
     }
 
-    fn write_all_options_in_file(&self) {
-        let file_path = self.file_path.read().unwrap().clone();
-        let mut file = File::create(file_path.clone()).unwrap();
+    fn write_all_options_in_file(&self) -> Result<(), ErroHandle> {
+        let file_path = self.file_path.read()?.clone();
+        let mut file = File::create(file_path.clone())?;
 
-        for opt in &*self.opts.lock().unwrap() {
+        for opt in &*self.opts.lock()? {
             let key = &*opt.key;
-            let selected = opt.selected.read().unwrap().clone();
+            let selected = opt.selected.read()?.clone();
 
             let buf = key.to_owned() + "=" + &selected + "\n";
 
             let _ = file.write(buf.as_bytes());
         }
+
+        Ok(())
     }
 
-    fn change_value_selected(&self, opt_key: &str, new_value_selected: &str) {
-        for core_opt in &*self.opts.lock().unwrap() {
+    fn change_value_selected(
+        &self,
+        opt_key: &str,
+        new_value_selected: &str,
+    ) -> Result<(), ErroHandle> {
+        for core_opt in &*self.opts.lock()? {
             if !core_opt.key.clone().to_string().eq(&opt_key) {
                 continue;
             }
 
-            for core_value in &*core_opt.values.lock().unwrap() {
-                if *core_value.value.lock().unwrap() != new_value_selected {
+            for core_value in &*core_opt.values.lock()? {
+                if *core_value.value.lock()? != new_value_selected {
                     continue;
                 }
 
                 if !core_opt.need_update.load(Ordering::SeqCst) {
-                    *core_opt.selected.write().unwrap() = new_value_selected.to_string();
+                    *core_opt.selected.write()? = new_value_selected.to_string();
 
                     self.updated_count.fetch_add(1, Ordering::SeqCst);
                     core_opt.need_update.store(true, Ordering::SeqCst);
                 }
 
-                return;
+                return Ok(());
             }
         }
+
+        Ok(())
     }
 
-    fn load_all_option_in_file(&self) {
-        let file_path = self.file_path.read().unwrap().clone();
+    fn load_all_option_in_file(&self) -> Result<(), ErroHandle> {
+        let file_path = self.file_path.read()?.clone();
 
-        let mut file = File::open(file_path).unwrap();
+        let mut file = File::open(file_path)?;
 
         let mut buf = String::new();
-        file.read_to_string(&mut buf).unwrap();
+        file.read_to_string(&mut buf)?;
 
         let lines: Vec<&str> = buf.split('\n').collect();
 
         for line in &lines {
             if line.is_empty() {
-                return;
+                return Ok(());
             }
 
             let values: Vec<&str> = line.split('=').collect();
 
-            let opt_key = values.first().unwrap();
-            let value_selected = values
-                .get(1)
-                .expect("nao foi possível recupera o valor do arquivo de opções")
-                .split_ascii_whitespace()
-                .next()
-                .expect("nao foi possível recupera o valor do arquivo de opções");
+            if let Some(opt_key) = values.first() {
+                let value_selected = values
+                    .get(1)
+                    .expect("nao foi possível recupera o valor do arquivo de opções")
+                    .split_ascii_whitespace()
+                    .next()
+                    .expect("nao foi possível recupera o valor do arquivo de opções");
 
-            self.change_value_selected(opt_key, value_selected);
+                let _ = self.change_value_selected(opt_key, value_selected);
+            }
         }
+
+        Ok(())
     }
 
     //TODO: adiciona um meio do usuário saber se ocorrer um erro ao tentar salva ou ler o arquivo
-    pub fn try_reload_pref_option(&self) {
-        let file_path = self.file_path.read().unwrap().clone();
+    pub fn try_reload_pref_option(&self) -> Result<(), ErroHandle> {
+        let file_path = self.file_path.read()?.clone();
 
         //se o arquivo ainda nao existe apenas
         //crie um novo arquivo e salve a configuração padrão do núcleo
         if !file_path.exists() {
-            self.write_all_options_in_file();
+            self.write_all_options_in_file()
         } else {
             self.load_all_option_in_file()
         }
@@ -196,7 +212,10 @@ impl OptionManager {
     //=================v2_intl=======================
     //===============================================
 
-    fn get_v2_intl_category(&self, categories: *mut retro_core_option_v2_category) {
+    fn get_v2_intl_category(
+        &self,
+        categories: *mut retro_core_option_v2_category,
+    ) -> Result<(), ErroHandle> {
         let categories =
             unsafe { *(categories as *mut [retro_core_option_v2_category; MAX_CORE_OPTIONS]) };
 
@@ -207,16 +226,20 @@ impl OptionManager {
                 let desc = get_arc_string_from_ptr(category.desc);
 
                 self.categories
-                    .write()
-                    .unwrap()
+                    .write()?
                     .push(Categories { key, desc, info });
             } else {
                 break;
             }
         }
+
+        Ok(())
     }
 
-    fn get_v2_intl_definitions(&self, definitions: *mut retro_core_option_v2_definition) {
+    fn get_v2_intl_definitions(
+        &self,
+        definitions: *mut retro_core_option_v2_definition,
+    ) -> Result<(), ErroHandle> {
         let definitions = unsafe { *(definitions as *mut [retro_core_option_v2_definition; 90]) };
 
         for definition in definitions {
@@ -237,11 +260,11 @@ impl OptionManager {
                         let value = get_string_mutex_from_ptr(retro_value.value);
                         let label = get_arc_string_from_ptr(retro_value.label);
 
-                        values.lock().unwrap().push(CoreValue { label, value });
+                        values.lock()?.push(CoreValue { label, value });
                     }
                 }
 
-                self.opts.lock().unwrap().push(CoreOpt {
+                self.opts.lock()?.push(CoreOpt {
                     key,
                     selected,
                     visibility: AtomicBool::new(true),
@@ -258,20 +281,27 @@ impl OptionManager {
                 break;
             }
         }
+
+        Ok(())
     }
 
-    pub fn convert_option_v2_intl(&self, option_intl_v2: retro_core_options_v2_intl) {
+    pub fn convert_option_v2_intl(
+        &self,
+        option_intl_v2: retro_core_options_v2_intl,
+    ) -> Result<(), ErroHandle> {
         unsafe {
             if option_intl_v2.local.is_null() {
                 let us: retro_core_options_v2 = *(option_intl_v2.us);
-                self.get_v2_intl_definitions(us.definitions);
-                self.get_v2_intl_category(us.categories);
+                self.get_v2_intl_definitions(us.definitions)?;
+                self.get_v2_intl_category(us.categories)?;
             } else {
                 let local: retro_core_options_v2 = *(option_intl_v2.local);
-                self.get_v2_intl_definitions(local.definitions);
-                self.get_v2_intl_category(local.categories);
+                self.get_v2_intl_definitions(local.definitions)?;
+                self.get_v2_intl_category(local.categories)?;
             }
         }
+
+        Ok(())
     }
     //===============================================
 }

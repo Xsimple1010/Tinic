@@ -2,7 +2,6 @@ use generics::{
     erro_handle::ErroHandle,
     types::{ArcTMuxte, TMutex},
 };
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use retro_core::{av_info::AvInfo, RetroAudioEnvCallbacks};
 use rodio::{buffer::SamplesBuffer, OutputStream, OutputStreamHandle, Sink};
 use std::{
@@ -30,7 +29,6 @@ impl RetroAudio {
             Ok(out) => out,
             Err(e) => {
                 return Err(ErroHandle {
-                    level: RETRO_LOG_ERROR,
                     message: e.to_string(),
                 })
             }
@@ -40,7 +38,6 @@ impl RetroAudio {
             Ok(sink) => sink,
             Err(e) => {
                 return Err(ErroHandle {
-                    level: RETRO_LOG_ERROR,
                     message: e.to_string(),
                 })
             }

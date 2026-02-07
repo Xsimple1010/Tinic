@@ -38,8 +38,8 @@ pub unsafe fn env_cb_option(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_v
 
             let option_intl_v2 = *(data as *mut retro_core_options_v2_intl);
 
-            core_ctx.options.convert_option_v2_intl(option_intl_v2);
-            core_ctx.options.try_reload_pref_option();
+            let _ = core_ctx.options.convert_option_v2_intl(option_intl_v2);
+            let _ = core_ctx.options.try_reload_pref_option();
 
             true
         }
@@ -49,7 +49,7 @@ pub unsafe fn env_cb_option(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_v
 
             let option = *(data as *mut retro_core_option_display);
 
-            core_ctx
+            let _ = core_ctx
                 .options
                 .change_visibility(&get_str_from_ptr(option.key), option.visible);
 
@@ -99,7 +99,7 @@ pub unsafe fn env_cb_option(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_v
             let raw_variable = *(data as *const retro_variable);
             let key = get_str_from_ptr(raw_variable.key);
 
-            match options_manager.get_opt_value(&key) {
+            match options_manager.get_opt_value(&key).unwrap() {
                 Some(value) => {
                     let new_value = make_c_string(&value).unwrap();
 

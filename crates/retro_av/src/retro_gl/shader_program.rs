@@ -4,7 +4,6 @@ use super::{
 };
 use crate::retro_gl::gl::gl::types::GLint;
 use generics::erro_handle::ErroHandle;
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::{ffi::CString, rc::Rc};
 
 pub struct ShaderProgram {
@@ -51,12 +50,8 @@ impl ShaderProgram {
                 let log = String::from_utf8(error_log);
 
                 return match log {
-                    Ok(log) => Err(ErroHandle {
-                        level: RETRO_LOG_ERROR,
-                        message: log,
-                    }),
+                    Ok(log) => Err(ErroHandle { message: log }),
                     Err(e) => Err(ErroHandle {
-                        level: RETRO_LOG_ERROR,
                         message: e.to_string(),
                     }),
                 };

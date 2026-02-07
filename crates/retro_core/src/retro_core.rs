@@ -6,7 +6,6 @@ use crate::{managers::option_manager::OptionManager, system::System};
 use generics::constants::INVALID_CONTROLLER_PORT;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use libretro_sys::binding_libretro::LibretroRaw;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -86,11 +85,9 @@ impl RetroCore {
 
     fn init(&self) -> Result<(), ErroHandle> {
         if self.game_loaded.load(Ordering::SeqCst) || self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Para inicializar um novo núcleo e necessário descarrega o núcleo atual"
-                    .to_string(),
-            });
+            return Err(ErroHandle::new(
+                "Para inicializar um novo núcleo e necessário descarrega o núcleo atual",
+            ));
         }
 
         unsafe {
@@ -103,49 +100,36 @@ impl RetroCore {
 
     pub fn load_game(&self, path: &str) -> Result<Arc<AvInfo>, ErroHandle> {
         if self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Ja existe uma rom carregada no momento".to_string(),
-            });
+            return Err(ErroHandle::new("Ja existe uma rom carregada no momento"));
         }
 
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Para carregar uma rom o núcleo deve esta inicializado".to_string(),
-            });
+            return Err(ErroHandle::new(
+                "Para carregar uma rom o núcleo deve esta inicializado",
+            ));
         }
 
         let loaded = RomTools::try_load_game(&self.raw, &self.system.info, path)?;
         self.game_loaded.store(loaded, Ordering::SeqCst);
 
         if loaded {
-            *self.rom_name.write().unwrap() = RomTools::get_rom_name(&PathBuf::from(path))?;
+            *self.rom_name.write()? = RomTools::get_rom_name(&PathBuf::from(path))?;
 
             self.av_info.update_av_info(&self.raw)?;
 
             Ok(self.av_info.clone())
         } else {
-            Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "nao foi possível carregar a rom".to_string(),
-            })
+            Err(ErroHandle::new("nao foi possível carregar a rom"))
         }
     }
 
     pub fn reset(&self) -> Result<(), ErroHandle> {
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "O núcleo nao foi inicializado".to_string(),
-            });
+            return Err(ErroHandle::new("O núcleo nao foi inicializado"));
         }
 
         if !self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Nao ha nenhuma rum carregada no momento".to_string(),
-            });
+            return Err(ErroHandle::new("Nao ha nenhuma rum carregada no momento"));
         }
 
         unsafe {
@@ -157,17 +141,11 @@ impl RetroCore {
 
     pub fn run(&self) -> Result<(), ErroHandle> {
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "O núcleo nao foi inicializado".to_string(),
-            });
+            return Err(ErroHandle::new("O núcleo nao foi inicializado"));
         }
 
         if !self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Nao ha nenhuma rum carregada no momento".to_string(),
-            });
+            return Err(ErroHandle::new("Nao ha nenhuma rum carregada no momento"));
         }
 
         unsafe { self.raw.retro_run() }
@@ -195,11 +173,9 @@ impl RetroCore {
 
     pub fn connect_controller(&self, port: i16, controller: u32) -> Result<(), ErroHandle> {
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Nao é possível conectar um controle pois nenhum núcleo foi inicializado"
-                    .to_string(),
-            });
+            return Err(ErroHandle::new(
+                "Nao é possível conectar um controle pois nenhum núcleo foi inicializado",
+            ));
         }
 
         if port != INVALID_CONTROLLER_PORT {
@@ -218,10 +194,9 @@ impl RetroCore {
         }
 
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Para descarregar uma rom o núcleo deve esta inicializado".to_string(),
-            });
+            return Err(ErroHandle::new(
+                "Para descarregar uma rom o núcleo deve esta inicializado",
+            ));
         }
 
         unsafe {
@@ -234,48 +209,40 @@ impl RetroCore {
 
     pub fn save_state(&self, slot: usize) -> Result<PathBuf, ErroHandle> {
         if !self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Uma rom precisa ser carregada primeiro".to_string(),
-            });
+            return Err(ErroHandle::new("Uma rom precisa ser carregada primeiro"));
         }
 
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Para salva um state o núcleo deve esta inicializado".to_string(),
-            });
+            return Err(ErroHandle::new(
+                "Para salva um state o núcleo deve esta inicializado",
+            ));
         }
 
         RomTools::create_save_state(
             &self.raw,
             &self.paths.save,
             &self.system.info,
-            &self.rom_name.read().unwrap(),
+            &*self.rom_name.read()?,
             slot,
         )
     }
 
     pub fn load_state(&self, slot: usize) -> Result<(), ErroHandle> {
         if !self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Uma rom precisa ser carregada primeiro".to_string(),
-            });
+            return Err(ErroHandle::new("Uma rom precisa ser carregada primeiro"));
         }
 
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
-                message: "Para carregar um state o núcleo deve esta inicializado".to_string(),
-            });
+            return Err(ErroHandle::new(
+                "Para carregar um state o núcleo deve esta inicializado",
+            ));
         }
 
         RomTools::load_save_state(
             &self.raw,
             &self.paths.save,
             &self.system.info,
-            &self.rom_name.read().unwrap(),
+            &*self.rom_name.read()?,
             slot,
         )?;
 

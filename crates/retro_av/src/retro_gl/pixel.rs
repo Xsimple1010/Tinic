@@ -1,6 +1,5 @@
 use super::gl::gl::{self, types::GLuint};
 use generics::erro_handle::ErroHandle;
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use libretro_sys::binding_libretro::retro_pixel_format;
 use std::mem::size_of;
 
@@ -29,7 +28,6 @@ impl Pixel {
                 bpm: size_of::<u16>() as i32,
             }),
             _ => Err(ErroHandle {
-                level: RETRO_LOG_ERROR,
                 message: "Formato de pixel desconhecido".to_string(),
             }),
         }

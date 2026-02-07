@@ -89,7 +89,7 @@ pub unsafe fn env_cb_gamepad_io(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut
             let raw_ctr_infos =
                 *(data as *mut [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES]);
 
-            core_ctx.system.get_ports(raw_ctr_infos);
+            let _ = core_ctx.system.get_ports(raw_ctr_infos);
 
             true
         }
