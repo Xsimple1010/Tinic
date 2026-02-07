@@ -51,7 +51,7 @@ pub struct RetroAudio {
 }
 
 impl RetroAudio {
-    pub fn init(av_info: &Arc<AvInfo>) -> Result<Self, ErroHandle> {
+    pub fn new(av_info: &Arc<AvInfo>) -> Result<Self, ErroHandle> {
         let (stream, stream_handle) = match OutputStream::try_default() {
             Ok(out) => out,
             Err(e) => {

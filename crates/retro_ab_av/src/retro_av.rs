@@ -41,7 +41,7 @@ impl RetroAvCtx {
         };
 
         let video = RetroVideo::new(&_sdl, &av_info)?;
-        let audio = RetroAudio::init(&av_info)?;
+        let audio = RetroAudio::new(&av_info)?;
 
         Ok((
             RetroAvCtx {
