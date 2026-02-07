@@ -9,6 +9,7 @@ use retro_controllers::{RetroController, RetroGamePad};
 use retro_core::{RetroCore, RetroCoreIns, RetroEnvCallbacks, graphic_api::GraphicApi};
 use winit::keyboard::PhysicalKey;
 use winit::{event_loop::ActiveEventLoop, window::Fullscreen};
+use winit::dpi::PhysicalSize;
 
 pub struct TinicGameCtx {
     retro_av: RetroAv,
@@ -61,6 +62,10 @@ impl TinicGameCtx {
             can_request_new_frames: true,
             current_full_screen_mode: Fullscreen::Borderless(None),
         })
+    }
+
+    pub fn resize_window(&mut self, size: PhysicalSize<u32>) -> Result<(), ErrorHandle> {
+        self.retro_av.resize_window(size.width, size.height)
     }
 
     pub fn toggle_keyboard_usage(&self) -> Result<(), ErrorHandle> {

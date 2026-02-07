@@ -78,6 +78,7 @@ impl Render {
             );
 
             self.gl.Viewport(0, 0, win_width, win_height);
+            self.gl.ClearColor(0.0,0.0,0.0,1.0);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
             self._texture.push(texture);

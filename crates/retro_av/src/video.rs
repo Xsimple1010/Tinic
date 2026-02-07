@@ -46,6 +46,8 @@ pub trait RetroVideoAPi {
     fn context_destroy(&mut self);
 
     fn context_reset(&mut self);
+    
+    fn resize(&mut self, width: u32, height: u32);
 }
 
 pub struct RetroVideo {
@@ -108,6 +110,14 @@ impl RetroVideo {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
             win.set_full_screen(mode);
         }
+        Ok(())
+    }
+    
+    pub fn resize_window(&mut self, width: u32, height: u32) -> Result<(), ErrorHandle> {
+        if let Some(win) = &mut *self.window_ctx.try_load()? {
+            win.resize(width, height);
+        }
+        
         Ok(())
     }
 

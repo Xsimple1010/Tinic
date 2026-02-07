@@ -66,6 +66,10 @@ impl RetroAv {
         self.video.set_full_screen(mode)
     }
 
+    pub fn resize_window(&mut self, width: u32, height: u32) -> Result<(), ErrorHandle> {
+        self.video.resize_window(width, height)
+    }
+
     pub fn get_core_cb(&self) -> (RetroVideoCb, RetroAudioCb) {
         let video_cb = self.video.get_core_cb();
         let audio_cb = self.audio.get_core_cb();

@@ -69,8 +69,21 @@ impl RetroVideoAPi for RetroGlWindow {
         self.window.request_redraw();
     }
 
+    fn resize(&mut self, width: u32, height: u32) {
+        if width == 0 || height == 0 {
+            return;
+        }
+
+        self.gl_surface.resize(
+            &self.gl_context,
+            NonZeroU32::new(width).unwrap(),
+            NonZeroU32::new(height).unwrap(),
+        );
+    }
+
     fn draw_new_frame(&self, texture: &RawTextureData) {
         let size = self.window.inner_size();
+
         self.renderer.draw_new_frame(
             texture,
             &self.av_info.video.geometry,

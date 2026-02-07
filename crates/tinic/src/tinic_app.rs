@@ -96,6 +96,9 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                 Ok(())
             }
             WindowEvent::RedrawRequested => self.ctx.draw_new_frame(),
+            WindowEvent::Resized(size) => {
+                self.ctx.resize_window(size)
+            }
             WindowEvent::KeyboardInput {
                 device_id: _,
                 event,
