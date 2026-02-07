@@ -73,14 +73,6 @@ impl Tinic {
             gamepad_state_listener,
         ))));
 
-        match controller_ctx.clone().lock() {
-            Ok(controller) => {
-                let gamepads = controller.get_list();
-                init_game_loop(gamepads, controller_ctx.clone(), STACK.clone());
-            }
-            Err(..) => {}
-        }
-
         Self {
             //TODO:o numero máximo de portas deve ser alterado no futuro
             controller_ctx,
@@ -94,19 +86,27 @@ impl Tinic {
         rom_path: String,
         paths: Paths,
     ) -> Result<(), String> {
-        STACK.push(StackCommand::LoadGame(
-            core_path.to_owned(),
-            rom_path.to_owned(),
-            paths,
-            RetroEnvCallbacks {
-                audio_sample_batch_callback,
-                audio_sample_callback,
-                input_poll_callback,
-                input_state_callback,
-                video_refresh_callback,
-                rumble_callback,
-            },
-        ));
+        match self.controller_ctx.clone().lock() {
+            Ok(controller) => {
+                let gamepads = controller.get_list();
+                init_game_loop(gamepads, self.controller_ctx.clone(), STACK.clone());
+
+                STACK.push(StackCommand::LoadGame(
+                    core_path.to_owned(),
+                    rom_path.to_owned(),
+                    paths,
+                    RetroEnvCallbacks {
+                        audio_sample_batch_callback,
+                        audio_sample_callback,
+                        input_poll_callback,
+                        input_state_callback,
+                        video_refresh_callback,
+                        rumble_callback,
+                    },
+                ));
+            }
+            Err(e) => println!("{:?}", e),
+        }
 
         Ok(())
     }

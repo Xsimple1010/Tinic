@@ -46,9 +46,16 @@ pub fn init_game_loop(
             }
 
             if need_stop_game {
-                core_ctx.take();
-                av_ctx.take();
+                break 'running;
             }
         }
+
+        if let Some(core_ctx) = core_ctx.take() {
+            let _ = retro_ab::core::de_init(core_ctx);
+        };
+        if let Ok(ctr) = &mut controller_ctx.lock() {
+            ctr.resume_thread_events();
+        }
+        av_ctx.take();
     });
 }

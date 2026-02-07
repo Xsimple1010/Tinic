@@ -64,12 +64,6 @@ pub fn stack_handle(
                 }
             }
             StackCommand::Quit => {
-                if let Some(ctx) = core_ctx.take() {
-                    if let Err(e) = core::de_init(ctx) {
-                        println!("{:?}", e);
-                    }
-                }
-
                 need_stop = true;
                 break;
             }
