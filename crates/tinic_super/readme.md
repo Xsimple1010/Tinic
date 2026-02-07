@@ -37,7 +37,6 @@ Ele garante que esses recursos estejam:
 - Capas de jogos
 - Títulos estilizados
 - Screenshots
-- Organização por sistema e nome do jogo
 
 ### 🗄️ RDB (Retro Database)
 Bancos de dados com metadados de jogos, como:
