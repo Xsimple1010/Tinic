@@ -276,13 +276,13 @@ impl InputValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use generics::test_workdir::get_rom_test_path;
+    use generics::test_workdir::get_test_rom_path;
     use std::fs::File;
     use tempfile::TempDir;
 
     #[test]
     fn test_validate_file_path_success() {
-        let rom_path = get_rom_test_path();
+        let rom_path = get_test_rom_path();
         let result = InputValidator::validate_file_path(&rom_path.display().to_string());
         assert!(result.is_ok());
     }

@@ -3,7 +3,7 @@ use std::sync::atomic::Ordering;
 use crate::common::setup::get_core_test;
 use generics::{
     error_handle::ErrorHandle,
-    test_workdir::{get_rom_test_path, remove_test_work_dir_path},
+    test_workdir::{get_test_rom_path, remove_test_work_dir_path},
 };
 use libretro_sys::binding_libretro::{retro_hw_context_type, retro_pixel_format};
 
@@ -57,7 +57,7 @@ fn test_core_initial_state_and_after_load() -> Result<(), ErrorHandle> {
     // 🔹  DEPOIS DO LOAD_GAME
     // =========================
 
-    core.load_game(&get_rom_test_path().display().to_string())?;
+    core.load_game(&get_test_rom_path().display().to_string())?;
     assert!(core.game_loaded.load(Ordering::SeqCst));
 
     // ---------- GEOMETRY ----------

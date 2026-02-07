@@ -1,7 +1,7 @@
 use generics::{
     error_handle::ErrorHandle,
     retro_paths::RetroPaths,
-    test_workdir::{create_test_work_dir_path, get_core_test_path},
+    test_workdir::{create_test_work_dir_path, get_test_core_path},
 };
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use retro_core::{
@@ -112,7 +112,7 @@ pub fn get_core_test(project_name: &str) -> Result<RetroCoreIns, ErrorHandle> {
         .to_string();
 
     RetroCore::new(
-        &get_core_test_path(),
+        &get_test_core_path(),
         RetroPaths::from_base(&test_dir)?,
         get_callbacks(),
         GraphicApi::default(),

@@ -1,5 +1,5 @@
 use generics::test_workdir::{
-    create_test_work_dir_path, get_core_test_path, get_rom_test_path, remove_test_work_dir_path,
+    create_test_work_dir_path, get_test_core_path, get_test_rom_path, remove_test_work_dir_path,
 };
 use tinic::{
     self, DeviceListener, ErrorHandle, GameState, RetroGamePad, SaveStateInfo, Tinic,
@@ -56,8 +56,8 @@ fn main() -> Result<(), ErrorHandle> {
     let test_dir = "tinic_example";
 
     let game_info = TinicGameInfo {
-        core: get_core_test_path().display().to_string(),
-        rom: get_rom_test_path().display().to_string(),
+        core: get_test_core_path().display().to_string(),
+        rom: get_test_rom_path().display().to_string(),
         sys_dir: create_test_work_dir_path(test_dir).display().to_string(),
     };
 

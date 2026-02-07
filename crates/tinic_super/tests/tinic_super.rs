@@ -2,7 +2,7 @@
 mod test {
     use generics::{
         retro_paths::RetroPaths,
-        test_workdir::{create_test_work_dir_path, get_rom_test_path},
+        test_workdir::{create_test_work_dir_path, get_test_rom_path},
     };
     use std::{path::PathBuf, sync::Arc};
     use tinic_super::{
@@ -180,7 +180,7 @@ mod test {
     async fn rom_identifier() {
         let (_tinic_super, work_dir) = setup("tinic_super..rom_identifier").await;
 
-        let path = get_rom_test_path();
+        let path = get_test_rom_path();
 
         let ident = GameIdentifier::new(path.clone()).await.unwrap();
 

@@ -31,10 +31,10 @@ pub fn workspace_root() -> PathBuf {
     }
 }
 
-pub fn get_core_test_path() -> PathBuf {
+pub fn get_test_core_path() -> PathBuf {
     workspace_root().join("tests/assets/mesen_libretro.so")
 }
 
-pub fn get_rom_test_path() -> PathBuf {
+pub fn get_test_rom_path() -> PathBuf {
     workspace_root().join("tests/assets/240pTestSuite.nes")
 }
