@@ -1,6 +1,5 @@
 use tinic::{
-    self, args_manager::RetroArgs, DeviceListener, ErrorHandle, RetroGamePad, Tinic,
-    TinicGameInfo,
+    self, args_manager::RetroArgs, DeviceListener, ErrorHandle, RetroGamePad, Tinic, TinicGameInfo,
 };
 
 #[derive(Debug, Default)]
@@ -33,7 +32,7 @@ fn main() -> Result<(), ErrorHandle> {
             sys_dir: "/home/aderval/Downloads/RetroArch_cores".to_string(),
         };
 
-        let mut game_instance = tinic.create_game_instance(game_info)?;
+        let game_instance = tinic.create_game_instance(game_info)?;
         tinic.run(game_instance)?;
     }
     Ok(())
