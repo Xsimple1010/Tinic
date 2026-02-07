@@ -1,7 +1,7 @@
 use crate::{
     generics::error_handle::ErrorHandle,
     retro_controllers::{devices_manager::DeviceListener, RetroController},
-    tinic_app::{GameInstanceActions, TinicGameInstance},
+    tinic_app::{GameInstance, GameInstanceActions},
     tinic_app_ctx::TinicGameCtx,
 };
 use generics::{
@@ -26,11 +26,11 @@ impl Tinic {
     pub fn new(listener: Box<dyn DeviceListener>) -> Result<Tinic, ErrorHandle> {
         let proxy = TMutex::new(None);
 
-        let tinic_listener = DeviceHandle {
+        let devices_listener = DeviceHandle {
             listener,
             proxy: proxy.clone(),
         };
-        let controller = Arc::new(RetroController::new(Box::new(tinic_listener))?);
+        let controller = Arc::new(RetroController::new(Box::new(devices_listener))?);
 
         Ok(Self {
             controller,
@@ -44,10 +44,10 @@ impl Tinic {
         core_path: String,
         rom_path: String,
         retro_paths: RetroPaths,
-    ) -> Result<TinicGameInstance, ErrorHandle> {
+    ) -> Result<GameInstance, ErrorHandle> {
         let ctx = TinicGameCtx::new(retro_paths, core_path, rom_path, self.controller.clone())?;
 
-        let (game_instance, event_loop) = TinicGameInstance::new(ctx);
+        let (game_instance, event_loop) = GameInstance::new(ctx);
 
         self.proxy.store(Some(event_loop.create_proxy()));
         self.event_loop.replace(event_loop);
@@ -55,7 +55,7 @@ impl Tinic {
         Ok(game_instance)
     }
 
-    pub fn run(&mut self, mut game_instance: TinicGameInstance) -> Result<(), ErrorHandle> {
+    pub fn run(&mut self, mut game_instance: GameInstance) -> Result<(), ErrorHandle> {
         if let Some(event_loop) = self.event_loop.take() {
             event_loop.run_app(&mut game_instance).unwrap();
         }
@@ -65,7 +65,7 @@ impl Tinic {
 
     pub fn pop_event(
         &mut self,
-        game_instance: &mut TinicGameInstance,
+        game_instance: &mut GameInstance,
     ) -> Result<PumpStatus, ErrorHandle> {
         if let Some(event_loop) = self.event_loop.as_mut() {
             Ok(event_loop.pump_app_events(None, game_instance))

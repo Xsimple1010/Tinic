@@ -1,6 +1,7 @@
 use crate::tinic_app_ctx::TinicGameCtx;
 use generics::error_handle::ErrorHandle;
 use retro_controllers::devices_manager::Device;
+use winit::event_loop::EventLoopClosed;
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
@@ -9,14 +10,9 @@ use winit::{
     window::WindowId,
 };
 
-pub struct TinicGameInstance {
-    ctx: TinicGameCtx,
-    proxy: EventLoopProxy<GameInstanceActions>,
-    pub default_slot: usize,
-}
-
 pub enum GameInstanceActions {
     ConnectDevice(Device),
+    ChangeDefaultSlot(usize),
     Pause,
     Resume,
     SaveState(usize),
@@ -24,7 +20,54 @@ pub enum GameInstanceActions {
     Exit,
 }
 
-impl TinicGameInstance {
+pub struct GameInstance {
+    ctx: TinicGameCtx,
+    proxy: EventLoopProxy<GameInstanceActions>,
+    pub default_slot: usize,
+}
+pub struct GameInstanceDispatchers {
+    proxy: EventLoopProxy<GameInstanceActions>,
+}
+
+impl GameInstanceDispatchers {
+    pub fn exit(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+        self.proxy.send_event(GameInstanceActions::Exit)
+    }
+
+    pub fn pause(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+        self.proxy.send_event(GameInstanceActions::Pause)
+    }
+
+    pub fn resume(&self) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+        self.proxy.send_event(GameInstanceActions::Resume)
+    }
+
+    pub fn load_state(&self, slot: usize) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+        self.proxy.send_event(GameInstanceActions::LoadState(slot))
+    }
+
+    pub fn save_state(&self, slot: usize) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+        self.proxy.send_event(GameInstanceActions::SaveState(slot))
+    }
+
+    pub fn change_default_slot(
+        &self,
+        slot: usize,
+    ) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+        self.proxy
+            .send_event(GameInstanceActions::ChangeDefaultSlot(slot))
+    }
+
+    pub fn connect_device(
+        &self,
+        device: Device,
+    ) -> Result<(), EventLoopClosed<GameInstanceActions>> {
+        self.proxy
+            .send_event(GameInstanceActions::ConnectDevice(device))
+    }
+}
+
+impl GameInstance {
     pub fn new(ctx: TinicGameCtx) -> (Self, EventLoop<GameInstanceActions>) {
         let event_loop = EventLoop::<GameInstanceActions>::with_user_event()
             .build()
@@ -42,59 +85,22 @@ impl TinicGameInstance {
         )
     }
 
-    pub fn exit(&self) {
-        let _ = self.proxy.send_event(GameInstanceActions::Exit);
-    }
-
-    pub fn pause(&self) {
-        let _ = self.proxy.send_event(GameInstanceActions::Pause);
-    }
-
-    pub fn resume(&self) {
-        let _ = self.proxy.send_event(GameInstanceActions::Resume);
-    }
-
-    pub fn load_state(&self, slot: usize) {
-        let _ = self.proxy.send_event(GameInstanceActions::LoadState(slot));
-    }
-
-    pub fn save_state(&self, slot: usize) {
-        let _ = self.proxy.send_event(GameInstanceActions::SaveState(slot));
+    pub fn create_dispatcher(&self) -> GameInstanceDispatchers {
+        GameInstanceDispatchers {
+            proxy: self.proxy.clone(),
+        }
     }
 
     pub fn change_default_slot(&mut self, slot: usize) {
         self.default_slot = slot;
     }
-
-    pub fn connect_device(&self, device: Device) {
-        let _ = self
-            .proxy
-            .send_event(GameInstanceActions::ConnectDevice(device));
-    }
 }
 
-impl ApplicationHandler<GameInstanceActions> for TinicGameInstance {
+impl ApplicationHandler<GameInstanceActions> for GameInstance {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if let Err(e) = self.ctx.create_window(event_loop) {
             println!("{:?}", e);
             event_loop.exit();
-        }
-    }
-
-    fn suspended(&mut self, _: &ActiveEventLoop) {
-        self.ctx.suspend_window();
-    }
-
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        if let Err(e) = self.ctx.redraw_request() {
-            println!("{:?}", e);
-            event_loop.exit();
-        }
-    }
-
-    fn exiting(&mut self, _: &ActiveEventLoop) {
-        if let Err(e) = self.ctx.close_retro_ctx() {
-            println!("{:?}", e);
         }
     }
 
@@ -103,6 +109,10 @@ impl ApplicationHandler<GameInstanceActions> for TinicGameInstance {
             GameInstanceActions::ConnectDevice(device) => self.ctx.connect_controller(device),
             GameInstanceActions::LoadState(slot) => self.ctx.load_state(slot),
             GameInstanceActions::SaveState(slot) => self.ctx.save_state(slot),
+            GameInstanceActions::ChangeDefaultSlot(slot) => {
+                self.default_slot = slot;
+                Ok(())
+            }
             GameInstanceActions::Pause => {
                 self.ctx.pause();
                 Ok(())
@@ -162,6 +172,23 @@ impl ApplicationHandler<GameInstanceActions> for TinicGameInstance {
         if let Err(e) = result {
             println!("{:?}", e);
             event_loop.exit();
+        }
+    }
+
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        if let Err(e) = self.ctx.redraw_request() {
+            println!("{:?}", e);
+            event_loop.exit();
+        }
+    }
+
+    fn suspended(&mut self, _: &ActiveEventLoop) {
+        self.ctx.suspend_window();
+    }
+
+    fn exiting(&mut self, _: &ActiveEventLoop) {
+        if let Err(e) = self.ctx.close_retro_ctx() {
+            println!("{:?}", e);
         }
     }
 }
