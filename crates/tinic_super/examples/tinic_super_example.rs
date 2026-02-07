@@ -1,6 +1,6 @@
 use generics::retro_paths::RetroPaths;
 use tinic_super::{
-    FileProgress, core_info::helper::CoreInfoHelper, database::helper::DatabaseHelper,
+    core_info::helper::CoreInfoHelper, database::helper::DatabaseHelper, FileProgress,
 };
 
 #[tokio::main]
@@ -29,7 +29,7 @@ async fn main() {
     .await
     .unwrap();
 
-    let rdbs = DatabaseHelper::get_instaled_rdb(&paths).unwrap();
+    let rdbs = DatabaseHelper::get_installed_rdb(&paths).unwrap();
 
     for rdb in rdbs {
         println!("{rdb:?}")
