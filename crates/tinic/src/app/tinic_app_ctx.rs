@@ -1,5 +1,5 @@
 use crate::app::listener::{GameState, WindowState};
-use crate::{SaveStateInfo, TinicGameInfo, WindowListener};
+use crate::{TinicGameInfo, WindowListener};
 use generics::retro_paths::RetroPaths;
 use generics::{constants::SAVE_IMAGE_EXTENSION_FILE, error_handle::ErrorHandle};
 use libretro_sys::binding_libretro::retro_hw_context_type;
@@ -209,8 +209,7 @@ impl TinicGameCtx {
         let img = file_err_handle(img_path)?;
         let file = file_err_handle(save_path)?;
 
-        self.window_listener
-            .save_state_result(Some(SaveStateInfo { file, img }));
+        self.window_listener.save_state_result(Some((file, img)));
 
         Ok(())
     }
