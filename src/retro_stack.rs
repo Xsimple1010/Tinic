@@ -2,17 +2,21 @@ use std::sync::{Arc, Mutex};
 
 use retro_ab::{core::RetroEnvCallbacks, paths::Paths};
 
+//facilita o reconhecimento dos atributos usando a intellisense da ide
+type CorePath = String;
+type RomPath = String;
+
 #[derive(Clone)]
 pub enum StackCommand {
-    LoadCore(String, Paths, RetroEnvCallbacks),
-    LoadGame(String),
-    UnloadGame,
+    //core, rom, paths, callbacks
+    LoadGame(CorePath, RomPath, Paths, RetroEnvCallbacks),
+    StopGame,
     SaveState,
     LoadState,
     Pause,
     Resume,
     UpdateControllers,
-    GameQuit,
+    Quit,
     Reset,
 }
 
