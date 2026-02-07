@@ -16,6 +16,7 @@ use glutin::{
 use glutin_winit::{DisplayBuilder, GlWindow};
 use raw_window_handle::HasWindowHandle;
 use retro_core::av_info::AvInfo;
+use winit::dpi::PhysicalSize;
 use winit::window::Fullscreen;
 
 pub struct RetroGlWindow {
@@ -118,7 +119,7 @@ impl RetroGlWindow {
     pub fn new(event_loop: &ActiveEventLoop, av_info: &Arc<AvInfo>) -> Self {
         let attributes = Window::default_attributes()
             .with_title("Tinic")
-            .with_inner_size(winit::dpi::PhysicalSize::new(800, 480))
+            .with_inner_size(PhysicalSize::new(800, 480))
             .with_transparent(false);
 
         // First we start by opening a new Window
@@ -133,6 +134,7 @@ impl RetroGlWindow {
             .unwrap();
 
         let window = window.unwrap();
+        window.set_min_inner_size(Some(PhysicalSize::new(800, 480)));
 
         // Create gl context.
         let gl_context = create_gl_context(&window, &gl_config).treat_as_possibly_current();
