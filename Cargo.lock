@@ -3546,8 +3546,16 @@ dependencies = [
 name = "tinic_ipc"
 version = "0.1.2"
 dependencies = [
- "serde",
  "serde_json",
+ "tinic",
+ "tinic_ipc_protocol",
+]
+
+[[package]]
+name = "tinic_ipc_protocol"
+version = "0.1.0"
+dependencies = [
+ "serde",
  "tinic",
 ]
 

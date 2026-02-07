@@ -1,3 +1,2 @@
-pub mod protocol;
-pub mod stdin_reader;
-pub mod stdout_writer;
+pub(crate) mod stdin_reader;
+pub(crate) mod stdout_writer;

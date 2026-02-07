@@ -9,6 +9,7 @@ use crate::device_listener::DeviceEventHandle;
 use crate::game_loop::game_loop;
 use crate::io::stdin_reader::StdinReader;
 use crate::io::stdout_writer::StdoutWriter;
+use std::sync::atomic::Ordering;
 use tinic::{ErrorHandle, GameState, Tinic, WindowListener, WindowState};
 
 struct WindowEvents {
@@ -21,6 +22,16 @@ impl WindowListener for WindowEvents {
     }
 
     fn game_state_change(&self, state: GameState) {
+        match &state {
+            GameState::Closed => {
+                self.app_state.game_loaded.store(false, Ordering::SeqCst);
+            }
+            GameState::Running => {
+                self.app_state.game_loaded.store(true, Ordering::SeqCst);
+            }
+            _ => {}
+        };
+
         let _ = StdoutWriter::game_state_change(state);
     }
 
