@@ -18,6 +18,10 @@ const BLACKLIST_EXTENSIONS: &[&str] = &[
 
 impl GameIdentifier {
     pub async fn new(path: PathBuf) -> Result<Self, ErrorHandle> {
+        if !Self::is_probably_rom(&path) {
+            return Err(ErrorHandle::new("arquivo invalido"));
+        }
+
         let file = File::open(path.clone()).await?;
         let size = file.metadata().await?.len();
         let crc = crc32_file(file).await?;
@@ -59,12 +63,11 @@ impl GameIdentifier {
                 continue;
             }
 
-            if !Self::is_probably_rom(&dir_entry.path()) {
-                continue;
-            }
+            let res = GameIdentifier::new(dir_entry.path()).await;
 
-            let ident = GameIdentifier::new(dir_entry.path()).await?;
-            out.push(ident);
+            if let Ok(ident) = res {
+                out.push(ident);
+            }
         }
 
         Ok(out)
