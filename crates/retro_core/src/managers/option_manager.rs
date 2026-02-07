@@ -1,3 +1,5 @@
+use crate::tools::ffi_tools::get_arc_string_from_ptr;
+use crate::tools::mutex_tools::get_string_mutex_from_ptr;
 use crate::{
     libretro_sys::binding_libretro::{
         retro_core_option_v2_category, retro_core_option_v2_definition, retro_core_options_v2,
@@ -6,46 +8,49 @@ use crate::{
     tools::mutex_tools::get_string_rwlock_from_ptr,
 };
 use generics::constants::{CORE_OPTION_EXTENSION_FILE, MAX_CORE_OPTIONS};
+use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
+use std::sync::Arc;
 use std::{
     fs::File,
     io::{Read, Write},
     path::PathBuf,
-    sync::RwLock,
+    sync::{Mutex, RwLock},
 };
 
 #[derive(Default, Debug)]
 pub struct Values {
-    pub value: RwLock<String>,
-    pub label: RwLock<String>,
+    pub value: Mutex<String>,
+    pub label: Arc<String>,
 }
 
 #[derive(Default, Debug)]
-pub struct Options {
-    pub key: RwLock<String>,
-    pub visibility: RwLock<bool>,
+pub struct CoreOpt {
+    pub key: Arc<String>,
+    pub visibility: AtomicBool,
+    pub need_update: AtomicBool,
     pub selected: RwLock<String>,
-    pub desc: RwLock<String>,
-    pub desc_categorized: RwLock<String>,
-    pub info: RwLock<String>,
-    pub info_categorized: RwLock<String>,
-    pub category_key: RwLock<String>,
-    pub values: RwLock<Vec<Values>>,
-    pub default_value: RwLock<String>,
+    pub desc: Arc<String>,
+    pub desc_categorized: Arc<String>,
+    pub info: Arc<String>,
+    pub info_categorized: Arc<String>,
+    pub category_key: Arc<String>,
+    pub values: Mutex<Vec<Values>>,
+    pub default_value: Arc<String>,
 }
 
 #[derive(Default, Debug)]
 pub struct Categories {
-    pub key: RwLock<String>,
-    pub info: RwLock<String>,
-    pub desc: RwLock<String>,
+    pub key: Arc<String>,
+    pub info: Arc<String>,
+    pub desc: Arc<String>,
 }
 
 #[derive(Default, Debug)]
 pub struct OptionManager {
     pub file_path: RwLock<PathBuf>,
     pub categories: RwLock<Vec<Categories>>,
-    pub updated: RwLock<bool>,
-    pub opts: RwLock<Vec<Options>>,
+    pub updated_count: AtomicU16,
+    pub opts: Mutex<Vec<CoreOpt>>,
 }
 
 impl OptionManager {
@@ -53,10 +58,10 @@ impl OptionManager {
         let file_path = PathBuf::from(opt_path).join(library_name + CORE_OPTION_EXTENSION_FILE);
 
         OptionManager {
-            updated: RwLock::new(true),
+            updated_count: AtomicU16::new(0),
             categories: RwLock::new(Vec::new()),
             file_path: RwLock::new(file_path),
-            opts: RwLock::new(Vec::new()),
+            opts: Mutex::new(Vec::new()),
         }
     }
 
@@ -66,9 +71,16 @@ impl OptionManager {
     }
 
     pub fn change_visibility(&self, key: &str, visibility: bool) {
-        for opt in &mut *self.opts.write().unwrap() {
-            if opt.key.read().unwrap().eq(key) {
-                *opt.visibility.write().unwrap() = visibility;
+        for core_opt in &mut *self.opts.lock().unwrap() {
+            if !core_opt.key.to_string().eq(key) {
+                continue;
+            }
+
+            core_opt.visibility.store(visibility, Ordering::SeqCst);
+
+            if !visibility && core_opt.need_update.load(Ordering::SeqCst) {
+                core_opt.need_update.store(false, Ordering::SeqCst);
+                self.updated_count.fetch_sub(1, Ordering::SeqCst);
             }
         }
     }
@@ -77,28 +89,35 @@ impl OptionManager {
         let file_path = self.file_path.read().unwrap().clone();
         let mut file = File::create(file_path.clone()).unwrap();
 
-        for opt in &*self.opts.read().unwrap() {
-            let key = opt.key.read().unwrap().clone();
+        for opt in &*self.opts.lock().unwrap() {
+            let key = &*opt.key;
             let selected = opt.selected.read().unwrap().clone();
 
-            let buf = key + "=" + &selected + "\n";
+            let buf = key.to_owned() + "=" + &selected + "\n";
 
             let _ = file.write(buf.as_bytes());
         }
     }
 
     fn change_value_selected(&self, opt_key: &str, new_value_selected: &str) {
-        for opt in &*self.opts.read().unwrap() {
-            if opt.key.read().unwrap().eq(opt_key) {
-                for v in &*opt.values.read().unwrap() {
-                    if *v.value.read().unwrap() == new_value_selected {
-                        *opt.selected.write().unwrap() = new_value_selected.to_string();
-                        *self.updated.write().unwrap() = true;
-                        break;
-                    }
+        for core_opt in &*self.opts.lock().unwrap() {
+            if !core_opt.key.clone().to_string().eq(&opt_key) {
+                continue;
+            }
+
+            for core_value in &*core_opt.values.lock().unwrap() {
+                if *core_value.value.lock().unwrap() != new_value_selected {
+                    continue;
                 }
 
-                break;
+                if !core_opt.need_update.load(Ordering::SeqCst) {
+                    *core_opt.selected.write().unwrap() = new_value_selected.to_string();
+
+                    self.updated_count.fetch_add(1, Ordering::SeqCst);
+                    core_opt.need_update.store(true, Ordering::SeqCst);
+                }
+
+                return;
             }
         }
     }
@@ -155,9 +174,9 @@ impl OptionManager {
 
         for category in categories {
             if !category.key.is_null() {
-                let key = get_string_rwlock_from_ptr(category.key);
-                let info = get_string_rwlock_from_ptr(category.info);
-                let desc = get_string_rwlock_from_ptr(category.desc);
+                let key = get_arc_string_from_ptr(category.key);
+                let info = get_arc_string_from_ptr(category.info);
+                let desc = get_arc_string_from_ptr(category.desc);
 
                 self.categories
                     .write()
@@ -174,29 +193,30 @@ impl OptionManager {
 
         for definition in definitions {
             if !definition.key.is_null() {
-                let key = get_string_rwlock_from_ptr(definition.key);
+                let key = get_arc_string_from_ptr(definition.key);
                 let selected = get_string_rwlock_from_ptr(definition.default_value);
-                let default_value = get_string_rwlock_from_ptr(definition.default_value);
-                let info = get_string_rwlock_from_ptr(definition.info);
-                let desc = get_string_rwlock_from_ptr(definition.desc);
-                let desc_categorized = get_string_rwlock_from_ptr(definition.desc_categorized);
-                let category_key = get_string_rwlock_from_ptr(definition.category_key);
-                let info_categorized = get_string_rwlock_from_ptr(definition.info_categorized);
-                let values = RwLock::new(Vec::new());
+                let default_value = get_arc_string_from_ptr(definition.default_value);
+                let info = get_arc_string_from_ptr(definition.info);
+                let desc = get_arc_string_from_ptr(definition.desc);
+                let desc_categorized = get_arc_string_from_ptr(definition.desc_categorized);
+                let category_key = get_arc_string_from_ptr(definition.category_key);
+                let info_categorized = get_arc_string_from_ptr(definition.info_categorized);
+                let values = Mutex::new(Vec::new());
+                let need_update = AtomicBool::new(false);
 
                 for retro_value in definition.values {
                     if !retro_value.label.is_null() {
-                        let value = get_string_rwlock_from_ptr(retro_value.value);
-                        let label = get_string_rwlock_from_ptr(retro_value.label);
+                        let value = get_string_mutex_from_ptr(retro_value.value);
+                        let label = get_arc_string_from_ptr(retro_value.label);
 
-                        values.write().unwrap().push(Values { label, value });
+                        values.lock().unwrap().push(Values { label, value });
                     }
                 }
 
-                self.opts.write().unwrap().push(Options {
+                self.opts.lock().unwrap().push(CoreOpt {
                     key,
-                    visibility: RwLock::new(true),
                     selected,
+                    visibility: AtomicBool::new(true),
                     default_value,
                     info,
                     desc,
@@ -204,6 +224,7 @@ impl OptionManager {
                     desc_categorized,
                     info_categorized,
                     values,
+                    need_update,
                 })
             } else {
                 break;

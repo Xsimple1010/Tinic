@@ -37,6 +37,7 @@ use ::std::os::raw;
 use generics::constants::{MAX_CORE_CONTROLLER_INFO_TYPES, MAX_CORE_SUBSYSTEM_INFO};
 use libretro_sys::binding_log_interface;
 use std::mem;
+use std::sync::atomic::Ordering;
 use std::{os::raw::c_void, ptr::addr_of, sync::Arc};
 
 #[derive(Clone, Copy, Debug)]
@@ -304,10 +305,9 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
         RETRO_ENVIRONMENT_GET_LANGUAGE => {
             #[cfg(feature = "core_logs")]
             println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
-            *(data as *mut retro_language) = retro_language::RETRO_LANGUAGE_ENGLISH;
             match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => {
-                    *core_ctx.language.lock().unwrap() = *(data as *mut retro_language);
+                    *(data as *mut retro_language) = *core_ctx.language.lock().unwrap();
                 }
                 None => return false,
             }
@@ -350,8 +350,12 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
 
             match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => {
-                    if !core_ctx.options.opts.read().unwrap().is_empty() {
-                        *(data as *mut bool) = *core_ctx.options.updated.read().unwrap()
+                    if !core_ctx.options.opts.lock().unwrap().is_empty() {
+                        if core_ctx.options.updated_count.load(Ordering::SeqCst) > 0 {
+                            *(data as *mut bool) = true;
+                        } else {
+                            *(data as *mut bool) = false;
+                        }
                     } else {
                         *(data as *mut bool) = false;
                     }
@@ -362,11 +366,11 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
             return true;
         }
         RETRO_ENVIRONMENT_SET_VARIABLES => {
-            #[cfg(feature = "core_logs")]
+            // #[cfg(feature = "core_logs")]
             println!("RETRO_ENVIRONMENT_SET_VARIABLES");
         }
         RETRO_ENVIRONMENT_GET_VARIABLE => {
-            #[cfg(feature = "core_logs")]
+            // #[cfg(feature = "core_logs")]
             println!("RETRO_ENVIRONMENT_GET_VARIABLE -> ok");
 
             let raw_variable = data as *const retro_variable;
@@ -377,32 +381,41 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
 
             binding_log_interface::set_variable_value_as_null(data);
 
-            match &*addr_of!(CORE_CONTEXT) {
+            return match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => {
-                    if core_ctx.options.opts.read().unwrap().is_empty() {
+                    let options_manager = &core_ctx.options;
+
+                    if options_manager.updated_count.load(Ordering::SeqCst) < 1 {
                         return true;
                     }
 
                     let raw_variable = *(data as *const retro_variable);
                     let key = get_str_from_ptr(raw_variable.key);
 
-                    for opt in &*core_ctx.options.opts.read().unwrap() {
-                        if opt.key.read().unwrap().eq(&key) {
-                            let new_value = make_c_string(&opt.selected.read().unwrap()).unwrap();
-
-                            let result = binding_log_interface::set_new_value_variable(
-                                data,
-                                new_value.as_ptr(),
-                            );
-
-                            *core_ctx.options.updated.write().unwrap() = false;
-
-                            return result;
+                    for core_opt in &*options_manager.opts.lock().unwrap() {
+                        if !core_opt.key.clone().to_string().eq(&key) {
+                            continue;
                         }
+
+                        if !core_opt.need_update.load(Ordering::SeqCst) {
+                            break;
+                        }
+
+                        options_manager
+                            .updated_count
+                            .fetch_sub(1, Ordering::Acquire);
+                        core_opt.need_update.store(false, Ordering::SeqCst);
+
+                        let new_value = make_c_string(&core_opt.selected.read().unwrap()).unwrap();
+
+                        let _ =
+                            binding_log_interface::set_new_value_variable(data, new_value.as_ptr());
                     }
+
+                    true
                 }
-                _ => return true,
-            }
+                _ => false,
+            };
         }
         RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS => {
             #[cfg(feature = "core_logs")]
@@ -571,7 +584,7 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
             return false;
         }
         RETRO_ENVIRONMENT_SET_VARIABLE => {
-            #[cfg(feature = "core_logs")]
+            // #[cfg(feature = "core_logs")]
             println!("RETRO_ENVIRONMENT_SET_VARIABLE");
         }
         RETRO_ENVIRONMENT_GET_USERNAME => {
