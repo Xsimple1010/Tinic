@@ -5,46 +5,48 @@
 <h1 align="center">Tinic</h1>
 
 <p align="center">
-    Tinic é um runtime para núcleos Libretro que abstrai a API nativa e fornece uma base pronta para 
-    frontends multiplataforma.
+    Tinic is a runtime for Libretro cores that abstracts the native API and provides a ready-to-use foundation for cross-platform frontends.
 </p>
 
-# 🎯 Qual a finalidade do Tinic?
 
-A maioria dos frontends que implementam a API Libretro precisa criar suas próprias camadas de áudio, vídeo e também 
-lidar com os eventos de controles (gamepads) enviados pelo usuário.
+# 🎯 What is Tinic for?
 
-E no pior cenário, se você não estiver usando C ou C++, ainda vai precisar recorrer a FFI (Foreign Function Interface)
-para se comunicar com a API Libretro.
+Most frontends that implement the Libretro API need to create their own
+audio and video layers and also handle controller (gamepad) input events
+sent by the user.
 
-Tudo isso torna o desenvolvimento de um frontend muito mais complexo e cansativo do que deveria ser.
-Um frontend não deveria ser apenas uma interface amigável para o usuário?
+And in the worst case, if you are not using C or C++, you will still
+need to rely on FFI (Foreign Function Interface) to communicate with the
+Libretro API.
 
-### 👉 A resposta é sim.
+All of this makes frontend development much more complex and exhausting
+than it should be.\
+Shouldn't a frontend simply be a user-friendly interface?
 
-Lidar com implementação de áudio, vídeo e detalhes complexos de FFI não
-deveria ser responsabilidade da camada de interface.\
-E foi exatamente para resolver esse problema que o **Tinic** foi criado.
+### 👉 The answer is yes.
 
-------------------------------------------------------------------------
-
-## 💡 Em poucas palavras
-
-Com o **Tinic**, você pode criar a UI do seu frontend em **qualquer
-linguagem**, sem precisar se preocupar com a complexidade da API
-Libretro.
-
-🧠 O Tinic cuida da parte difícil.\
-🎨 Você foca apenas na experiência do usuário.
+Handling audio, video implementation, and complex FFI details should not
+be the responsibility of the interface layer.\
+And that is exactly why **Tinic** was created.
 
 ------------------------------------------------------------------------
 
-# 🚀 Como usar?
+## 💡 In short
 
-Atualmente existem **duas formas** de usar o Tinic:
+With **Tinic**, you can build your frontend UI in **any language**,
+without worrying about the complexity of the Libretro API.
 
--   **LibTinic** (integração direta em Rust)
--   **Tinic-ipc** (uso a partir de outras linguagens)
+🧠 Tinic handles the hard part.\
+🎨 You focus only on the user experience.
+
+------------------------------------------------------------------------
+
+# 🚀 How to use?
+
+Currently, there are **two ways** to use Tinic:
+
+-   **LibTinic** (direct integration in Rust)
+-   **Tinic-ipc** (use from other programming languages)
 
 ------------------------------------------------------------------------
 
@@ -54,9 +56,9 @@ Atualmente existem **duas formas** de usar o Tinic:
 fn main() -> Result<(), ErrorHandle> {
     let mut tinic = Tinic::new()?;
     
-    // Antes de continuar é preciso registrar os listeners de eventos (obrigatório)
-    // Veja a pasta "crates/tinic/examples" para mais detalhes
-    tinic.set_controle_listener(Box::new(DeviceEventHandle::default()))?;
+    // Before continuing, it is necessary to register event listeners (required)
+    // See the folder "crates/tinic/examples" for more details
+    tinic.set_controller_listener(Box::new(DeviceEventHandle::default()))?;
     tinic.set_window_listener(Box::new(WindowEvents));
 
     let test_dir = "tinic_example";
@@ -74,79 +76,89 @@ fn main() -> Result<(), ErrorHandle> {
 }
 ```
 
-👉 Código completo disponível em:\
+👉 Full code available at:\
 **[`crates/tinic/examples/tinic_run.rs`](crates/tinic/examples/tinic_run.rs)**
 
-### 📢 Como se comunicar com o Tinic?
+### 📢 How to communicate with Tinic?
 
-Para se comunicar com Tinic você precisa criar uma **game_dispatchers**. Não é necessário ter uma janela 
-aberta para isso! Então você pode criar o **game_dispatchers** uma unica vez e usar para todas as chamadas.
+To communicate with Tinic, you need to create a **game_dispatchers**
+instance. It is not necessary to have a window open to do this. You can
+create **game_dispatchers** once and reuse it for all calls.
 
-``` rust 
-   fn main() -> Result<(), ErrorHandle> {
-        let mut tinic = create_tinic()?;
-        let dispatch = tinic.get_game_dispatchers();
-        
-        // troca o slot atual(default: 1) para o slot 2
-        let _ = dispatch.change_default_slot(2);
-        
-        // salva o state atual no slot 2
-        let _ = dispatch.save_state(2);
+``` rust
+fn main() -> Result<(), ErrorHandle> {
+    let mut tinic = create_tinic()?;
+    let dispatch = tinic.get_game_dispatchers();
     
-        // carrega o state salvo no slot 2
-        let _ = dispatch.load_state(2);
+    // Change the current slot (default: 1) to slot 2
+    let _ = dispatch.change_default_slot(2);
     
-        // pausa ou resulme o jogo
-        let _ = dispatch.pause();
-        let _ = dispatch.resume();
-        
-        // habilita ou desabilita o teclado, 
-        // por padrão ao conectar uma gamepad o teclado será desabilitado
-        let _ = dispatch.disable_keyboard();
-        let _ = dispatch.enable_keyboard();
+    // Save the current state into slot 2
+    let _ = dispatch.save_state(2);
+
+    // Load the saved state from slot 2
+    let _ = dispatch.load_state(2);
+
+    // Pause or resume the game
+    let _ = dispatch.pause();
+    let _ = dispatch.resume();
     
-        // pega uma lista de dispositivos(gamepads) conectados
-        let devices = tinic.retro_controle.unwrap().get_list()?;
-        
-        // conecta um gamepad
-        let _ = dispatch.connect_device(devices[0].clone().into());
-        
-        // isso fecha a janela do jogo, para criar uma nova janela é necessario
-        // criar uma nova game_instance
-        let _ = dispatch.exit();
-   }
+    // Enable or disable the keyboard.
+    // By default, when a gamepad is connected, the keyboard will be disabled.
+    let _ = dispatch.disable_keyboard();
+    let _ = dispatch.enable_keyboard();
+
+    // Get a list of connected devices (gamepads)
+    let devices = tinic.retro_controller.unwrap().get_list()?;
+    
+    // Connect a gamepad
+    let _ = dispatch.connect_device(devices[0].clone().into());
+    
+    // This closes the game window. To create a new window,
+    // it is necessary to create a new game_instance
+    let _ = dispatch.exit();
+}
 ```
 
 ------------------------------------------------------------------------
 
-## 🌐 Tinic-ipc (Outras linguagens)
+## 🌐 Tinic-ipc (Other Languages)
 
-Como o nome sugere, o **Tinic-ipc** funciona como uma camada de **IPC
-(Inter-Process Communication)** entre o frontend e o backend.
+As the name suggests, **Tinic-ipc** works as an **IPC (Inter-Process
+Communication)** layer between the frontend and the backend.
 
-Isso significa:
+This means:
 
-✅ Sem FFI\
-✅ Sem lidar com C/C++\
-✅ Comunicação simples via **JSON**
+✅ No FFI\
+✅ No dealing with C/C++\
+✅ Simple communication via **JSON**
 
-Em vez de integrações complexas, o seu frontend conversa com o Tinic por
-mensagens.
+Instead of complex integrations, your frontend communicates with Tinic
+through messages.
 
-📌 Exemplo disponível em:\
-**Retronic (frontend usando Tinic-ipc)**\
+📌 Example available at:\
+**Retronic (frontend using Tinic-ipc)**\
 https://github.com/Xsimple1010/retronic/tree/master/native
 
 ------------------------------------------------------------------------
 
-# 🔨 Ferramentas auxiliares
+# 🔨 Supporting Tools
 
-Assim como o **retroarch**, tinic também precisa de arquivos externos como 
-**RDB (banco de dados com coleções de ROMs), Thumbnails, arquivos de informações dos cores e claro os savestates**.
+Like **RetroArch**, Tinic also requires external files such as:
+
+-   **RDB** (database containing ROM collections)
+-   Thumbnails
+-   Core information files
+-   And of course, save states
 
 ### 🗂️ Tinic Super
-O **Tinic Super** é o módulo responsável por gerenciar todos os recursos externos e metadados usados pelo **Tinic**. Veja o [Readme aqui](./crates/tinic_super/readme.md) 
+
+**Tinic Super** is the module responsible for managing all external
+resources and metadata used by **Tinic**.\
+See the [Readme here](./crates/tinic_super/readme.md)
 
 ### 🗄️ Tinic Database
-O **Tinic Database** é um módulo criado para tornar o uso de bancos de dados de jogos muito mais simples
-para desenvolvedores de frontends. Veja o [Readme aqui](./crates/tinic_database/readme.md)
+
+**Tinic Database** is a module created to make working with game
+databases much easier for frontend developers.\
+See the [Readme here](./crates/tinic_database/readme.md)
