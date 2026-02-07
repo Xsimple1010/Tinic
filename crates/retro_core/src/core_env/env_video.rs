@@ -1,9 +1,8 @@
 use super::environment::CORE_CONTEXT;
 #[cfg(feature = "hw")]
 use crate::libretro_sys::binding_libretro::{
-    retro_hw_context_type,
-    retro_hw_render_callback, retro_proc_address_t, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
-    RETRO_ENVIRONMENT_SET_HW_RENDER,
+    retro_hw_context_type, retro_hw_render_callback,
+    retro_proc_address_t, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER, RETRO_ENVIRONMENT_SET_HW_RENDER,
 };
 use crate::{
     libretro_sys::binding_libretro::{
@@ -175,15 +174,14 @@ pub unsafe fn env_cb_av(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_GEOMETRY -> ok");
 
-            let raw_geometry_ptr = data as *mut retro_game_geometry;
+            InputValidator::validate_non_null_ptr(
+                data,
+                "ptr data in RETRO_ENVIRONMENT_SET_GEOMETRY",
+            )?;
 
-            if raw_geometry_ptr.is_null() {
-                return Ok(false);
-            }
+            let raw_geometry_ptr = unsafe { &*(data as *const retro_game_geometry) };
 
-            unsafe {
-                core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr)?;
-            }
+            core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr)?;
 
             Ok(true)
         }

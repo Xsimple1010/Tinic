@@ -3,9 +3,9 @@ use crate::tools::validation::InputValidator;
 use generics::error_handle::ErrorHandle;
 use generics::types::{ArcTMutex, TMutex};
 use libretro_sys::binding_libretro::{
-    LibretroRaw, retro_game_geometry,
-    retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN},
-    retro_system_av_info, retro_system_timing,
+    retro_game_geometry, retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN},
+    retro_system_av_info,
+    retro_system_timing, LibretroRaw,
 };
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, RwLock};
@@ -76,16 +76,10 @@ impl AvInfo {
         }
     }
 
-    /// # Safety
-    ///
-    /// Garanta que o ponteiro *raw geometry ptr* é valido antes de envia para essa função.
-    pub unsafe fn try_set_new_geometry(
+    pub fn try_set_new_geometry(
         &self,
-        raw_geometry_ptr: *const retro_game_geometry,
+        raw_geometry: &retro_game_geometry,
     ) -> Result<(), ErrorHandle> {
-        InputValidator::validate_non_null_ptr(raw_geometry_ptr, "raw_geometry_ptr")?;
-
-        let raw_geometry = unsafe { *raw_geometry_ptr };
         let geometry = &self.video.geometry;
 
         match geometry.aspect_ratio.write() {
