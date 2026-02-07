@@ -5,7 +5,6 @@ extern crate uuid;
 mod av_info;
 mod core_env;
 mod managers;
-mod retro_context;
 mod retro_core;
 mod retro_perf;
 mod tools;

@@ -33,7 +33,6 @@ static mut RAW_TEX_POINTER: RawTextureData = RawTextureData {
 
 //noinspection RsPlaceExpression
 pub fn video_refresh_callback(data: *const c_void, width: c_uint, height: c_uint, pitch: usize) {
-    println!("video_refresh_callback");
     unsafe {
         RAW_TEX_POINTER = RawTextureData {
             data,

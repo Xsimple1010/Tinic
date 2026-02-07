@@ -147,7 +147,7 @@ fn try_render_frame(
     }
 
     // Pede para core gerar novos buffers de video e audio
-    retro_core.core().run()?;
+    retro_core.core.run()?;
     // Exibe os buffers gerados pelo core
     retro_av.get_new_frame();
 

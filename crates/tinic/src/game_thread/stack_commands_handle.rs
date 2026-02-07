@@ -43,7 +43,7 @@ fn create_retro_contexts(
     };
 
     let retro_core = RetroCore::new(&core_path, paths, callbacks, RETRO_HW_CONTEXT_OPENGL_CORE)?;
-    let av_info = retro_core.core().load_game(&rom_path)?;
+    let av_info = retro_core.core.load_game(&rom_path)?;
     let retro_av = RetroAv::new(av_info)?;
 
     Ok((retro_core, retro_av))
@@ -83,7 +83,7 @@ pub fn stack_commands_handle(
                         }
 
                         channel_notify.notify_main_stack(GameLoaded(Some(
-                            new_retro_core.core().options.clone(),
+                            new_retro_core.core.options.clone(),
                         )));
 
                         retro_core.replace(new_retro_core);
@@ -99,7 +99,7 @@ pub fn stack_commands_handle(
             }
             LoadState(slot) => {
                 if let Some(ctx) = retro_core {
-                    match ctx.core().load_state(slot) {
+                    match ctx.core.load_state(slot) {
                         Ok(_) => {
                             channel_notify.notify_main_stack(SaveStateLoaded(true));
                         }
@@ -114,7 +114,7 @@ pub fn stack_commands_handle(
             }
             SaveState(slot) => {
                 if let Some(ctx) = retro_core {
-                    match ctx.core().save_state(slot) {
+                    match ctx.core.save_state(slot) {
                         Ok(saved_path) => {
                             let mut img_path: PathBuf = PathBuf::new();
 
@@ -155,7 +155,7 @@ pub fn stack_commands_handle(
             }
             Reset => {
                 if let Some(ctx) = &retro_core {
-                    if let Err(e) = ctx.core().reset() {
+                    if let Err(e) = ctx.core.reset() {
                         println!("{:?}", e);
                         need_stop = true;
                         break;
@@ -165,7 +165,7 @@ pub fn stack_commands_handle(
             DeviceConnected(device) => {
                 if let Some(ctx) = retro_core {
                     let _ = ctx
-                        .core()
+                        .core
                         .connect_controller(device.retro_port, device.retro_type);
                 }
             }

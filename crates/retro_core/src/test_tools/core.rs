@@ -70,7 +70,6 @@ pub fn get_callbacks() -> RetroEnvCallbacks {
 
 pub fn get_core_wrapper() -> Arc<CoreWrapper> {
     CoreWrapper::new(
-        Uuid::new_v4(),
         CORE_TEST_RELATIVE_PATH,
         get_paths().unwrap(),
         get_callbacks(),

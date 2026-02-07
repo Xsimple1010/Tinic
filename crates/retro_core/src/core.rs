@@ -1,7 +1,6 @@
 pub use crate::av_info::{AvInfo, Geometry, Timing, Video};
 use crate::core_env::{self, RetroEnvCallbacks};
 use crate::graphic_api::GraphicApi;
-use crate::retro_context::RetroContext;
 use crate::tools::game_tools::RomTools;
 use crate::{managers::option_manager::OptionManager, system::System};
 use generics::constants::INVALID_CONTROLLER_PORT;
@@ -14,7 +13,6 @@ use libretro_sys::binding_libretro::LibretroRaw;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
-use uuid::Uuid;
 
 pub type CoreWrapperIns = Arc<CoreWrapper>;
 
@@ -23,7 +21,6 @@ pub struct CoreWrapper {
     ///
     /// Adicionei isso com o proposito de chamar futuras callbacks que serão adicionadas
     /// [RetroContext] dentro das callbacks fornecidas por [environment],
-    retro_ctx_associated: Uuid,
     pub rom_name: RwLock<String>,
     pub initialized: AtomicBool,
     pub game_loaded: AtomicBool,
@@ -38,7 +35,6 @@ pub struct CoreWrapper {
 
 impl CoreWrapper {
     pub fn new(
-        retro_ctx_associated: Uuid,
         core_path: &str,
         paths: RetroPaths,
         callbacks: RetroEnvCallbacks,
@@ -64,7 +60,6 @@ impl CoreWrapper {
             paths,
             options,
             callbacks,
-            retro_ctx_associated,
         });
 
         core_env::configure(core.clone());
@@ -300,11 +295,6 @@ impl CoreWrapper {
         )?;
 
         Ok(())
-    }
-
-    pub fn force_stop(&self) -> Result<(), ErroHandle> {
-        println!("force");
-        RetroContext::get_from_id(&self.retro_ctx_associated)?.delete()
     }
 }
 

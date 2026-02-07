@@ -1,20 +1,19 @@
-use crate::{
-    core::CoreWrapperIns,
-    graphic_api::GraphicApi,
-    retro_context::{RetroContext, RetroCtxIns},
-    RetroEnvCallbacks,
-};
+use crate::core::CoreWrapper;
+use crate::{core::CoreWrapperIns, graphic_api::GraphicApi, RetroEnvCallbacks};
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::retro_hw_context_type;
+use std::sync::atomic::Ordering;
 
 pub struct RetroCore {
-    retro_ctx: RetroCtxIns,
+    pub core: CoreWrapperIns,
 }
 
 impl Drop for RetroCore {
     fn drop(&mut self) {
-        let _ = self.retro_ctx.delete();
+        if self.core.initialized.load(Ordering::SeqCst) {
+            let _ = self.core.de_init();
+        }
     }
 }
 
@@ -25,12 +24,10 @@ impl RetroCore {
         callbacks: RetroEnvCallbacks,
         hw_type: retro_hw_context_type,
     ) -> Result<Self, ErroHandle> {
-        Ok(RetroCore {
-            retro_ctx: RetroContext::new(core_path, paths, callbacks, GraphicApi::with(hw_type))?,
-        })
-    }
+        let core = CoreWrapper::new(core_path, paths, callbacks, GraphicApi::with(hw_type))?;
 
-    pub fn core(&self) -> CoreWrapperIns {
-        self.retro_ctx.core.clone()
+        core.init()?;
+
+        Ok(RetroCore { core })
     }
 }
