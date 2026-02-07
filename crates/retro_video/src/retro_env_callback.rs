@@ -1,20 +1,20 @@
-use crate::video::RetroWindowsContext;
+use crate::raw_texture::RawTextureData;
+use crate::retro_window::RetroWindowContext;
 use generics::error_handle::ErrorHandle;
 use generics::types::ArcTMutex;
 use retro_core::RetroVideoEnvCallbacks;
 use std::ffi::c_void;
 use std::ptr::null;
-use crate::raw_texture::RawTextureData;
 
 pub struct RetroVideoCb {
     texture: ArcTMutex<RawTextureData>,
-    window_ctx: ArcTMutex<Option<Box<dyn RetroWindowsContext>>>,
+    window_ctx: ArcTMutex<Option<Box<dyn RetroWindowContext>>>,
 }
 
 impl RetroVideoCb {
     pub fn new(
         texture: ArcTMutex<RawTextureData>,
-        window_ctx: ArcTMutex<Option<Box<dyn RetroWindowsContext>>>,
+        window_ctx: ArcTMutex<Option<Box<dyn RetroWindowContext>>>,
     ) -> Self {
         Self {
             texture,

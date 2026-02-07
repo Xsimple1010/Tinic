@@ -1,6 +1,5 @@
 use super::render::Render;
 use crate::raw_texture::RawTextureData;
-use crate::video::RetroWindowsContext;
 use crate::winit::{event_loop::ActiveEventLoop, window::Window};
 use glutin::{
     config::{Config, ConfigTemplateBuilder},
@@ -22,6 +21,7 @@ use winit::dpi::PhysicalSize;
 use winit::window::Fullscreen;
 
 pub struct RetroGlWindow {
+    window_mode: RetroWindowMode,
     renderer: Option<Render>,
     gl_context: Option<PossiblyCurrentContext>,
     gl_surface: Option<Surface<WindowSurface>>,
@@ -30,6 +30,7 @@ pub struct RetroGlWindow {
     av_info: Arc<AvInfo>,
 }
 
+use crate::retro_window::{RetroWindowContext, RetroWindowMode};
 use libretro_sys::binding_libretro::retro_hw_context_type;
 use retro_core::graphic_api::GraphicApi;
 
@@ -97,7 +98,7 @@ fn create_gl_context(window: &Window, gl_config: &Config, api: &GraphicApi) -> N
     }
 }
 
-impl RetroWindowsContext for RetroGlWindow {
+impl RetroWindowContext for RetroGlWindow {
     fn request_redraw(&self) {
         self.window.request_redraw();
     }
@@ -137,8 +138,22 @@ impl RetroWindowsContext for RetroGlWindow {
         }
     }
 
-    fn set_full_screen(&mut self, mode: Fullscreen) {
-        self.window.set_fullscreen(Some(mode));
+    fn set_window_mode(&mut self, mode: RetroWindowMode) {
+        self.window_mode = mode;
+
+        match self.window_mode {
+            RetroWindowMode::FullScreen => self
+                .window
+                .set_fullscreen(Some(Fullscreen::Borderless(None))),
+            RetroWindowMode::Windowed => self.window.set_fullscreen(None),
+        }
+    }
+
+    fn toggle_window_model(&mut self) {
+        match self.window_mode { 
+            RetroWindowMode::FullScreen => self.set_window_mode(RetroWindowMode::Windowed),
+            RetroWindowMode::Windowed => self.set_window_mode(RetroWindowMode::FullScreen),
+        }
     }
 
     fn context_destroy(&mut self) {
@@ -205,6 +220,10 @@ impl RetroWindowsContext for RetroGlWindow {
             NonZeroU32::new(height).unwrap(),
         );
     }
+
+    fn draw_context_as_initialized(&self) -> bool {
+        self.gl_context.is_some()
+    }
 }
 
 impl RetroGlWindow {
@@ -227,22 +246,14 @@ impl RetroGlWindow {
         let window = window.unwrap();
         window.set_min_inner_size(Some(window_size));
 
-        let mut gl_win = Self {
+        Self {
             gl_context: None,
             gl_surface: None,
             renderer: None,
             window,
             gl_config,
             av_info: av_info.clone(),
-        };
-
-        // Se o core não precisar de HW inicialize o contexto opengl agora!
-        if av_info.video.graphic_api.major.load(Ordering::SeqCst) == 0
-            && av_info.video.graphic_api.minor.load(Ordering::SeqCst) == 0
-        {
-            gl_win.context_reset();
+            window_mode: RetroWindowMode::Windowed,
         }
-
-        gl_win
     }
 }

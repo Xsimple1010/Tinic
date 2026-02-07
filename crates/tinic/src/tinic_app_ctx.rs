@@ -7,17 +7,17 @@ use libretro_sys::binding_libretro::retro_hw_context_type;
 use retro_audio::RetroAudio;
 use retro_controllers::{RetroController, RetroGamePad};
 use retro_core::{graphic_api::GraphicApi, RetroCore, RetroCoreIns, RetroEnvCallbacks};
-use retro_video::RetroVideo;
+use retro_video::{RetroVideo, RetroWindowMode};
 use winit::dpi::PhysicalSize;
 use winit::keyboard::PhysicalKey;
-use winit::{event_loop::ActiveEventLoop, window::Fullscreen};
+use winit::event_loop::ActiveEventLoop;
 
 pub struct TinicGameCtx {
     retro_video: RetroVideo,
     retro_audio: RetroAudio,
     retro_core: RetroCoreIns,
-    current_full_screen_mode: Fullscreen,
     can_request_new_frames: bool,
+    rom_path: String,
     pub controller: Arc<RetroController>,
 }
 
@@ -44,8 +44,6 @@ impl TinicGameCtx {
             GraphicApi::with(retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE),
         )?;
 
-        retro_core.load_game(&rom_path)?;
-
         let gamepads = controller.get_list()?;
 
         if gamepads.len().eq(&0) {
@@ -62,8 +60,8 @@ impl TinicGameCtx {
             retro_audio,
             retro_core,
             controller,
+            rom_path,
             can_request_new_frames: true,
-            current_full_screen_mode: Fullscreen::Borderless(None),
         })
     }
 
@@ -95,9 +93,20 @@ impl TinicGameCtx {
 
     pub fn create_window(&mut self, event_loop: &ActiveEventLoop) -> Result<(), ErrorHandle> {
         self.retro_video
-            .init(&self.retro_core.av_info.clone(), event_loop)?;
+            .create_window(&self.retro_core.av_info, event_loop)?;
+
+        self.retro_core.load_game(&self.rom_path)?;
+
+        // se o contexto de desenho não for criado pelo core após o load_game,
+        // é necessário criá-lo manualmente!
+        if !self.retro_video.draw_context_as_initialized() {
+            self.retro_video.create_draw_context()?;
+        }
+
         self.retro_audio.init(&self.retro_core.av_info)?;
-        self.retro_core.run()?;
+
+        // essa thread é responsável por verificar o estado atual dos inputs dos controles,
+        // de agora em diante o core fará requisições manuais para verificar os inputs,
         self.controller.stop_thread_events();
 
         Ok(())
@@ -132,7 +141,6 @@ impl TinicGameCtx {
             .prepare_sync(&self.retro_core.av_info)?;
         self.retro_core.run()?;
         self.retro_video.sync.sync_now()?;
-
         Ok(())
     }
 
@@ -161,21 +169,16 @@ impl TinicGameCtx {
     }
 
     pub fn toggle_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
-        match self.current_full_screen_mode {
-            Fullscreen::Borderless(None) => self.disable_full_screen_mode(),
-            _ => self.enable_full_screen_mode(),
-        }
+        self.retro_video.toggle_window_mode()
     }
 
     pub fn enable_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
-        self.current_full_screen_mode = Fullscreen::Borderless(None);
         self.retro_video
-            .set_full_screen(self.current_full_screen_mode.clone())
+            .set_window_mode(RetroWindowMode::FullScreen)
     }
 
     pub fn disable_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
-        self.retro_video
-            .set_full_screen(self.current_full_screen_mode.clone())
+        self.retro_video.set_window_mode(RetroWindowMode::Windowed)
     }
 
     pub fn toggle_can_request_new_frames(&mut self) -> Result<(), ErrorHandle> {

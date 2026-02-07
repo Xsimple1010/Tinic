@@ -1,3 +1,4 @@
+use crate::raw_texture::RawTextureData;
 use generics::error_handle::ErrorHandle;
 use image::{ImageBuffer, RgbImage};
 use libretro_sys::binding_libretro::retro_pixel_format;
@@ -6,7 +7,6 @@ use std::{
     path::{Path, PathBuf},
     sync::Arc,
 };
-use crate::raw_texture::RawTextureData;
 
 pub struct PrintScree;
 
@@ -42,13 +42,16 @@ impl PrintScree {
 
         let width = raw_texture.width as usize;
         let height = raw_texture.height as usize;
+        // bit por pixel
+        let bpp = 4;
+        // padding + width * bpp
         let pitch = raw_texture.pitch;
 
-        let mut img_buffer = Vec::with_capacity(width * height * 3);
+        let mut img_buffer = Vec::with_capacity(height * width * 3);
 
-        for y in 0..height {
-            let row_ptr = unsafe { data_ptr.add(y * pitch) };
-            let rows: &[u8] = unsafe { std::slice::from_raw_parts(row_ptr, width * 4) };
+        for row_index in 0..height {
+            let row_ptr = unsafe { data_ptr.add(row_index * pitch) };
+            let rows: &[u8] = unsafe { std::slice::from_raw_parts(row_ptr, width * bpp) };
 
             for pixel in rows.chunks_exact(4) {
                 let b = pixel[0];

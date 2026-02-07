@@ -1,5 +1,6 @@
 use crate::raw_texture::RawTextureData;
 use crate::retro_env_callback::RetroVideoCb;
+use crate::retro_window::{RetroWindowContext, RetroWindowMode};
 use crate::sync::RetroSync;
 use crate::{print_scree::PrintScree, retro_gl::window::RetroGlWindow};
 use generics::{
@@ -14,26 +15,10 @@ use std::{
     path::{Path, PathBuf},
     sync::Arc,
 };
-use winit::{event_loop::ActiveEventLoop, window::Fullscreen};
-
-pub trait RetroWindowsContext {
-    fn request_redraw(&self);
-
-    fn draw_new_frame(&self, texture: &RawTextureData);
-
-    fn get_proc_address(&self, proc_name: &str) -> *const ();
-
-    fn set_full_screen(&mut self, mode: Fullscreen);
-
-    fn context_destroy(&mut self);
-
-    fn context_reset(&mut self);
-
-    fn resize(&mut self, width: u32, height: u32);
-}
+use winit::event_loop::ActiveEventLoop;
 
 pub struct RetroVideo {
-    window_ctx: ArcTMutex<Option<Box<dyn RetroWindowsContext>>>,
+    window_ctx: ArcTMutex<Option<Box<dyn RetroWindowContext>>>,
     texture: ArcTMutex<RawTextureData>,
     pub sync: RetroSync,
 }
@@ -47,7 +32,7 @@ impl RetroVideo {
         }
     }
 
-    pub fn init(
+    pub fn create_window(
         &mut self,
         av_info: &Arc<AvInfo>,
         event_loop: &ActiveEventLoop,
@@ -67,6 +52,30 @@ impl RetroVideo {
         };
 
         Ok(())
+    }
+
+    pub fn create_draw_context(&self) -> Result<(), ErrorHandle> {
+        let window_ctx = &mut *self.window_ctx.try_load()?;
+
+        let window_ctx = match window_ctx {
+            Some(ctx) => ctx,
+            None => return Err(ErrorHandle::new("windows context is not initialized")),
+        };
+
+        window_ctx.context_reset();
+        Ok(())
+    }
+
+    pub fn draw_context_as_initialized(&self) -> bool {
+        let window_ctx = match self.window_ctx.try_load() {
+            Ok(ctx) => ctx,
+            Err(_) => return false,
+        };
+
+        match &*window_ctx {
+            Some(ctx) => ctx.draw_context_as_initialized(),
+            None => false,
+        }
     }
 
     pub fn destroy_window(&self) {
@@ -90,9 +99,16 @@ impl RetroVideo {
         )
     }
 
-    pub fn set_full_screen(&mut self, mode: Fullscreen) -> Result<(), ErrorHandle> {
+    pub fn toggle_window_mode(&mut self) -> Result<(), ErrorHandle> {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
-            win.set_full_screen(mode);
+            win.toggle_window_model();
+        }
+        Ok(())
+    }
+
+    pub fn set_window_mode(&mut self, mode: RetroWindowMode) -> Result<(), ErrorHandle> {
+        if let Some(win) = &mut *self.window_ctx.try_load()? {
+            win.set_window_mode(mode);
         }
         Ok(())
     }

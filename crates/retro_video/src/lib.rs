@@ -8,9 +8,11 @@ mod print_scree;
 mod raw_texture;
 mod retro_env_callback;
 mod retro_gl;
+mod retro_window;
 mod sync;
 mod video;
 
 pub use retro_env_callback::RetroVideoCb;
-pub use video::RetroVideo;
+pub use retro_window::RetroWindowMode;
 pub use sync::SyncData;
+pub use video::RetroVideo;
