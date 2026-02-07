@@ -1,0 +1,47 @@
+{
+    // Use o IntelliSense para saber mais sobre os atributos possíveis.
+    // Focalizar para exibir as descrições dos atributos existentes.
+    // Para obter mais informações, acesse: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'tinic'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=tinic",
+                ],
+                "filter": {
+                    "name": "tinic",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--core=C:/WFL/cores/test.dll",
+                "--rom=C:/WFL/roms/teste.sfc"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'retro_ab'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=retro_ab",
+                    "--package=retro_ab"
+                ],
+                "filter": {
+                    "name": "retro_ab",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
