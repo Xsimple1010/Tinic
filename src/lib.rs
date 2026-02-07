@@ -64,11 +64,15 @@ impl Tinic {
     }
 
     pub fn save_state(&self) {
-        self.stack.push(StackCommand::SaveState)
+        self.stack.push(StackCommand::SaveState);
     }
 
     pub fn load_state(&self) {
-        self.stack.push(StackCommand::LoadState)
+        self.stack.push(StackCommand::LoadState);
+    }
+
+    pub fn quit_game(&self) {
+        self.stack.push(StackCommand::GameQuit);
     }
 
     // pub fn unload_game(&self) {

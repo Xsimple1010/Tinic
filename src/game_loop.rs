@@ -3,7 +3,10 @@ use std::{
     thread,
 };
 
-use retro_ab::core::{self, RetroContext};
+use retro_ab::{
+    core::{self, RetroContext},
+    retro_sys::retro_log_level,
+};
 use retro_ab_av::{context::RetroAvCtx, Event, Keycode};
 use retro_ab_gamepad::retro_gamepad::RetroGamePad;
 
@@ -47,9 +50,18 @@ pub fn init_game_loop(
                 }
             }
 
-            if !_pause && *core_ctx.core.game_loaded.lock().unwrap() {
-                core::run(&core_ctx).expect("msg");
-                av_ctx.get_new_frame().expect("");
+            if !_pause {
+                match core::run(&core_ctx) {
+                    Ok(..) => {
+                        if av_ctx.get_new_frame().is_err() {
+                            break 'running;
+                        }
+                    }
+                    Err(e) => match e.level {
+                        retro_log_level::RETRO_LOG_ERROR => break 'running,
+                        _ => println!("{:?}", e),
+                    },
+                };
             }
 
             for event in event_pump.poll_iter() {

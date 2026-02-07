@@ -1,5 +1,4 @@
 use std::env;
-
 use tinic::{self, args_manager, test_tools, Tinic};
 
 fn main() -> Result<(), String> {
@@ -14,6 +13,7 @@ fn main() -> Result<(), String> {
         .expect("O caminho para o rom nao foi fornecido tente --rom=caminho_pra_rom_aqui!");
 
     let mut tinic = Tinic::new();
+
     tinic.load(
         core_path,
         rom_path.to_string(),
