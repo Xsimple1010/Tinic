@@ -26,7 +26,12 @@ impl CoreInfoHelper {
     }
 
     pub async fn install_core(&self, core_file_name: Vec<String>) {
-        install_core(self.retro_paths.clone(), core_file_name).await;
+        install_core(
+            self.retro_paths.clone(),
+            core_file_name,
+            self.event_listener.clone(),
+        )
+        .await;
     }
 
     pub fn has_core_installed(&self) -> bool {
