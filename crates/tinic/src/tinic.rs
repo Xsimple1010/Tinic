@@ -99,7 +99,7 @@ impl Tinic {
 
         Creates a **GameInstance** responsible for running the game.
 
-        Use the **get_game_dispatchers()** function to retrieve the game dispatchers,
+        Use the **Tinic::get_game_dispatchers()** function to retrieve the game dispatchers,
         which are used to handle game events.
     "]
     pub fn create_game_instance(
