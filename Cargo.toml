@@ -10,6 +10,7 @@ retro_ab_gamepad = { path = "../retro_ab_gamepad" }
 retro_ab = { git = "https://github.com/Xsimple1010/retro_ab_rs.git" }
 retro_ab_av = { git = "https://github.com/Xsimple1010/retro_ab_av.git" }
 lazy_static = "1.4.0"
+async-std = "1.13.0"
 
 [[example]]
 name = "tinic_example"

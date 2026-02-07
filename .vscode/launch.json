@@ -20,8 +20,8 @@
                 
             },
             "args": [
-                "--core=cores/test.dll",
-                "--rom=roms/Mega Man X (E).smc"
+                "--core=C:/RetroArch-Win64/cores/mednafen_psx_hw_libretro.dll",
+                "--rom=C:/Users/aderv/Downloads/MegaManX6(USA).chd"
             ],
             "cwd": "${workspaceFolder}"
         },

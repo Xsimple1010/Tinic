@@ -13,7 +13,7 @@ fn main() -> Result<(), ErroHandle> {
 
     let mut tinic = Tinic::new(Some(device_state_listener))?;
 
-    tinic.load_core(&args.core, &args.rom, get_paths()?)?;
+    let _state = tinic.load_game(&args.core, &args.rom, get_paths()?)?;
 
     'running: loop {
         println!("Para interagir digite o numero de um dos comandos disponíveis!");
@@ -45,7 +45,7 @@ fn main() -> Result<(), ErroHandle> {
                 } else if command.starts_with("6") {
                     tinic.quit();
                 } else if command.starts_with("7") {
-                    tinic.load_core(&args.core, &args.rom, get_paths()?)?;
+                    tinic.load_game(&args.core, &args.rom, get_paths()?)?;
                 }
 
                 println!();

@@ -8,8 +8,41 @@ pub struct ModelStackManager<T> {
 pub trait RetroStackFn<T> {
     fn push(&self, command: T);
 
+    fn read_and_clear(&self) -> Vec<T>;
+
     fn read(&self) -> Vec<T>;
+
+    fn remove_index(&self, index: usize);
+
     fn clear(&self);
+}
+
+impl<T: Clone> RetroStackFn<T> for ModelStackManager<T> {
+    fn push(&self, command: T) {
+        self.get_commands_mutex().push(command);
+    }
+
+    fn read_and_clear(&self) -> Vec<T> {
+        let mut commands = self.get_commands_mutex();
+        let v_commands = commands.clone().to_vec();
+
+        commands.clear();
+
+        v_commands
+    }
+
+    fn read(&self) -> Vec<T> {
+        let commands = self.get_commands_mutex();
+        commands.clone().to_vec()
+    }
+
+    fn remove_index(&self, index: usize) {
+        self.get_commands_mutex().remove(index);
+    }
+
+    fn clear(&self) {
+        self.get_commands_mutex().clear();
+    }
 }
 
 impl<T: Clone> ModelStackManager<T> {
@@ -25,22 +58,5 @@ impl<T: Clone> ModelStackManager<T> {
             *commands = Vec::new();
             commands
         })
-    }
-
-    pub fn push(&self, command: T) {
-        self.get_commands_mutex().push(command);
-    }
-
-    pub fn read(&self) -> Vec<T> {
-        let mut commands = self.get_commands_mutex();
-        let v_commands = commands.clone().to_vec();
-
-        commands.clear();
-
-        v_commands
-    }
-
-    pub fn clear(&self) {
-        self.get_commands_mutex().clear();
     }
 }

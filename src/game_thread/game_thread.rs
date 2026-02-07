@@ -1,9 +1,7 @@
+use crate::channel::ThreadChannel;
 use crate::game_thread::game_window_handle::game_window_handle;
 use crate::game_thread::stack_commands_handle::stack_commands_handle;
-use crate::thread_stack::game_stack::{GameStack, GameStackCommand};
-use crate::thread_stack::model_stack::RetroStackFn;
 use retro_ab::erro_handle::ErroHandle;
-use retro_ab::paths::Paths;
 use retro_ab::retro_ab::RetroAB;
 use retro_ab::retro_sys::retro_log_level;
 use retro_ab_av::retro_av::RetroAvCtx;
@@ -15,7 +13,6 @@ use std::thread;
 pub struct GameThread {
     pub is_running: Arc<Mutex<bool>>,
     controller_ctx: Arc<Mutex<RetroAbController>>,
-    stack: Arc<GameStack>,
 }
 
 impl Drop for GameThread {
@@ -26,24 +23,25 @@ impl Drop for GameThread {
 }
 
 impl GameThread {
-    pub fn new(controller_ctx: Arc<Mutex<RetroAbController>>, stack: Arc<GameStack>) -> Self {
+    pub fn new(controller_ctx: Arc<Mutex<RetroAbController>>) -> Self {
         Self {
             is_running: Arc::new(Mutex::new(false)),
             controller_ctx,
-            stack,
         }
     }
 
-    pub fn stop(&self) {
-        self.stack.push(GameStackCommand::Quit);
+    pub fn stop(&mut self) {
+        match self.is_running.lock() {
+            Ok(mut is_running) => {
+                *is_running = true;
+            }
+            Err(op) => {
+                *op.into_inner() = false;
+            }
+        }
     }
 
-    pub fn start(
-        &mut self,
-        core_path: &str,
-        rom_path: &str,
-        paths: Paths,
-    ) -> Result<(), ErroHandle> {
+    pub fn start(&mut self, channel: Arc<ThreadChannel>) -> Result<(), ErroHandle> {
         match self.is_running.lock() {
             Ok(mut is_running) => {
                 if !(*is_running) {
@@ -65,20 +63,12 @@ impl GameThread {
             }
         }
 
-        self.stack.clear();
-        self.stack.push(GameStackCommand::LoadGame(
-            core_path.to_string(),
-            rom_path.to_string(),
-            paths,
-        ));
-
-        self.spawn_game_thread();
+        self.spawn_game_thread(channel);
 
         Ok(())
     }
 
-    fn spawn_game_thread(&self) {
-        let game_stack = self.stack.clone();
+    fn spawn_game_thread(&self, channel: Arc<ThreadChannel>) {
         let controller_ctx = self.controller_ctx.clone();
         let is_running = self.is_running.clone();
 
@@ -94,7 +84,7 @@ impl GameThread {
                 can_run
             }) {
                 if stack_commands_handle(
-                    &game_stack,
+                    &channel,
                     &mut retro_ab,
                     &controller_ctx,
                     &mut av_ctx,
@@ -107,16 +97,16 @@ impl GameThread {
                     if let Some(retro_ab) = &retro_ab {
                         if let Err(e) = try_render_frame(retro_ab, av, pause_request_new_frames) {
                             println!("{:?}", e);
-                            game_stack.push(GameStackCommand::Quit);
+                            channel.quit();
                             continue;
                         }
                     }
 
-                    game_window_handle(event_pump, &game_stack, pause_request_new_frames);
+                    game_window_handle(event_pump, &channel, pause_request_new_frames);
                 }
             }
 
-            game_stack.clear();
+            channel.clear_game_stack();
 
             //Gracas ao mutex is-running pode ser que algo externo atrapalhe a leitura dos comandos da stack,
             //então so para garantir que essa thread será fechada dando a posse da leitura dos inputs para a

@@ -1,7 +1,8 @@
+use crate::channel::ThreadChannel;
 use crate::game_thread::game_thread::GameThread;
-use crate::thread_stack::game_stack::{GameStack, GameStackCommand};
-use crate::thread_stack::model_stack::RetroStackFn;
+use async_std::task;
 use retro_ab::erro_handle::ErroHandle;
+use retro_ab::option_manager::OptionManager;
 use retro_ab::paths::Paths;
 use retro_ab::retro_sys::retro_log_level;
 use retro_ab_gamepad::devices_manager::{Device, DeviceState, DeviceStateListener};
@@ -11,14 +12,14 @@ use std::sync::{Arc, Mutex, RwLock};
 static DEVICE_STATE_LISTENER: RwLock<Option<DeviceStateListener>> = RwLock::new(None);
 
 lazy_static! {
-    static ref STACK: Arc<GameStack> = Arc::new(GameStack::new());
+    static ref CHANNEL: Arc<ThreadChannel> = Arc::new(ThreadChannel::new());
 }
 
 fn device_state_listener(state: DeviceState, device: Device) {
     if let Some(listener) = DEVICE_STATE_LISTENER.read().unwrap().as_ref() {
         match &state {
             DeviceState::Connected | DeviceState::Disconnected => {
-                STACK.push(GameStackCommand::DeviceConnected(device.clone()));
+                CHANNEL.connect_device(device.clone());
             }
             _ => {}
         }
@@ -29,11 +30,12 @@ fn device_state_listener(state: DeviceState, device: Device) {
 pub struct Tinic {
     pub retro_ab_controller: Arc<Mutex<RetroAbController>>,
     game_thread: GameThread,
+    pub core_options: Option<Arc<OptionManager>>,
 }
 
 impl Drop for Tinic {
     fn drop(&mut self) {
-        STACK.push(GameStackCommand::Quit);
+        CHANNEL.quit();
     }
 }
 
@@ -55,45 +57,51 @@ impl Tinic {
         ))?));
 
         Ok(Self {
-            game_thread: GameThread::new(retro_ab_controller.clone(), STACK.clone()),
+            game_thread: GameThread::new(retro_ab_controller.clone()),
+            core_options: None,
             retro_ab_controller,
         })
     }
 
-    pub fn load_core(
+    pub fn load_game(
         &mut self,
         core_path: &str,
         rom_path: &str,
         paths: Paths,
-    ) -> Result<(), ErroHandle> {
-        self.game_thread.start(core_path, rom_path, paths)
+    ) -> Result<bool, ErroHandle> {
+        self.game_thread.start(CHANNEL.clone())?;
+
+        let (loaded, options) = task::block_on(CHANNEL.load_game(core_path, rom_path, paths));
+        self.core_options = options;
+
+        Ok(loaded)
     }
 
     pub fn pause(&self) {
-        STACK.push(GameStackCommand::Pause);
+        CHANNEL.pause_game();
     }
 
     pub fn resume(&self) {
-        STACK.push(GameStackCommand::Resume);
+        CHANNEL.resume_game();
     }
 
     pub fn save_state(&self, slot: usize) {
-        STACK.push(GameStackCommand::SaveState(slot));
+        CHANNEL.save_state(slot);
     }
 
     pub fn load_state(&self, slot: usize) {
-        STACK.push(GameStackCommand::LoadState(slot));
+        CHANNEL.load_state(slot);
     }
 
     pub fn connect_device(device: Device) {
-        STACK.push(GameStackCommand::DeviceConnected(device));
+        CHANNEL.connect_device(device);
     }
 
     pub fn reset(&self) {
-        STACK.push(GameStackCommand::Reset);
+        CHANNEL.reset_game();
     }
 
     pub fn quit(&self) {
-        self.game_thread.stop();
+        CHANNEL.quit();
     }
 }

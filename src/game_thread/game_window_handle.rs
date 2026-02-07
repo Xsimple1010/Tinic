@@ -1,11 +1,10 @@
-use crate::thread_stack::game_stack::{GameStack, GameStackCommand};
-use crate::thread_stack::model_stack::RetroStackFn;
+use crate::channel::ThreadChannel;
 use retro_ab_av::{Event, EventPump, Keycode};
 use std::sync::Arc;
 
 pub fn game_window_handle(
     event_pump: &mut EventPump,
-    stack: &Arc<GameStack>,
+    channel: &Arc<ThreadChannel>,
     pause_request_new_frames: bool,
 ) {
     for event in event_pump.poll_iter() {
@@ -14,29 +13,29 @@ pub fn game_window_handle(
             | Event::KeyDown {
                 keycode: Some(Keycode::Escape),
                 ..
-            } => stack.push(GameStackCommand::Quit),
+            } => channel.quit(),
             Event::KeyDown {
                 keycode: Some(Keycode::F1),
                 ..
-            } => stack.push(GameStackCommand::SaveState(1)),
+            } => channel.save_state(1),
             Event::KeyDown {
                 keycode: Some(Keycode::F2),
                 ..
-            } => stack.push(GameStackCommand::LoadState(1)),
+            } => channel.load_state(1),
             Event::KeyDown {
                 keycode: Some(Keycode::F8),
                 ..
             } => {
                 if pause_request_new_frames {
-                    stack.push(GameStackCommand::Resume);
+                    channel.resume_game();
                 } else {
-                    stack.push(GameStackCommand::Pause);
+                    channel.pause_game();
                 }
             }
             Event::KeyDown {
                 keycode: Some(Keycode::F5),
                 ..
-            } => stack.push(GameStackCommand::Reset),
+            } => channel.reset_game(),
             _ => {}
         }
     }
