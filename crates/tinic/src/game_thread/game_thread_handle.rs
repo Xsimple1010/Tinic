@@ -137,16 +137,17 @@ impl GameThread {
 
 fn try_render_frame(
     retro_ab: &RetroAB,
-    av: &mut RetroAvCtx,
+    retro_av: &mut RetroAvCtx,
     paused: bool,
 ) -> Result<(), ErroHandle> {
-    if !av.sync() || paused {
+    if !retro_av.sync() || paused {
         return Ok(());
     }
 
+    // Pede para core gerar novos buffers de video e audio
     retro_ab.core().run()?;
-
-    av.get_new_frame();
+    // Exibe os buffers gerados pelo core
+    retro_av.get_new_frame();
 
     Ok(())
 }
