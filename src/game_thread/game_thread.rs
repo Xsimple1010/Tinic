@@ -33,7 +33,7 @@ impl GameThread {
     pub fn stop(&mut self) {
         match self.is_running.lock() {
             Ok(mut is_running) => {
-                *is_running = true;
+                *is_running = false;
             }
             Err(op) => {
                 *op.into_inner() = false;
