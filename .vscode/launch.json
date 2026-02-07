@@ -20,8 +20,8 @@
                 
             },
             "args": [
-                "--core=C:/WFL/cores/test.dll",
-                "--rom=C:/WFL/roms/teste.sfc"
+                "--core=cores/snes9x_libretro.dll",
+                "--rom=roms/Mega Man X (E).smc"
             ],
             "cwd": "${workspaceFolder}"
         },

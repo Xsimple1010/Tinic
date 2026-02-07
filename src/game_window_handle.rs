@@ -62,20 +62,6 @@ pub fn game_window_handle(
                     break;
                 }
             }
-            Event::Window {
-                timestamp: _,
-                window_id,
-                win_event,
-            } => {
-                if window_id == av_ctx.video.get_window_id() {
-                    match win_event {
-                        retro_ab_av::WindowEvent::Close => {
-                            println!("janela destroida");
-                        }
-                        _ => {}
-                    }
-                }
-            }
             _ => {}
         }
     }
