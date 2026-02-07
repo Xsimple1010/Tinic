@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::devices_manager::{DeviceListener, DeviceRubble, DevicesManager};
 use crate::gamepad::retro_gamepad::RetroGamePad;
 use crate::state_thread::EventThread;
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use retro_core::RetroControllerEnvCallbacks;
 
@@ -20,7 +20,7 @@ impl Drop for RetroController {
 }
 
 impl RetroController {
-    pub fn new(listener: Box<dyn DeviceListener>) -> Result<RetroController, ErroHandle> {
+    pub fn new(listener: Box<dyn DeviceListener>) -> Result<RetroController, ErrorHandle> {
         let manager = Arc::new(DevicesManager::new(listener)?);
 
         let event_thread = EventThread::new();
@@ -33,11 +33,11 @@ impl RetroController {
     }
 
     #[doc = "retorna uma lista de gamepad disponíveis"]
-    pub fn get_list(&self) -> Result<Vec<RetroGamePad>, ErroHandle> {
+    pub fn get_list(&self) -> Result<Vec<RetroGamePad>, ErrorHandle> {
         Ok(self.manager.get_gamepads())
     }
 
-    pub fn set_max_port(&self, max: usize) -> Result<(), ErroHandle> {
+    pub fn set_max_port(&self, max: usize) -> Result<(), ErrorHandle> {
         self.manager.set_max_port(max);
         Ok(())
     }
@@ -52,7 +52,7 @@ impl RetroController {
         self.event_thread.resume(self.manager.clone())
     }
 
-    pub fn apply_rumble(&self, rubble: DeviceRubble) -> Result<(), ErroHandle> {
+    pub fn apply_rumble(&self, rubble: DeviceRubble) -> Result<(), ErrorHandle> {
         self.manager.apply_rumble(rubble);
         Ok(())
     }
@@ -68,7 +68,7 @@ pub struct RetroControllerCb {
 }
 
 impl RetroControllerEnvCallbacks for RetroControllerCb {
-    fn input_poll_callback(&self) -> Result<(), ErroHandle> {
+    fn input_poll_callback(&self) -> Result<(), ErrorHandle> {
         self.manager.update_state()?;
         Ok(())
     }
@@ -79,7 +79,7 @@ impl RetroControllerEnvCallbacks for RetroControllerCb {
         _device: i16,
         _index: i16,
         id: i16,
-    ) -> Result<i16, ErroHandle> {
+    ) -> Result<i16, ErrorHandle> {
         Ok(self.manager.get_input_state(port, id))
     }
 
@@ -88,7 +88,7 @@ impl RetroControllerEnvCallbacks for RetroControllerCb {
         port: std::os::raw::c_uint,
         effect: retro_rumble_effect,
         strength: u16,
-    ) -> Result<bool, ErroHandle> {
+    ) -> Result<bool, ErrorHandle> {
         Ok(self.manager.apply_rumble(DeviceRubble {
             port: port as usize,
             effect,

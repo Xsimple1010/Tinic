@@ -96,7 +96,9 @@ impl RetroGlWindow {
     pub fn new(event_loop: &ActiveEventLoop, av_info: &Arc<AvInfo>) -> Self {
         let attributes = Window::default_attributes()
             .with_title("Simple Glium Window")
-            .with_inner_size(winit::dpi::PhysicalSize::new(800, 480));
+            .with_inner_size(winit::dpi::PhysicalSize::new(800, 480))
+            .with_transparent(false);
+
         // First we start by opening a new Window
         let display_builder = DisplayBuilder::new().with_window_attributes(Some(attributes));
 
@@ -133,6 +135,8 @@ impl RetroGlWindow {
         );
 
         gl_context.make_current(&gl_surface).unwrap();
+
+        println!("{:?}", av_info.video.pixel_format.read().unwrap());
 
         Self {
             gl_context,

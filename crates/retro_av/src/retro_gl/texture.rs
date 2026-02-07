@@ -1,6 +1,6 @@
 use super::{gl::gl, pixel::Pixel};
 use crate::video::RawTextureData;
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use gl::types::GLuint;
 use retro_core::av_info::AvInfo;
 use std::{
@@ -56,7 +56,7 @@ impl Texture2D {
         self.id
     }
 
-    pub fn new(av_info: &Arc<AvInfo>, gl: Rc<gl::Gl>) -> Result<Texture2D, ErroHandle> {
+    pub fn new(av_info: &Arc<AvInfo>, gl: Rc<gl::Gl>) -> Result<Texture2D, ErrorHandle> {
         let mut id = 0;
         let geo = &av_info.video.geometry;
         let pixel = Pixel::new(&*av_info.video.pixel_format.read()?)?;

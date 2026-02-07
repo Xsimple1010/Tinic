@@ -1,5 +1,5 @@
 use super::gl::gl::{self, types::GLuint};
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::retro_pixel_format;
 use std::mem::size_of;
 
@@ -10,7 +10,7 @@ pub struct Pixel {
 }
 
 impl Pixel {
-    pub fn new(retro_pixel: &retro_pixel_format) -> Result<Pixel, ErroHandle> {
+    pub fn new(retro_pixel: &retro_pixel_format) -> Result<Pixel, ErrorHandle> {
         match retro_pixel {
             retro_pixel_format::RETRO_PIXEL_FORMAT_XRGB8888 => Ok(Pixel {
                 format: gl::UNSIGNED_INT_8_8_8_8_REV,
@@ -27,7 +27,7 @@ impl Pixel {
                 typ: gl::RGB,
                 bpm: size_of::<u16>() as i32,
             }),
-            _ => Err(ErroHandle {
+            _ => Err(ErrorHandle {
                 message: "Formato de pixel desconhecido".to_string(),
             }),
         }

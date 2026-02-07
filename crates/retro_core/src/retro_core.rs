@@ -4,7 +4,7 @@ use crate::graphic_api::GraphicApi;
 use crate::tools::game_tools::{RomTools, SaveInfo};
 use crate::{managers::option_manager::OptionManager, system::System};
 use generics::constants::INVALID_CONTROLLER_PORT;
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::LibretroRaw;
 use std::ffi::c_void;
@@ -34,7 +34,7 @@ impl RetroCore {
         paths: RetroPaths,
         callbacks: RetroEnvCallbacks,
         graphic_api: GraphicApi,
-    ) -> Result<RetroCoreIns, ErroHandle> {
+    ) -> Result<RetroCoreIns, ErrorHandle> {
         let raw = unsafe { LibretroRaw::new(core_path).unwrap() };
 
         let system = System::new(&raw);
@@ -84,9 +84,9 @@ impl RetroCore {
         Ok(core)
     }
 
-    fn init(&self) -> Result<(), ErroHandle> {
+    fn init(&self) -> Result<(), ErrorHandle> {
         if self.game_loaded.load(Ordering::SeqCst) || self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new(
+            return Err(ErrorHandle::new(
                 "Para inicializar um novo núcleo e necessário descarrega o núcleo atual",
             ));
         }
@@ -99,13 +99,13 @@ impl RetroCore {
         }
     }
 
-    pub fn load_game(&self, path: &str) -> Result<Arc<AvInfo>, ErroHandle> {
+    pub fn load_game(&self, path: &str) -> Result<Arc<AvInfo>, ErrorHandle> {
         if self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new("Ja existe uma rom carregada no momento"));
+            return Err(ErrorHandle::new("Ja existe uma rom carregada no momento"));
         }
 
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new(
+            return Err(ErrorHandle::new(
                 "Para carregar uma rom o núcleo deve esta inicializado",
             ));
         }
@@ -120,17 +120,17 @@ impl RetroCore {
 
             Ok(self.av_info.clone())
         } else {
-            Err(ErroHandle::new("nao foi possível carregar a rom"))
+            Err(ErrorHandle::new("nao foi possível carregar a rom"))
         }
     }
 
-    pub fn reset(&self) -> Result<(), ErroHandle> {
+    pub fn reset(&self) -> Result<(), ErrorHandle> {
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new("O núcleo nao foi inicializado"));
+            return Err(ErrorHandle::new("O núcleo nao foi inicializado"));
         }
 
         if !self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new("Nao ha nenhuma rum carregada no momento"));
+            return Err(ErrorHandle::new("Nao ha nenhuma rum carregada no momento"));
         }
 
         unsafe {
@@ -140,13 +140,13 @@ impl RetroCore {
         Ok(())
     }
 
-    pub fn run(&self) -> Result<(), ErroHandle> {
+    pub fn run(&self) -> Result<(), ErrorHandle> {
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new("O núcleo nao foi inicializado"));
+            return Err(ErrorHandle::new("O núcleo nao foi inicializado"));
         }
 
         if !self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new("Nao ha nenhuma rum carregada no momento"));
+            return Err(ErrorHandle::new("Nao ha nenhuma rum carregada no momento"));
         }
 
         unsafe { self.raw.retro_run() }
@@ -154,7 +154,7 @@ impl RetroCore {
         Ok(())
     }
 
-    pub fn de_init(&self) -> Result<(), ErroHandle> {
+    pub fn de_init(&self) -> Result<(), ErrorHandle> {
         //Se uma *rom* estive carrega ela deve ser descarregada primeiro
         if let Err(e) = self.unload_game() {
             self.initialized.store(false, Ordering::SeqCst);
@@ -172,9 +172,9 @@ impl RetroCore {
         Ok(())
     }
 
-    pub fn connect_controller(&self, port: i16, controller: u32) -> Result<(), ErroHandle> {
+    pub fn connect_controller(&self, port: i16, controller: u32) -> Result<(), ErrorHandle> {
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new(
+            return Err(ErrorHandle::new(
                 "Nao é possível conectar um controle pois nenhum núcleo foi inicializado",
             ));
         }
@@ -189,13 +189,13 @@ impl RetroCore {
         Ok(())
     }
 
-    pub fn unload_game(&self) -> Result<(), ErroHandle> {
+    pub fn unload_game(&self) -> Result<(), ErrorHandle> {
         if !self.game_loaded.load(Ordering::SeqCst) {
             return Ok(());
         }
 
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new(
+            return Err(ErrorHandle::new(
                 "Para descarregar uma rom o núcleo deve esta inicializado",
             ));
         }
@@ -208,13 +208,13 @@ impl RetroCore {
         Ok(())
     }
 
-    pub fn save_state(&self, slot: usize) -> Result<PathBuf, ErroHandle> {
+    pub fn save_state(&self, slot: usize) -> Result<PathBuf, ErrorHandle> {
         if !self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new("Uma rom precisa ser carregada primeiro"));
+            return Err(ErrorHandle::new("Uma rom precisa ser carregada primeiro"));
         }
 
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new(
+            return Err(ErrorHandle::new(
                 "Para salva um state o núcleo deve esta inicializado",
             ));
         }
@@ -234,13 +234,13 @@ impl RetroCore {
         )
     }
 
-    pub fn load_state(&self, slot: usize) -> Result<(), ErroHandle> {
+    pub fn load_state(&self, slot: usize) -> Result<(), ErrorHandle> {
         if !self.game_loaded.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new("Uma rom precisa ser carregada primeiro"));
+            return Err(ErrorHandle::new("Uma rom precisa ser carregada primeiro"));
         }
 
         if !self.initialized.load(Ordering::SeqCst) {
-            return Err(ErroHandle::new(
+            return Err(ErrorHandle::new(
                 "Para carregar um state o núcleo deve esta inicializado",
             ));
         }

@@ -1,5 +1,5 @@
 use generics::{
-    erro_handle::ErroHandle,
+    error_handle::ErrorHandle,
     types::{ArcTMuxte, TMutex},
 };
 use retro_core::{av_info::AvInfo, RetroAudioEnvCallbacks};
@@ -24,11 +24,11 @@ pub struct RetroAudio {
 }
 
 impl RetroAudio {
-    pub fn new() -> Result<Self, ErroHandle> {
+    pub fn new() -> Result<Self, ErrorHandle> {
         let (stream, stream_handle) = match OutputStream::try_default() {
             Ok(out) => out,
             Err(e) => {
-                return Err(ErroHandle {
+                return Err(ErrorHandle {
                     message: e.to_string(),
                 })
             }
@@ -37,7 +37,7 @@ impl RetroAudio {
         let sink: Sink = match Sink::try_new(&stream_handle) {
             Ok(sink) => sink,
             Err(e) => {
-                return Err(ErroHandle {
+                return Err(ErrorHandle {
                     message: e.to_string(),
                 })
             }
@@ -55,7 +55,7 @@ impl RetroAudio {
         })
     }
 
-    pub fn resume_new_frame(&mut self, av_info: &Arc<AvInfo>) -> Result<(), ErroHandle> {
+    pub fn resume_new_frame(&mut self, av_info: &Arc<AvInfo>) -> Result<(), ErrorHandle> {
         if let Ok(sample_rate) = av_info.timing.sample_rate.read() {
             let buffer = unsafe { self.buffer.try_load()?.get().read() };
 
@@ -91,7 +91,7 @@ impl RetroAudioEnvCallbacks for RetroAudioCb {
         &self,
         data: *const i16,
         frames: usize,
-    ) -> Result<usize, ErroHandle> {
+    ) -> Result<usize, ErrorHandle> {
         let mut buffer = self.buffer.try_load()?;
         let buffer = buffer.get_mut();
 
@@ -102,7 +102,7 @@ impl RetroAudioEnvCallbacks for RetroAudioCb {
         Ok(frames)
     }
 
-    fn audio_sample_callback(&self, left: i16, right: i16) -> Result<(), ErroHandle> {
+    fn audio_sample_callback(&self, left: i16, right: i16) -> Result<(), ErrorHandle> {
         let mut buffer = self.buffer.try_load()?;
         let buffer = buffer.get_mut();
 

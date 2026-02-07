@@ -14,7 +14,7 @@ use super::{
     vertex_array::VertexArray,
 };
 use crate::video::RawTextureData;
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use glutin::prelude::GlDisplay;
 use retro_core::av_info::{AvInfo, Geometry};
 use std::{ffi::CString, mem::size_of, sync::atomic::Ordering};
@@ -91,7 +91,7 @@ impl Render {
         }
     }
 
-    pub fn new<D: GlDisplay>(av_info: &Arc<AvInfo>, gl_display: D) -> Result<Render, ErroHandle> {
+    pub fn new<D: GlDisplay>(av_info: &Arc<AvInfo>, gl_display: D) -> Result<Render, ErrorHandle> {
         let vertex_shader_src = "
         #version 330 core
         in vec2 i_pos;

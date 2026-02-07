@@ -23,7 +23,7 @@ use crate::{
     },
     RetroCoreIns,
 };
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use std::{
     ffi::{c_char, c_uint},
     rc::Rc,
@@ -44,39 +44,39 @@ pub trait RetroVideoEnvCallbacks {
         width: u32,
         height: u32,
         pitch: usize,
-    ) -> Result<(), ErroHandle>;
+    ) -> Result<(), ErrorHandle>;
     #[doc = " Called when a context has been created or when it has been reset.\n An OpenGL context is only valid after context_reset() has been called.\n\n When context_reset is called, OpenGL resources in the libretro\n implementation are guaranteed to be invalid.\n\n It is possible that context_reset is called multiple times during an\n application lifecycle.\n If context_reset is called without any notification (context_destroy),\n the OpenGL context was lost and resources should just be recreated\n without any attempt to \"free\" old resources."]
-    fn context_reset(&self) -> Result<(), ErroHandle>;
+    fn context_reset(&self) -> Result<(), ErrorHandle>;
     #[doc = " Set by frontend.\n Can return all relevant functions, including glClear on Windows."]
-    fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErroHandle>;
+    fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErrorHandle>;
     #[doc = " A callback to be called before the context is destroyed in a\n controlled way by the frontend."]
-    fn context_destroy(&self) -> Result<(), ErroHandle>;
+    fn context_destroy(&self) -> Result<(), ErrorHandle>;
 }
 
 pub trait RetroAudioEnvCallbacks {
-    fn audio_sample_callback(&self, left: i16, right: i16) -> Result<(), ErroHandle>;
+    fn audio_sample_callback(&self, left: i16, right: i16) -> Result<(), ErrorHandle>;
     fn audio_sample_batch_callback(
         &self,
         data: *const i16,
         frames: usize,
-    ) -> Result<usize, ErroHandle>;
+    ) -> Result<usize, ErrorHandle>;
 }
 
 pub trait RetroControllerEnvCallbacks {
-    fn input_poll_callback(&self) -> Result<(), ErroHandle>;
+    fn input_poll_callback(&self) -> Result<(), ErrorHandle>;
     fn input_state_callback(
         &self,
         port: i16,
         device: i16,
         index: i16,
         id: i16,
-    ) -> Result<i16, ErroHandle>;
+    ) -> Result<i16, ErrorHandle>;
     fn rumble_callback(
         &self,
         port: c_uint,
         effect: retro_rumble_effect,
         strength: u16,
-    ) -> Result<bool, ErroHandle>;
+    ) -> Result<bool, ErrorHandle>;
 }
 
 #[doc = "pelo amor de deus MANTENHA isso dentro desse diretório"]
@@ -193,7 +193,7 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
 #[cfg(test)]
 mod test_environment {
     use crate::{core_env::environment::CORE_CONTEXT, test_tools};
-    use generics::erro_handle::ErroHandle;
+    use generics::error_handle::ErrorHandle;
     use libretro_sys::binding_libretro::{
         retro_pixel_format, RETRO_ENVIRONMENT_GET_INPUT_BITMASKS,
         RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
@@ -220,7 +220,7 @@ mod test_environment {
     }
 
     #[test]
-    fn pixel_format() -> Result<(), ErroHandle> {
+    fn pixel_format() -> Result<(), ErrorHandle> {
         cfg_test();
         let pixel = retro_pixel_format::RETRO_PIXEL_FORMAT_RGB565;
         let data = &pixel as *const retro_pixel_format as *mut c_void;

@@ -8,7 +8,7 @@ use crate::{
     tools::mutex_tools::get_string_rwlock_from_ptr,
 };
 use generics::constants::{CORE_OPTION_EXTENSION_FILE, MAX_CORE_OPTIONS};
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 use std::sync::Arc;
 use std::{
@@ -67,14 +67,14 @@ impl OptionManager {
         }
     }
 
-    pub fn update_opt(&self, opt_key: &str, new_value_selected: &str) -> Result<(), ErroHandle> {
+    pub fn update_opt(&self, opt_key: &str, new_value_selected: &str) -> Result<(), ErrorHandle> {
         self.change_value_selected(opt_key, new_value_selected)?;
         self.write_all_options_in_file()?;
 
         Ok(())
     }
 
-    pub fn get_opt_value(&self, opt_key: &str) -> Result<Option<String>, ErroHandle> {
+    pub fn get_opt_value(&self, opt_key: &str) -> Result<Option<String>, ErrorHandle> {
         for core_opt in &*self.opts.lock()? {
             if !core_opt.key.clone().to_string().eq(opt_key) {
                 continue;
@@ -98,7 +98,7 @@ impl OptionManager {
         Ok(None)
     }
 
-    pub fn change_visibility(&self, key: &String, visibility: bool) -> Result<(), ErroHandle> {
+    pub fn change_visibility(&self, key: &String, visibility: bool) -> Result<(), ErrorHandle> {
         for core_opt in &mut *self.opts.lock()? {
             if !core_opt.key.to_string().eq(key) {
                 continue;
@@ -118,7 +118,7 @@ impl OptionManager {
         Ok(())
     }
 
-    fn write_all_options_in_file(&self) -> Result<(), ErroHandle> {
+    fn write_all_options_in_file(&self) -> Result<(), ErrorHandle> {
         let file_path = self.file_path.read()?.clone();
         let mut file = File::create(file_path.clone())?;
 
@@ -138,7 +138,7 @@ impl OptionManager {
         &self,
         opt_key: &str,
         new_value_selected: &str,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         for core_opt in &*self.opts.lock()? {
             if !core_opt.key.clone().to_string().eq(&opt_key) {
                 continue;
@@ -163,7 +163,7 @@ impl OptionManager {
         Ok(())
     }
 
-    fn load_all_option_in_file(&self) -> Result<(), ErroHandle> {
+    fn load_all_option_in_file(&self) -> Result<(), ErrorHandle> {
         let file_path = self.file_path.read()?.clone();
 
         let mut file = File::open(file_path)?;
@@ -196,7 +196,7 @@ impl OptionManager {
     }
 
     //TODO: adiciona um meio do usuário saber se ocorrer um erro ao tentar salva ou ler o arquivo
-    pub fn try_reload_pref_option(&self) -> Result<(), ErroHandle> {
+    pub fn try_reload_pref_option(&self) -> Result<(), ErrorHandle> {
         let file_path = self.file_path.read()?.clone();
 
         //se o arquivo ainda nao existe apenas
@@ -215,7 +215,7 @@ impl OptionManager {
     fn get_v2_intl_category(
         &self,
         categories: *mut retro_core_option_v2_category,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         let categories =
             unsafe { *(categories as *mut [retro_core_option_v2_category; MAX_CORE_OPTIONS]) };
 
@@ -239,7 +239,7 @@ impl OptionManager {
     fn get_v2_intl_definitions(
         &self,
         definitions: *mut retro_core_option_v2_definition,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         let definitions = unsafe { *(definitions as *mut [retro_core_option_v2_definition; 90]) };
 
         for definition in definitions {
@@ -288,7 +288,7 @@ impl OptionManager {
     pub fn convert_option_v2_intl(
         &self,
         option_intl_v2: retro_core_options_v2_intl,
-    ) -> Result<(), ErroHandle> {
+    ) -> Result<(), ErrorHandle> {
         unsafe {
             if option_intl_v2.local.is_null() {
                 let us: retro_core_options_v2 = *(option_intl_v2.us);

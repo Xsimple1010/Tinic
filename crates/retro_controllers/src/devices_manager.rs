@@ -1,7 +1,7 @@
 use crate::gamepad::retro_gamepad::RetroGamePad;
 use generics::{
     constants::DEFAULT_MAX_PORT,
-    erro_handle::ErroHandle,
+    error_handle::ErrorHandle,
     types::{ArcTMuxte, TMutex},
 };
 use gilrs::Gilrs;
@@ -72,11 +72,11 @@ pub trait DeviceListener: Debug + Send {
 }
 
 impl DevicesManager {
-    pub fn new(listener: Box<dyn DeviceListener>) -> Result<Self, ErroHandle> {
+    pub fn new(listener: Box<dyn DeviceListener>) -> Result<Self, ErrorHandle> {
         let gilrs = match Gilrs::new() {
             Ok(gilrs) => gilrs,
             Err(e) => {
-                return Err(ErroHandle {
+                return Err(ErrorHandle {
                     message: e.to_string(),
                 })
             }
@@ -89,7 +89,7 @@ impl DevicesManager {
         })
     }
 
-    pub fn update_state(&self) -> Result<(), ErroHandle> {
+    pub fn update_state(&self) -> Result<(), ErrorHandle> {
         RetroGamePad::update(
             &mut *self.gilrs.try_load()?,
             &self.connected_gamepads,

@@ -1,5 +1,5 @@
 use crate::tinic_app_ctx::TinicGameCtx;
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use retro_controllers::devices_manager::Device;
 use winit::{
     application::ApplicationHandler,
@@ -129,7 +129,7 @@ impl ApplicationHandler<GameInstanceActions> for TinicGameInstance {
         _window_id: WindowId,
         event: WindowEvent,
     ) {
-        let result: Result<(), ErroHandle> = match event {
+        let result: Result<(), ErrorHandle> = match event {
             WindowEvent::CloseRequested => {
                 event_loop.exit();
                 Ok(())

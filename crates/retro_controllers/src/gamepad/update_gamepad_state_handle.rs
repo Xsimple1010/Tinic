@@ -1,6 +1,6 @@
 use super::{gamepad_key_map::GamepadKeyMap, retro_gamepad::RetroGamePad};
 use crate::devices_manager::{Device, DeviceStateListener};
-use generics::{constants::INVALID_CONTROLLER_PORT, erro_handle::ErroHandle, types::ArcTMuxte};
+use generics::{constants::INVALID_CONTROLLER_PORT, error_handle::ErrorHandle, types::ArcTMuxte};
 use gilrs::{Button, GamepadId, Gilrs};
 use libretro_sys::binding_libretro::RETRO_DEVICE_JOYPAD;
 use std::sync::{
@@ -34,7 +34,7 @@ fn get_available_port(
 pub fn remove(
     id: GamepadId,
     connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
-) -> Result<Option<RetroGamePad>, ErroHandle> {
+) -> Result<Option<RetroGamePad>, ErrorHandle> {
     let list = &mut connected_gamepads.try_load()?;
 
     let mut gm_list = list.clone();
@@ -54,7 +54,7 @@ pub fn connect_handle(
     connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
     max_ports: &Arc<AtomicUsize>,
     listener: &DeviceStateListener,
-) -> Result<(), ErroHandle> {
+) -> Result<(), ErrorHandle> {
     if let Some(gamepad) = gilrs.connected_gamepad(gamepad_id) {
         let port = get_available_port(max_ports, connected_gamepads);
 
@@ -80,7 +80,7 @@ pub fn disconnect_handle(
     id: GamepadId,
     connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
     listener: &DeviceStateListener,
-) -> Result<(), ErroHandle> {
+) -> Result<(), ErrorHandle> {
     if let Some(gamepad) = remove(id, connected_gamepads)? {
         listener
             .try_load()?
@@ -95,7 +95,7 @@ pub fn pressed_button_handle(
     gamepad_id: GamepadId,
     connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
     listener: &DeviceStateListener,
-) -> Result<(), ErroHandle> {
+) -> Result<(), ErrorHandle> {
     for gamepad in &mut *connected_gamepads.load_or(Vec::new()) {
         if gamepad.inner_id != gamepad_id {
             continue;

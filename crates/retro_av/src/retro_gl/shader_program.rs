@@ -3,7 +3,7 @@ use super::{
     shader::Shader,
 };
 use crate::retro_gl::gl::gl::types::GLint;
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use std::{ffi::CString, rc::Rc};
 
 pub struct ShaderProgram {
@@ -20,7 +20,7 @@ impl Drop for ShaderProgram {
 }
 
 impl ShaderProgram {
-    pub fn new(shaders: &[Shader], gl: Rc<gl::Gl>) -> Result<ShaderProgram, ErroHandle> {
+    pub fn new(shaders: &[Shader], gl: Rc<gl::Gl>) -> Result<ShaderProgram, ErrorHandle> {
         unsafe {
             let id = gl.CreateProgram();
 
@@ -50,8 +50,8 @@ impl ShaderProgram {
                 let log = String::from_utf8(error_log);
 
                 return match log {
-                    Ok(log) => Err(ErroHandle { message: log }),
-                    Err(e) => Err(ErroHandle {
+                    Ok(log) => Err(ErrorHandle { message: log }),
+                    Err(e) => Err(ErrorHandle {
                         message: e.to_string(),
                     }),
                 };

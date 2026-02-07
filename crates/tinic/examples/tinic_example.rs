@@ -1,4 +1,4 @@
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use tinic::{self, args_manager::RetroArgs, test_tools::paths, DeviceListener, Tinic};
 use winit::platform::pump_events::PumpStatus;
 
@@ -20,7 +20,7 @@ impl DeviceListener for DeviceEventHandle {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), ErroHandle> {
+async fn main() -> Result<(), ErrorHandle> {
     let args = RetroArgs::new()?;
 
     let event = DeviceEventHandle::default();

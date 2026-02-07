@@ -1,4 +1,4 @@
-use crate::erro_handle::ErroHandle;
+use crate::error_handle::ErrorHandle;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 pub type ArcTMuxte<T> = Arc<TMutex<T>>;
@@ -43,10 +43,10 @@ impl<T> TMutex<T> {
         }
     }
 
-    pub fn try_load(&self) -> Result<MutexGuard<'_, T>, ErroHandle> {
+    pub fn try_load(&self) -> Result<MutexGuard<'_, T>, ErrorHandle> {
         match self.value.lock() {
             Ok(v) => Ok(v),
-            Err(e) => Err(ErroHandle {
+            Err(e) => Err(ErrorHandle {
                 message: e.to_string(),
             }),
         }

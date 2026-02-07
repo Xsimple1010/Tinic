@@ -1,7 +1,7 @@
 use super::ffi_tools::make_c_string;
 use crate::system::SysInfo;
 use generics::constants::SAVE_EXTENSION_FILE;
-use generics::erro_handle::ErroHandle;
+use generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::{retro_game_info, LibretroRaw};
 use std::fs;
 use std::sync::Arc;
@@ -14,28 +14,28 @@ use std::{
     ptr::null,
 };
 
-fn get_full_path(path: &str) -> Result<PathBuf, ErroHandle> {
+fn get_full_path(path: &str) -> Result<PathBuf, ErrorHandle> {
     match PathBuf::from(path).canonicalize() {
         Ok(full_path) => Ok(full_path),
-        Err(e) => Err(ErroHandle {
+        Err(e) => Err(ErrorHandle {
             message: e.to_string(),
         }),
     }
 }
 
-fn valid_rom_extension(valid_extensions: &String, path: &Path) -> Result<(), ErroHandle> {
+fn valid_rom_extension(valid_extensions: &String, path: &Path) -> Result<(), ErrorHandle> {
     let path_str = path
         .extension()
-        .ok_or(ErroHandle::new(
+        .ok_or(ErrorHandle::new(
             "Nao foi possível ler as extensões compatíveis com o core",
         ))?
         .to_str()
-        .ok_or(ErroHandle::new(
+        .ok_or(ErrorHandle::new(
             "Nao foi possível ler as extensões compatíveis com o core",
         ))?;
 
     if !valid_extensions.contains(path_str) {
-        return Err(ErroHandle {
+        return Err(ErrorHandle {
             message: "Extensão da rom invalida: valores esperados -> ".to_string()
                 + &valid_extensions.to_string()
                 + "; valor recebido -> "
@@ -46,7 +46,7 @@ fn valid_rom_extension(valid_extensions: &String, path: &Path) -> Result<(), Err
     Ok(())
 }
 
-fn get_save_path(save_info: &SaveInfo) -> Result<PathBuf, ErroHandle> {
+fn get_save_path(save_info: &SaveInfo) -> Result<PathBuf, ErrorHandle> {
     let mut path = PathBuf::from(save_info.save_dir);
 
     path.push(save_info.library_name);
@@ -77,14 +77,14 @@ impl RomTools {
         libretro_raw: &Arc<LibretroRaw>,
         sys_info: &SysInfo,
         path: &str,
-    ) -> Result<bool, ErroHandle> {
+    ) -> Result<bool, ErrorHandle> {
         let f_path = get_full_path(path)?;
 
         valid_rom_extension(&sys_info.valid_extensions, &f_path)?;
 
         let mut buf = Vec::new();
         let meta = CString::new("")?;
-        let path = make_c_string(f_path.to_str().ok_or(ErroHandle::new(
+        let path = make_c_string(f_path.to_str().ok_or(ErrorHandle::new(
             "nao foi possível transforma o PathBuf da rom para uma string",
         ))?)?;
         let mut size = 0;
@@ -115,25 +115,25 @@ impl RomTools {
         Ok(state)
     }
 
-    pub fn get_rom_name(path: &Path) -> Result<String, ErroHandle> {
+    pub fn get_rom_name(path: &Path) -> Result<String, ErrorHandle> {
         let extension = ".".to_owned()
             + path
                 .extension()
-                .ok_or(ErroHandle::new("erro ao tentar recuperar o nome da rom"))?
+                .ok_or(ErrorHandle::new("erro ao tentar recuperar o nome da rom"))?
                 .to_str()
-                .ok_or(ErroHandle::new("erro ao tentar recuperar o nome da rom"))?;
+                .ok_or(ErrorHandle::new("erro ao tentar recuperar o nome da rom"))?;
 
         let name = path
             .file_name()
-            .ok_or(ErroHandle::new("erro ao tentar recuperar o nome da rom"))?
+            .ok_or(ErrorHandle::new("erro ao tentar recuperar o nome da rom"))?
             .to_str()
-            .ok_or(ErroHandle::new("erro ao tentar recuperar o nome da rom"))?
+            .ok_or(ErrorHandle::new("erro ao tentar recuperar o nome da rom"))?
             .replace(&extension, "");
 
         Ok(name)
     }
 
-    pub fn create_save_state<CA>(save_info: SaveInfo, get_data: CA) -> Result<PathBuf, ErroHandle>
+    pub fn create_save_state<CA>(save_info: SaveInfo, get_data: CA) -> Result<PathBuf, ErrorHandle>
     where
         CA: FnOnce(&mut Vec<u8>, usize) -> bool,
     {
@@ -142,7 +142,7 @@ impl RomTools {
         let state = get_data(&mut data, save_info.buffer_size);
 
         if !state {
-            return Err(ErroHandle {
+            return Err(ErrorHandle {
                 message: "nao foi possível salva o estado atual".to_string(),
             });
         }
@@ -153,7 +153,7 @@ impl RomTools {
         Ok(save_path)
     }
 
-    pub fn load_save_state<CA>(save_info: SaveInfo, send_to_core: CA) -> Result<(), ErroHandle>
+    pub fn load_save_state<CA>(save_info: SaveInfo, send_to_core: CA) -> Result<(), ErrorHandle>
     where
         CA: FnOnce(&mut Vec<u8>, usize) -> bool,
     {
