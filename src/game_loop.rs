@@ -1,9 +1,7 @@
 use crate::{
-    game_window_handle::game_window_handle,
-    retro_stack::{RetroStack, StackCommand},
-    stack_handle::stack_handle,
+    game_window_handle::game_window_handle, retro_stack::RetroStack, stack_handle::stack_handle,
 };
-use retro_ab::core::{self, RetroContext};
+use retro_ab::core::RetroContext;
 use retro_ab_av::{context::RetroAvCtx, EventPump};
 use retro_ab_gamepad::context::GamepadContext;
 use retro_ab_gamepad::retro_gamepad::RetroGamePad;

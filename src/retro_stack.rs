@@ -10,7 +10,6 @@ type RomPath = String;
 pub enum StackCommand {
     //core, rom, paths, callbacks
     LoadGame(CorePath, RomPath, Paths, RetroEnvCallbacks),
-    StopGame,
     SaveState,
     LoadState,
     Pause,

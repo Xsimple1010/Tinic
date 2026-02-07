@@ -63,18 +63,6 @@ pub fn stack_handle(
                     }
                 }
             }
-            StackCommand::StopGame => {
-                if let Some(ctx) = core_ctx.take() {
-                    match core::de_init(ctx) {
-                        Ok(..) => {}
-                        Err(e) => {
-                            println!("{:?}", e);
-                        }
-                    };
-
-                    av_ctx.take();
-                }
-            }
             StackCommand::Quit => {
                 if let Some(ctx) = core_ctx.take() {
                     if let Err(e) = core::de_init(ctx) {

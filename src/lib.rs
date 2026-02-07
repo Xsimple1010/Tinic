@@ -29,7 +29,6 @@ lazy_static! {
 }
 
 pub struct Tinic {
-    // stack: Arc<RetroStack>,
     pub controller_ctx: Arc<Mutex<GamepadContext>>,
     pub core_ctx: Option<Arc<RetroContext>>,
 }
@@ -83,7 +82,6 @@ impl Tinic {
         }
 
         Self {
-            // stack: RetroStack::new(),
             //TODO:o numero máximo de portas deve ser alterado no futuro
             controller_ctx,
             core_ctx: None,
@@ -131,10 +129,6 @@ impl Tinic {
 
     pub fn reset(&self) {
         STACK.push(StackCommand::Reset);
-    }
-
-    pub fn stop_game(&self) {
-        STACK.push(StackCommand::StopGame);
     }
 
     pub fn quit(&self) {
