@@ -1,5 +1,5 @@
 use generics::erro_handle::ErroHandle;
-use tinic::{self, args_manager::RetroArgs, DeviceListener, Tinic};
+use tinic::{self, args_manager::RetroArgs, test_tools::paths, DeviceListener, Tinic};
 
 #[derive(Debug, Default)]
 struct DeviceEventHandle;
@@ -26,7 +26,7 @@ async fn main() -> Result<(), ErroHandle> {
     let mut tinic = Tinic::new(Box::new(event))?;
 
     if let Some(core) = &args.core {
-        let d = tinic.make_context(&core, &args.rom)?;
+        let d = tinic.make_context(&core, &args.rom, paths::get_paths().unwrap())?;
         tinic.run(d)?;
     }
     Ok(())

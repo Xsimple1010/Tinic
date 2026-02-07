@@ -24,7 +24,7 @@ impl RetroController {
         let manager = Arc::new(DevicesManager::new(listener)?);
 
         let event_thread = EventThread::new();
-        event_thread.resume(manager.clone())?;
+        event_thread.resume(manager.clone());
 
         Ok(Self {
             event_thread,
@@ -48,7 +48,7 @@ impl RetroController {
     }
 
     #[doc = "Devolve a 'posse' dos eventos do gamepad dada ao CORE para a thread de eventos. chame isso quando nao houve nenhuma rom em execução"]
-    pub fn resume_thread_events(&self) -> Result<(), ErroHandle> {
+    pub fn resume_thread_events(&self) {
         self.event_thread.resume(self.manager.clone())
     }
 
