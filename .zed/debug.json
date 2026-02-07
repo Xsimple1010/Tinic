@@ -1,17 +1,17 @@
 [
-    {
-        "label": "Build & Debug native binary",
-        "build": {
-            "command": "cargo",
-            "args": ["build"]
-        },
-        "program": "$ZED_WORKTREE_ROOT/target/debug/examples/tinic_example.exe",
-        "args": [
-            "--core=C:/Users/aderv/Projetos/Tinic/retro_out_test/cores/RetroArch-Win64/cores/bsnes_libretro.dll",
-            "--rom=C:/Users/aderv/Downloads/mario.sfc"
-        ],
-        "sourceLanguages": ["rust"],
-        "request": "launch",
-        "adapter": "CodeLLDB"
-    }
+  {
+    "label": "Build & Debug native binary",
+    "build": {
+      "command": "cargo",
+      "args": ["build", "--example=tinic_example"]
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/examples/tinic_example.exe",
+    "args": [
+      "--core=$ZED_WORKTREE_ROOT/retro_out_test/cores/RetroArch-Win64/cores/snes9x_libretro.dll",
+      "--rom=$ZED_WORKTREE_ROOT/retro_out_test/roms/mario.sfc"
+    ],
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB"
+  }
 ]

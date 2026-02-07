@@ -51,7 +51,7 @@ impl<T> TMutex<T> {
     }
 
     pub fn try_load(&self) -> Result<MutexGuard<'_, T>, ErrorHandle> {
-        match self.value.lock() {
+        match self.value.try_lock() {
             Ok(v) => Ok(v),
             Err(e) => Err(ErrorHandle {
                 message: e.to_string(),

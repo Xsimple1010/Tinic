@@ -8,6 +8,7 @@ extern crate rubato;
 extern crate winit;
 
 mod audio_driver;
+mod audio_resample;
 mod audios;
 mod print_scree;
 mod retro_gl;

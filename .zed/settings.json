@@ -24,10 +24,7 @@
     }
   },
   "terminal": {
-    "shell": "powershell.exe"
-  },
-  "debugger": {
-    "enabled": true
+    "shell": "system"
   },
   "git": {
     "git_gutter": "tracked_files"
@@ -40,6 +37,5 @@
   "show_whitespaces": "selection",
   "remove_trailing_whitespace_on_save": true,
   "ensure_final_newline_on_save": true,
-  "tab_size": 4,
-  "hard_tabs": false
+  "tab_size": 4
 }

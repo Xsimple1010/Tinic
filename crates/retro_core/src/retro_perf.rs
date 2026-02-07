@@ -73,10 +73,10 @@ pub unsafe extern "C" fn get_cpu_features() -> u64 {
         }
     }
 
-    if let Some(extended_info) = cpuid.get_extended_feature_info() {
-        if extended_info.has_avx2() {
-            cpu |= RETRO_SIMD_AVX2 as u64;
-        }
+    if let Some(extended_info) = cpuid.get_extended_feature_info()
+        && extended_info.has_avx2()
+    {
+        cpu |= RETRO_SIMD_AVX2 as u64;
     }
 
     cpu

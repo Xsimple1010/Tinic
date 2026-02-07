@@ -138,7 +138,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
     }
 
     fn suspended(&mut self, _: &ActiveEventLoop) {
-        self.ctx.suspend_window();
+        let _ = self.ctx.suspend_window();
     }
 
     fn exiting(&mut self, _: &ActiveEventLoop) {

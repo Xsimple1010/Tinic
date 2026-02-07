@@ -93,13 +93,14 @@ impl TinicGameCtx {
     }
 
     pub fn suspend_window(&mut self) {
-        self.retro_av.destroy_window();
+        self.retro_av.suspend_window();
         self.controller.resume_thread_events();
     }
 
     pub fn destroy_retro_ctx(&self) -> Result<(), ErrorHandle> {
         self.retro_core.de_init()?;
         self.controller.resume_thread_events();
+        self.retro_av.destroy();
 
         Ok(())
     }

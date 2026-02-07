@@ -83,7 +83,7 @@ impl RetroVideo {
         Ok(())
     }
 
-    pub fn destroy_window(&mut self) {
+    pub fn destroy_window(&self) {
         self.window_ctx.store(None);
         self.texture.store(RawTextureData::new());
     }

@@ -18,9 +18,9 @@ pub struct RetroAv {
 impl RetroAv {
     #[doc = "cria uma nova instancia de RetroAv. sempre mantenha a instancia dentro da thread onde foi criada!"]
     pub fn new() -> Result<Self, ErrorHandle> {
-        let sync = RetroSync::new(0.00015);
+        let sync = RetroSync::new(0.0002);
         let video = RetroVideo::new();
-        let audio = RetroAudio::new(sync.sync_data.clone())?;
+        let audio = RetroAudio::new()?;
 
         Ok(Self { video, audio, sync })
     }
@@ -31,14 +31,22 @@ impl RetroAv {
         event_loop: &ActiveEventLoop,
     ) -> Result<(), ErrorHandle> {
         self.video.init(av_info, event_loop)?;
+        self.audio.init(av_info)?;
         Ok(())
     }
 
-    pub fn destroy_window(&mut self) {
+    pub fn suspend_window(&mut self) {
         self.video.destroy_window();
+        self.audio.pause().unwrap();
+    }
+
+    pub fn destroy(&self) {
+        self.video.destroy_window();
+        self.audio.stop();
     }
 
     pub fn redraw_request(&self) -> Result<(), ErrorHandle> {
+        self.audio.play()?;
         self.video.request_redraw()
     }
 

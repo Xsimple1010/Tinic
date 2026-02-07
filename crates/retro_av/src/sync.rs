@@ -12,6 +12,7 @@ pub struct RetroSync {
     pub sync_data: ArcTMutex<SyncData>,
 }
 
+#[derive(Debug)]
 pub struct SyncData {
     pub target_frame_duration: Duration,
     pub elapsed: Duration,

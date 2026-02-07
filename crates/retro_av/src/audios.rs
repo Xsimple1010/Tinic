@@ -1,31 +1,54 @@
-use crate::{audio_driver::AudioDriver, SyncData};
-use generics::{
-    error_handle::ErrorHandle,
-    types::{ArcTMutex, TMutex},
-};
+use crate::audio_driver::AudioDriver;
+use generics::error_handle::ErrorHandle;
 use retro_core::{av_info::AvInfo, RetroAudioEnvCallbacks};
+use ringbuf::{storage::Heap, CachingCons, CachingProd, SharedRb};
 use std::{ptr::slice_from_raw_parts, sync::Arc};
 
+pub type BufferProd = CachingProd<Arc<SharedRb<Heap<i16>>>>;
+pub type BufferCons = CachingCons<Arc<SharedRb<Heap<i16>>>>;
+
 pub struct RetroAudio {
-    drive: ArcTMutex<AudioDriver>,
+    drive: Arc<AudioDriver>,
+}
+
+#[derive(Default, Clone, Debug)]
+pub struct AudioMetadata {
+    pub channels: u16,
+    pub sample_rate: u32,
 }
 
 impl RetroAudio {
-    pub fn new(sync_data: ArcTMutex<SyncData>) -> Result<Self, ErrorHandle> {
+    pub fn new() -> Result<Self, ErrorHandle> {
         Ok(Self {
-            drive: TMutex::new(AudioDriver::new(sync_data)?),
+            drive: Arc::new(AudioDriver::new()?),
         })
+    }
+
+    pub fn init(&mut self, av_info: &Arc<AvInfo>) -> Result<(), ErrorHandle> {
+        self.drive.init(av_info)
+    }
+
+    pub fn play(&self) -> Result<(), ErrorHandle> {
+        self.drive.play()
+    }
+
+    pub fn pause(&self) -> Result<(), ErrorHandle> {
+        self.drive.pause()
+    }
+
+    pub fn stop(&self) {
+        self.drive.stop();
     }
 
     pub fn get_core_cb(&self) -> RetroAudioCb {
         RetroAudioCb {
-            driver: self.drive.clone(),
+            drive: Arc::clone(&self.drive),
         }
     }
 }
 
 pub struct RetroAudioCb {
-    driver: ArcTMutex<AudioDriver>,
+    drive: Arc<AudioDriver>,
 }
 
 impl RetroAudioEnvCallbacks for RetroAudioCb {
@@ -35,9 +58,16 @@ impl RetroAudioEnvCallbacks for RetroAudioCb {
         right: i16,
         av_info: Arc<AvInfo>,
     ) -> Result<(), ErrorHandle> {
-        self.driver
-            .try_load()?
-            .add_sample(&[left, right], 1, av_info)
+        let metadata = AudioMetadata {
+            channels: 1,
+            sample_rate: *av_info
+                .timing
+                .sample_rate
+                .try_read()
+                .map_err(|_| ErrorHandle::new("Failed to read sample rate"))?,
+        };
+
+        self.drive.add_sample(&[left, right], metadata)
     }
 
     fn audio_sample_batch_callback(
@@ -51,10 +81,16 @@ impl RetroAudioEnvCallbacks for RetroAudioCb {
         }
 
         let new_data = unsafe { &*slice_from_raw_parts(data, frames * 2) };
-        self.driver
-            .try_load()?
-            .add_sample(new_data, frames, av_info)?;
+        let metadata = AudioMetadata {
+            channels: 2,
+            sample_rate: *av_info
+                .timing
+                .sample_rate
+                .try_read()
+                .map_err(|_| ErrorHandle::new("Failed to read sample rate"))?,
+        };
 
+        self.drive.add_sample(new_data, metadata)?;
         Ok(frames)
     }
 }

@@ -25,7 +25,7 @@ impl EventThread {
 
     pub fn resume(&self, devices: Arc<DevicesManager>) {
         self.event_thread_can_run.store(true);
-        self.create_update_devices_state_thread(devices, self.event_thread_can_run.clone());
+        self.create_update_devices_state_thread(devices);
     }
 
     /// # event listener thread
@@ -35,13 +35,10 @@ impl EventThread {
     /// notificada sobre os eventos de input.
     ///
     /// Aviso: para evitar uso desnecessário de CPU use isso somente quando não hover uma
-    /// *rom* em execução! Use o terceiro parâmetro 'event-thread-is-enabled' para encerar a
-    /// execução da thread quando não precisar mais dela.
-    fn create_update_devices_state_thread(
-        &self,
-        devices: Arc<DevicesManager>,
-        event_thread_is_enabled: ArcTMutex<bool>,
-    ) {
+    /// *rom* em execução!
+    fn create_update_devices_state_thread(&self, devices: Arc<DevicesManager>) {
+        let event_thread_is_enabled = self.event_thread_can_run.clone();
+
         thread::spawn(move || {
             while *event_thread_is_enabled.load_or(false) {
                 //WITHOUT THIS, WI HAVE A HIGH CPU UTILIZATION!

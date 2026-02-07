@@ -16,6 +16,8 @@ winit.workspace = true
 glutin.workspace = true
 raw-window-handle.workspace = true
 glutin-winit.workspace = true
+ringbuf.workspace = true
+# samplerate = "0.2.4"
 
 [build-dependencies]
 cfg_aliases.workspace = true
