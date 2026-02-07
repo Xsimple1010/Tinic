@@ -52,14 +52,14 @@ impl Tinic {
             }
         }
 
-        let retro_ab_controller = Arc::new(Mutex::new(RetroAbController::new(Some(
+        let controller_ctx = Arc::new(Mutex::new(RetroAbController::new(Some(
             device_state_listener,
         ))?));
 
         Ok(Self {
-            game_thread: GameThread::new(retro_ab_controller.clone()),
+            game_thread: GameThread::new(controller_ctx.clone()),
             core_options: None,
-            retro_ab_controller,
+            retro_ab_controller: controller_ctx,
         })
     }
 
