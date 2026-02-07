@@ -87,7 +87,6 @@ pub fn stack_commands_handle(
                             for device in ctr.get_list() {
                                 //-1 é uma porta invalida
                                 if device.retro_port > -1 {
-                                    println!("device is {}", device.name);
                                     let _ = retro_ab.core().connect_controller(
                                         device.retro_port as u32,
                                         device.retro_type,
