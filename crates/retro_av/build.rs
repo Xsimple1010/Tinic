@@ -13,8 +13,6 @@ fn main() {
         // Systems.
         android_platform: { target_os = "android" },
         macos_platform: { target_os = "macos" },
-        ios_platform: { target_os = "ios" },
-        apple: { any(ios_platform, macos_platform) },
         free_unix: { all(unix, not(apple), not(android_platform)) },
 
         // Native displays.
@@ -25,7 +23,6 @@ fn main() {
         egl_backend: { all(feature = "egl", any(windows, unix), not(apple)) },
         glx_backend: { all(feature = "glx", x11_platform) },
         wgl_backend: { all(feature = "wgl", windows) },
-        cgl_backend: { all(macos_platform) },
     }
 
     let dest = PathBuf::from(&env::var("OUT_DIR").unwrap());
