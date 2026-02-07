@@ -127,7 +127,13 @@ impl RomTools {
         }
 
         let mut file = File::create(get_save_path(ctx, slot)?).unwrap();
-        file.write(&data).unwrap();
+
+        if let Err(e) = file.write(&data) {
+            return Err(ErroHandle {
+                level: RETRO_LOG_ERROR,
+                message: e.to_string(),
+            });
+        };
 
         // let path = PathBuf::from(file)
         //     .as_path()
