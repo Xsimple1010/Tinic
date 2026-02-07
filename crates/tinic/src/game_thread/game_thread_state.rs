@@ -20,111 +20,21 @@ use retro_core::RetroCore;
 use retro_core::RetroCoreIns;
 use retro_core::RetroEnvCallbacks;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use std::sync::{Arc, MutexGuard};
 
 pub struct ThreadState {
     pub channel_notify: ChannelNotify,
+    pub controller_ctx: Arc<Mutex<RetroController>>,
+    pub is_running: Arc<AtomicBool>,
     pub pause_request_new_frames: bool,
     pub use_full_screen_mode: bool,
     pub retro_core: Option<RetroCoreIns>,
     pub retro_av: Option<(RetroAv, EventPump)>,
-    pub controller_ctx: Arc<Mutex<RetroController>>,
-    pub is_running: Arc<Mutex<bool>>,
 }
 
 impl ThreadState {
-    pub fn is_running(&self) -> bool {
-        *self.is_running.lock().unwrap_or_else(|op| {
-            let mut can_run = op.into_inner();
-            *can_run = false;
-
-            can_run
-        })
-    }
-
-    fn try_get_retro_core_ctx(&self) -> Result<RetroCoreIns, ErroHandle> {
-        match &self.retro_core {
-            Some(retro_core) => Ok(retro_core.clone()),
-            None => Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
-                message: "erro ao tentar recuperar retro_core".to_string(),
-            }),
-        }
-    }
-
-    pub fn try_get_retro_av_ctx(&self) -> Result<&(RetroAv, EventPump), ErroHandle> {
-        match &self.retro_av {
-            Some(retro_av) => Ok(retro_av),
-            None => Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
-                message: "erro ao tentar recuperar retro_av".to_string(),
-            }),
-        }
-    }
-
-    fn try_get_controller_ctx(&mut self) -> Result<MutexGuard<'_, RetroController>, ErroHandle> {
-        match self.controller_ctx.lock() {
-            Ok(guard) => Ok(guard),
-            Err(e) => Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
-                message: e.to_string(),
-            }),
-        }
-    }
-
-    fn create_retro_contexts(
-        &mut self,
-        core_path: String,
-        rom_path: String,
-        paths: RetroPaths,
-    ) -> Result<Arc<OptionManager>, ErroHandle> {
-        let callbacks = RetroEnvCallbacks {
-            input_poll_callback,
-            input_state_callback,
-            rumble_callback,
-            audio_sample_batch_callback,
-            audio_sample_callback,
-            video_refresh_callback,
-            get_proc_address,
-            context_destroy,
-            context_reset,
-        };
-
-        let retro_core = RetroCore::new(
-            &core_path,
-            paths,
-            callbacks,
-            GraphicApi::with(RETRO_HW_CONTEXT_OPENGL_CORE),
-        )?;
-        let av_info = retro_core.load_game(&rom_path)?;
-        let retro_av = RetroAv::new(av_info)?;
-
-        let op_manager = retro_core.options.clone();
-
-        self.retro_core.replace(retro_core);
-        self.retro_av.replace(retro_av);
-
-        Ok(op_manager)
-    }
-
-    pub fn try_render_frame(&mut self) -> Result<(), ErroHandle> {
-        if let Some(retro_core) = &self.retro_core {
-            if let Some((retro_av, _)) = &mut self.retro_av {
-                if !retro_av.sync() || self.pause_request_new_frames {
-                    return Ok(());
-                }
-
-                // Pede para core gerar novos buffers de video e audio
-                retro_core.run()?;
-                // Exibe os buffers gerados pelo core
-                retro_av.get_new_frame();
-            }
-        }
-
-        Ok(())
-    }
-
     pub fn load_game(
         &mut self,
         core_path: String,
@@ -257,8 +167,113 @@ impl ThreadState {
     }
 }
 
+impl ThreadState {
+    pub fn new(
+        channel_notify: ChannelNotify,
+        controller_ctx: Arc<Mutex<RetroController>>,
+        is_running: Arc<AtomicBool>,
+    ) -> Self {
+        Self {
+            channel_notify,
+            controller_ctx,
+            is_running,
+            pause_request_new_frames: false,
+            use_full_screen_mode: false,
+            retro_av: None,
+            retro_core: None,
+        }
+    }
+
+    pub fn is_running(&self) -> bool {
+        self.is_running.load(Ordering::SeqCst)
+    }
+
+    fn try_get_retro_core_ctx(&self) -> Result<RetroCoreIns, ErroHandle> {
+        match &self.retro_core {
+            Some(retro_core) => Ok(retro_core.clone()),
+            None => Err(ErroHandle {
+                level: retro_log_level::RETRO_LOG_ERROR,
+                message: "erro ao tentar recuperar retro_core".to_string(),
+            }),
+        }
+    }
+
+    pub fn try_get_retro_av_ctx(&self) -> Result<&(RetroAv, EventPump), ErroHandle> {
+        match &self.retro_av {
+            Some(retro_av) => Ok(retro_av),
+            None => Err(ErroHandle {
+                level: retro_log_level::RETRO_LOG_ERROR,
+                message: "erro ao tentar recuperar retro_av".to_string(),
+            }),
+        }
+    }
+
+    fn try_get_controller_ctx(&mut self) -> Result<MutexGuard<'_, RetroController>, ErroHandle> {
+        match self.controller_ctx.lock() {
+            Ok(guard) => Ok(guard),
+            Err(e) => Err(ErroHandle {
+                level: retro_log_level::RETRO_LOG_ERROR,
+                message: e.to_string(),
+            }),
+        }
+    }
+
+    fn create_retro_contexts(
+        &mut self,
+        core_path: String,
+        rom_path: String,
+        paths: RetroPaths,
+    ) -> Result<Arc<OptionManager>, ErroHandle> {
+        let callbacks = RetroEnvCallbacks {
+            input_poll_callback,
+            input_state_callback,
+            rumble_callback,
+            audio_sample_batch_callback,
+            audio_sample_callback,
+            video_refresh_callback,
+            get_proc_address,
+            context_destroy,
+            context_reset,
+        };
+
+        let retro_core = RetroCore::new(
+            &core_path,
+            paths,
+            callbacks,
+            GraphicApi::with(RETRO_HW_CONTEXT_OPENGL_CORE),
+        )?;
+        let av_info = retro_core.load_game(&rom_path)?;
+        let retro_av = RetroAv::new(av_info)?;
+
+        let op_manager = retro_core.options.clone();
+
+        self.retro_core.replace(retro_core);
+        self.retro_av.replace(retro_av);
+
+        Ok(op_manager)
+    }
+
+    pub fn try_render_frame(&mut self) -> Result<(), ErroHandle> {
+        if let Some(retro_core) = &self.retro_core {
+            if let Some((retro_av, _)) = &mut self.retro_av {
+                if !retro_av.sync() || self.pause_request_new_frames {
+                    return Ok(());
+                }
+
+                // Pede para core gerar novos buffers de video e audio
+                retro_core.run()?;
+                // Exibe os buffers gerados pelo core
+                retro_av.get_new_frame();
+            }
+        }
+
+        Ok(())
+    }
+}
+
 impl Drop for ThreadState {
     fn drop(&mut self) {
+        println!("Dropping ThreadState");
         self.channel_notify.clear_game_stack();
 
         //Gracas ao mutex is-running pode ser que algo externo atrapalhe a leitura dos comandos da stack,
@@ -272,13 +287,6 @@ impl Drop for ThreadState {
             let _ = core.de_init();
         }
 
-        match self.is_running.lock() {
-            Ok(mut is_running) => {
-                *is_running = false;
-            }
-            Err(op) => {
-                *op.into_inner() = false;
-            }
-        }
+        self.is_running.store(false, Ordering::Relaxed);
     }
 }

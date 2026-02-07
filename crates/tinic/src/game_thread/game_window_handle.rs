@@ -1,6 +1,7 @@
 use crate::thread_stack::game_stack::GameStackCommand;
 use generics::erro_handle::ErroHandle;
 use retro_av::{Event, Keycode};
+use std::sync::atomic::Ordering;
 
 use super::game_thread_state::ThreadState;
 
@@ -19,14 +20,7 @@ pub fn game_window_handle(state: &mut ThreadState) -> Result<(), ErroHandle> {
             | Event::KeyDown {
                 keycode: Some(Keycode::Escape),
                 ..
-            } => match state.is_running.lock() {
-                Ok(mut is_running) => {
-                    *is_running = false;
-                }
-                Err(op) => {
-                    *op.into_inner() = false;
-                }
-            },
+            } => state.is_running.store(false, Ordering::SeqCst),
             Event::KeyDown {
                 keycode: Some(Keycode::F1),
                 ..

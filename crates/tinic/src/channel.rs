@@ -6,46 +6,15 @@ use crate::thread_stack::main_stack::MainStackCommand::{
     GameLoaded, GameStateSaved, SaveStateLoaded,
 };
 use crate::thread_stack::main_stack::{MainStack, MainStackCommand, SaveImg, SavePath};
-use crate::thread_stack::model_stack::RetroStackFn;
-use generics::constants::MAX_TIME_TO_AWAIT_THREAD_RESPONSE;
+use crate::thread_stack::model_stack::{wait_response, RetroStackFn};
 use generics::retro_paths::RetroPaths;
 use retro_controllers::devices_manager::Device;
 use retro_core::option_manager::OptionManager;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
 
 pub struct ThreadChannel {
     game_stack: GameStack,
     main_stack: MainStack,
-}
-
-fn wait_response<C, S: RetroStackFn<C>, CA>(stack: &S, mut callback: CA)
-where
-    CA: FnMut(&C) -> bool,
-{
-    let max_time_lapse = Duration::from_secs(MAX_TIME_TO_AWAIT_THREAD_RESPONSE);
-    let mut last_time = Instant::now();
-
-    'running: loop {
-        let now = Instant::now();
-        let time_lapse = now - last_time;
-
-        if time_lapse >= max_time_lapse {
-            break 'running;
-        } else {
-            let commands = stack.read();
-            for index in 0..commands.len() {
-                if let Some(cmd) = commands.get(index) {
-                    if callback(cmd) {
-                        stack.remove_index(index);
-                        break 'running;
-                    };
-                }
-            }
-        }
-
-        last_time = now;
-    }
 }
 
 impl ThreadChannel {

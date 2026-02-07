@@ -12,6 +12,8 @@ mod game_thread;
 mod thread_stack;
 mod tinic;
 
+pub use tokio;
+
 pub use generics::retro_paths::RetroPaths;
 pub use retro_controllers::{
     devices_manager::{Device, DeviceState, DeviceStateListener},

@@ -24,7 +24,6 @@ tokio = { version = "1.42.0", features = ["full"] }
 reqwest = "0.12.9"
 zip = "2.2.2"
 sevenz-rust = "0.6.1"
-async-std = "1.13.0"
 lazy_static = "1.5.0"
 gilrs = "0.11.0"
 pc-keyboard = "0.8.0"

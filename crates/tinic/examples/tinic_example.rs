@@ -15,10 +15,10 @@ async fn main() -> Result<(), ErroHandle> {
     let mut tinic = Tinic::new(device_state_listener, get_paths()?)?;
 
     if let Some(core) = &args.core {
-        tinic.load_game(&core, &args.rom)?;
+        tinic.load_game(&core, &args.rom).await?;
     } else {
         //baixa as infamações dos cores
-        tinic.try_update_core_infos(false);
+        tinic.try_update_core_infos(false).await?;
 
         let infos = tinic.get_compatibility_info_cores(&args.rom);
 
@@ -59,10 +59,10 @@ async fn main() -> Result<(), ErroHandle> {
                     tinic.quit();
                     break 'running;
                 } else if command.starts_with("1") {
-                    let f = tinic.save_state(1);
+                    let f = tinic.save_state(1).await;
                     println!("{:?}", f);
                 } else if command.starts_with("2") {
-                    let d = tinic.load_state(1);
+                    let d = tinic.load_state(1).await;
                     println!("LOADED -> {:?}", d);
                 } else if command.starts_with("3") {
                     tinic.pause();
@@ -74,7 +74,7 @@ async fn main() -> Result<(), ErroHandle> {
                     tinic.quit();
                 } else if command.starts_with("7") {
                     if let Some(core) = &args.core {
-                        tinic.load_game(&core, &args.rom)?;
+                        tinic.load_game(&core, &args.rom).await?;
                     }
                 }
 

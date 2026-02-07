@@ -18,7 +18,7 @@ pub struct CoreInfoHelper;
 
 impl CoreInfoHelper {
     pub async fn try_update_core_infos(
-        retro_paths: RetroPaths,
+        retro_paths: &RetroPaths,
         force_update: bool,
     ) -> Result<(), Error> {
         let temp_dir = retro_paths.temps.clone().to_string();

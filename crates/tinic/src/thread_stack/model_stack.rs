@@ -1,8 +1,39 @@
+use generics::constants::MAX_TIME_TO_AWAIT_THREAD_RESPONSE;
 use std::sync::{Arc, Mutex, MutexGuard};
+use std::time::{Duration, Instant};
 
 #[derive(Clone, Debug)]
 pub struct ModelStackManager<T> {
     commands: Arc<Mutex<Vec<T>>>,
+}
+
+pub fn wait_response<C, S: RetroStackFn<C>, CA>(stack: &S, mut callback: CA)
+where
+    CA: FnMut(&C) -> bool,
+{
+    let max_time_lapse = Duration::from_secs(MAX_TIME_TO_AWAIT_THREAD_RESPONSE);
+    let mut last_time = Instant::now();
+
+    'running: loop {
+        let now = Instant::now();
+        let time_lapse = now - last_time;
+
+        if time_lapse >= max_time_lapse {
+            break 'running;
+        } else {
+            let commands = stack.read();
+            for index in 0..commands.len() {
+                if let Some(cmd) = commands.get(index) {
+                    if callback(cmd) {
+                        stack.remove_index(index);
+                        break 'running;
+                    };
+                }
+            }
+        }
+
+        last_time = now;
+    }
 }
 
 pub trait RetroStackFn<T> {
