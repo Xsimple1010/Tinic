@@ -1,4 +1,5 @@
 use generics::retro_paths::RetroPaths;
+use std::ops::Not;
 use std::sync::Arc;
 use tinic_super::event::TinicSuperEventListener;
 use tinic_super::rdb_manager::game::GameInfo;
@@ -31,9 +32,13 @@ async fn main() {
 
     let tinic_super = TinicSuper::new(retro_paths, Arc::new(TinicSuperListener));
 
-    // if tinic_super.core_info_helper.has_core_installed().not() {
-    //     // tinic_super.try_update_core(true).await.unwrap();
-    // }
+    if tinic_super.core_info_helper.has_core_installed().not() {
+        tinic_super
+            .core_info_helper
+            .download_core(true)
+            .await
+            .unwrap();
+    }
 
     let rom = "/home/aderval/Downloads/RetroArch_cores/roms/FFVii.iso";
     let core_infos = tinic_super

@@ -1,3 +1,4 @@
+mod download_core;
 mod get_all_core_infos;
 mod get_compatibility_core_infos;
 mod has_core_installed;

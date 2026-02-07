@@ -1,3 +1,4 @@
+use crate::core_info::download_core::download_core;
 use crate::core_info::get_all_core_infos::get_all_core_infos;
 use crate::core_info::get_compatibility_core_infos::get_compatibility_core_infos;
 use crate::core_info::has_core_installed::has_core_installed;
@@ -39,5 +40,9 @@ impl CoreInfoHelper {
 
     pub async fn get_compatibility_core_infos(&self, rom_path: &PathBuf) -> Vec<CoreInfo> {
         get_compatibility_core_infos(rom_path, &self.retro_paths).await
+    }
+
+    pub async fn download_core(&self, force_update: bool) -> Result<(), ErrorHandle> {
+        download_core(&self.retro_paths, force_update, self.event_listener.clone()).await
     }
 }
