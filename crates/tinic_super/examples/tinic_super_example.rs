@@ -37,10 +37,12 @@ async fn main() {
     let rom = "/home/aderval/Downloads/RetroArch_cores/Super Mario World (USA) s.sfc";
     let core_infos = { tinic_super.get_compatibility_core_infos(rom) };
 
-    tinic_super.install_cores(&core_infos, false).await.unwrap();
-    let (game_info, rdb) = tinic_super.identifier_rom_file(rom).unwrap();
+    tinic_super.install_cores_and_rdb(&core_infos, false).await.unwrap();
 
     tinic_super
-        .download_all_thumbnail_from_game(&rdb.name.replace(".rdb", ""), &game_info.name.unwrap())
+        .download_all_thumbnail_from_game(
+            "Nintendo - Super Nintendo Entertainment System",
+            "Super Mario World (USA)",
+        )
         .await;
 }
