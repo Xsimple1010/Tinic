@@ -36,10 +36,10 @@ impl<T> TMutex<T> {
         }
     }
 
-    pub fn load_or_spaw_err(&self, error_menssage: &str) -> Result<MutexGuard<'_, T>, ErrorHandle> {
+    pub fn load_or_spawn_err(&self, error_message: &str) -> Result<MutexGuard<'_, T>, ErrorHandle> {
         match self.value.lock() {
             Ok(v) => Ok(v),
-            Err(_) => Err(ErrorHandle::new(error_menssage)),
+            Err(_) => Err(ErrorHandle::new(error_message)),
         }
     }
 

@@ -72,8 +72,8 @@ impl AudioResample {
     }
 
     pub fn add_sample(&self, data: &[i16], metadata: AudioMetadata) -> Result<(), ErrorHandle> {
-        let mut res = self.back_buffer_prod.load_or_spaw_err(
-            "Não foi possivel adicionar amostras de audio ao buffer de entrada",
+        let mut res = self.back_buffer_prod.load_or_spawn_err(
+            "Não foi possível adicionar amostras de audio ao buffer de entrada",
         )?;
 
         if let Some(back_buffer_prod) = &mut *res {
