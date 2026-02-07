@@ -29,7 +29,7 @@ fn device_state_listener(state: DeviceState, device: Device) {
 }
 
 pub struct Tinic {
-    pub retro_ab_controller: Arc<Mutex<RetroController>>,
+    pub controller: Arc<Mutex<RetroController>>,
     game_thread: GameThread,
     pub core_options: Option<Arc<OptionManager>>,
 }
@@ -53,7 +53,7 @@ impl Tinic {
         Ok(Self {
             game_thread: GameThread::new(controller_ctx.clone()),
             core_options: None,
-            retro_ab_controller: controller_ctx,
+            controller: controller_ctx,
         })
     }
 
