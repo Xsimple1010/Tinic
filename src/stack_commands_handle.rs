@@ -1,4 +1,9 @@
-use retro_ab::core::{self, RetroContext, RetroEnvCallbacks};
+use crate::retro_stack::{
+    RetroStack,
+    StackCommand::{GamepadConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState},
+};
+use retro_ab::core::RetroEnvCallbacks;
+use retro_ab::retro_context::RetroContext;
 use retro_ab_av::{
     audio_sample_batch_callback, audio_sample_callback, context::RetroAvCtx,
     video_refresh_callback, EventPump,
@@ -7,11 +12,6 @@ use retro_ab_gamepad::context::{
     input_poll_callback, input_state_callback, rumble_callback, GamepadContext,
 };
 use std::sync::{Arc, Mutex};
-
-use crate::retro_stack::{
-    RetroStack,
-    StackCommand::{GamepadConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState},
-};
 
 pub fn stack_commands_handle(
     stack: &Arc<RetroStack>,
@@ -42,42 +42,36 @@ pub fn stack_commands_handle(
                     rumble_callback,
                 };
 
+                let ctx = RetroContext::new(&core_path, paths, callbacks);
+
                 //TODO: criar uma macro para fazer isso parecer um pouco melhor
-                match core::load(&core_path, paths, callbacks) {
-                    Ok(ctx) => {
-                        match core::init(&ctx) {
-                            Ok(..) => match core::load_game(&ctx, rom_path.as_str()) {
-                                Ok(loaded) => {
-                                    if loaded {
-                                        if let Ok(mut controller) = controller_ctx.lock() {
-                                            controller.stop_thread_events();
-                                        }
-
-                                        match RetroAvCtx::new(ctx.core.av_info.clone()) {
-                                            Ok(ctx) => {
-                                                av_ctx.replace(ctx);
-                                            }
-                                            Err(e) => {
-                                                println!("{:?}", e);
-                                                break;
-                                            }
-                                        }
-
-                                        core_ctx.replace(ctx);
-                                    };
+                match ctx {
+                    Ok(ctx) => match ctx.core.load_game(&rom_path) {
+                        Ok(loaded) => {
+                            if loaded {
+                                if let Ok(mut controller) = controller_ctx.lock() {
+                                    controller.stop_thread_events();
                                 }
 
-                                Err(e) => {
-                                    println!("{:?}", e);
-                                    break;
+                                match RetroAvCtx::new(ctx.core.av_info.clone()) {
+                                    Ok(ctx) => {
+                                        av_ctx.replace(ctx);
+                                    }
+                                    Err(e) => {
+                                        println!("{:?}", e);
+                                        break;
+                                    }
                                 }
-                            },
-                            Err(e) => {
-                                println!("{:?}", e);
-                                break;
-                            }
-                        };
-                    }
+
+                                core_ctx.replace(ctx);
+                            };
+                        }
+
+                        Err(e) => {
+                            println!("{:?}", e);
+                            break;
+                        }
+                    },
                     Err(e) => {
                         println!("{:?}", e);
                         break;
@@ -89,7 +83,7 @@ pub fn stack_commands_handle(
             Pause => {
                 //habilita a thread de eventos novamente
                 if let Ok(mut controller) = controller_ctx.lock() {
-                    controller.resume_thread_events();
+                    let _ = controller.resume_thread_events();
                     *pause_request_new_frames = true
                 }
             }
@@ -102,9 +96,9 @@ pub fn stack_commands_handle(
             }
             Reset => {
                 if let Some(ctx) = &core_ctx {
-                    if let Err(e) = core::reset(ctx) {
+                    if let Err(e) = ctx.core.reset() {
                         println!("{:?}", e);
-                        if let Err(e) = core::de_init(ctx.to_owned()) {
+                        if let Err(e) = ctx.core.de_init() {
                             println!("{:?}", e)
                         };
 
@@ -114,11 +108,9 @@ pub fn stack_commands_handle(
             }
             GamepadConnected(gamepad) => {
                 if let Some(ctx) = core_ctx {
-                    let _ = core::connect_controller(
-                        ctx,
-                        gamepad.retro_port as u32,
-                        gamepad.retro_type,
-                    );
+                    let _ = ctx
+                        .core
+                        .connect_controller(gamepad.retro_port as u32, gamepad.retro_type);
                 }
             }
         }

@@ -1,7 +1,7 @@
 use crate::game_window_handle::game_window_handle;
 use crate::retro_stack::RetroStack;
 use crate::stack_commands_handle::stack_commands_handle;
-use retro_ab::core::RetroContext;
+use retro_ab::retro_context::RetroContext;
 use retro_ab_av::context::RetroAvCtx;
 use retro_ab_av::EventPump;
 use retro_ab_gamepad::context::GamepadContext;
@@ -31,7 +31,7 @@ pub fn spawn_game_thread(
                 if let Some((av, _)) = &mut av_ctx {
                     if av.sync() {
                         if let Some(core_ctx) = &core_ctx {
-                            if let Err(e) = retro_ab::core::run(core_ctx) {
+                            if let Err(e) = core_ctx.core.run() {
                                 println!("{:?}", e);
                                 break;
                             };
@@ -49,12 +49,12 @@ pub fn spawn_game_thread(
 
         //TODO: preciso adiciona Drop ao RetroContext
         if let Some(core_ctx) = core_ctx.take() {
-            let _ = retro_ab::core::de_init(core_ctx);
+            let _ = core_ctx.delete();
         };
 
         //TODO: isso pode fica na stack_handle
         if let Ok(ctr) = &mut controller_ctx.lock() {
-            ctr.resume_thread_events();
+            let _ = ctr.resume_thread_events();
         }
 
         stack.clear();

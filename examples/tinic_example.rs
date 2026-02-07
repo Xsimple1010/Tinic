@@ -64,7 +64,7 @@ fn main() -> Result<(), String> {
                     }
                 }
 
-                println!("");
+                println!();
             }
             Err(..) => println!("erro ao ler o comando!"),
         }
