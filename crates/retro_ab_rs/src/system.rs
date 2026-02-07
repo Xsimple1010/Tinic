@@ -1,8 +1,8 @@
 use crate::{
-    constants::{MAX_CORE_SUBSYSTEM_INFO, MAX_CORE_SUBSYSTEM_ROM_INFO},
     controller_info::ControllerInfo,
     tools::{ffi_tools::get_str_from_ptr, mutex_tools::get_string_rwlock_from_ptr},
 };
+use generics::constants::{MAX_CORE_SUBSYSTEM_INFO, MAX_CORE_SUBSYSTEM_ROM_INFO};
 use libretro_sys::binding_libretro::{
     retro_subsystem_info, retro_subsystem_memory_info, retro_subsystem_rom_info, retro_system_info,
     LibretroRaw,

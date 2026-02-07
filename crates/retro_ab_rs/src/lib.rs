@@ -2,7 +2,6 @@ extern crate libretro_sys;
 extern crate uuid;
 
 mod av_info;
-mod constants;
 mod controller_info;
 mod environment;
 mod managers;

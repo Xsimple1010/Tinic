@@ -1,5 +1,4 @@
 use crate::{
-    constants::{MAX_CORE_CONTROLLER_INFO_TYPES, MAX_CORE_SUBSYSTEM_INFO},
     controller_info::ControllerInfo,
     core::CoreWrapper,
     libretro_sys::binding_libretro::{
@@ -35,6 +34,7 @@ use crate::{
     tools::ffi_tools::{get_str_from_ptr, make_c_string},
 };
 use ::std::os::raw;
+use generics::constants::{MAX_CORE_CONTROLLER_INFO_TYPES, MAX_CORE_SUBSYSTEM_INFO};
 use libretro_sys::binding_log_interface;
 use std::mem;
 use std::{os::raw::c_void, ptr::addr_of, sync::Arc};
@@ -162,7 +162,8 @@ unsafe extern "C" fn get_current_frame_buffer() -> usize {
     }
 }
 
-unsafe extern "C" fn get_proc_address(sym: *const ::std::os::raw::c_char) -> retro_proc_address_t {
+//TODO: ainda preciso testar  se isso esta funcionando
+unsafe extern "C" fn get_proc_address(sym: *const raw::c_char) -> retro_proc_address_t {
     match &*addr_of!(CORE_CONTEXT) {
         Some(core_ctx) => {
             let fc_name = get_str_from_ptr(sym);
@@ -653,7 +654,7 @@ mod test_environment {
                     pixel,
                     *core_ctx.av_info.video.pixel_format.lock().unwrap()
                 ),
-                _ => panic!("CORE_CONTEXTo nao foi encontrado"),
+                _ => panic!("CORE_CONTEXT nao foi encontrado"),
             }
         }
     }

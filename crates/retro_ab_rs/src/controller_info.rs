@@ -1,4 +1,5 @@
-use crate::{constants::MAX_CORE_CONTROLLER_INFO_TYPES, tools::ffi_tools::get_str_from_ptr};
+use crate::tools::ffi_tools::get_str_from_ptr;
+use generics::constants::MAX_CORE_CONTROLLER_INFO_TYPES;
 use libretro_sys::binding_libretro::{retro_controller_description, retro_controller_info};
 use std::sync::Mutex;
 

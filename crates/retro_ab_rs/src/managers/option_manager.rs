@@ -1,12 +1,11 @@
-use crate::constants::CORE_OPTION_EXTENSION_FILE;
 use crate::{
-    constants,
     libretro_sys::binding_libretro::{
         retro_core_option_v2_category, retro_core_option_v2_definition, retro_core_options_v2,
         retro_core_options_v2_intl,
     },
     tools::mutex_tools::get_string_rwlock_from_ptr,
 };
+use generics::constants::{CORE_OPTION_EXTENSION_FILE, MAX_CORE_OPTIONS};
 use std::{
     fs::File,
     io::{Read, Write},
@@ -151,9 +150,8 @@ impl OptionManager {
     //===============================================
 
     fn get_v2_intl_category(&self, categories: *mut retro_core_option_v2_category) {
-        let categories = unsafe {
-            *(categories as *mut [retro_core_option_v2_category; constants::MAX_CORE_OPTIONS])
-        };
+        let categories =
+            unsafe { *(categories as *mut [retro_core_option_v2_category; MAX_CORE_OPTIONS]) };
 
         for category in categories {
             if !category.key.is_null() {

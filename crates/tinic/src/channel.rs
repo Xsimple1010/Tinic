@@ -8,6 +8,7 @@ use crate::thread_stack::main_stack::MainStackCommand::{
 };
 use crate::thread_stack::main_stack::{MainStack, MainStackCommand};
 use crate::thread_stack::model_stack::RetroStackFn;
+use generics::constants::MAX_TIME_TO_AWAIT_THREAD_RESPONSE;
 use generics::retro_paths::RetroPaths;
 use retro_ab::option_manager::OptionManager;
 use retro_ab_gamepad::devices_manager::Device;
@@ -19,13 +20,11 @@ pub struct ThreadChannel {
     main_stack: MainStack,
 }
 
-const MAX_TIME_TO_AWAIT: u64 = 3;
-
 fn wait_response<C, S: RetroStackFn<C>, CA>(stack: &S, mut callback: CA)
 where
     CA: FnMut(&C) -> bool,
 {
-    let max_time_lapse = Duration::from_secs(MAX_TIME_TO_AWAIT);
+    let max_time_lapse = Duration::from_secs(MAX_TIME_TO_AWAIT_THREAD_RESPONSE);
     let mut last_time = Instant::now();
 
     'running: loop {
