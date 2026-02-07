@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 libretro_sys.workspace = true
+sqlite.workspace = true
