@@ -28,6 +28,10 @@ pub fn init_game_loop(
             for cmd in stack.read() {
                 match cmd {
                     StackCommand::LoadGame(core_path, rom_path, paths, callbacks) => {
+                        if core_ctx.is_some() {
+                            break;
+                        }
+
                         match core::load(&core_path, paths, callbacks) {
                             Ok(ctx) => {
                                 match core::init(&ctx) {
@@ -48,18 +52,18 @@ pub fn init_game_loop(
 
                                         Err(e) => {
                                             println!("{:?}", e);
-                                            break 'running;
+                                            break;
                                         }
                                     },
                                     Err(e) => {
                                         println!("{:?}", e);
-                                        break 'running;
+                                        break;
                                     }
                                 };
                             }
                             Err(e) => {
                                 println!("{:?}", e);
-                                break 'running;
+                                break;
                             }
                         }
                     }
@@ -101,7 +105,9 @@ pub fn init_game_loop(
                         if let Some(ctx) = &core_ctx {
                             if let Err(e) = core::reset(ctx) {
                                 println!("{:?}", e);
-                                break 'running;
+                                if let Err(e) = core::de_init(ctx.to_owned()) {
+                                    println!("{:?}", e)
+                                };
                             };
                         };
                     }
