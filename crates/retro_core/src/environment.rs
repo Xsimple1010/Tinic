@@ -366,11 +366,11 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
             return true;
         }
         RETRO_ENVIRONMENT_SET_VARIABLES => {
-            // #[cfg(feature = "core_logs")]
+            #[cfg(feature = "core_logs")]
             println!("RETRO_ENVIRONMENT_SET_VARIABLES");
         }
         RETRO_ENVIRONMENT_GET_VARIABLE => {
-            // #[cfg(feature = "core_logs")]
+            #[cfg(feature = "core_logs")]
             println!("RETRO_ENVIRONMENT_GET_VARIABLE -> ok");
 
             let raw_variable = data as *const retro_variable;
@@ -379,14 +379,12 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
                 return true;
             }
 
-            binding_log_interface::set_variable_value_as_null(data);
-
             return match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => {
                     let options_manager = &core_ctx.options;
 
                     if options_manager.updated_count.load(Ordering::SeqCst) < 1 {
-                        return true;
+                        return false;
                     }
 
                     let raw_variable = *(data as *const retro_variable);
@@ -408,11 +406,13 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
 
                         let new_value = make_c_string(&core_opt.selected.read().unwrap()).unwrap();
 
-                        let _ =
-                            binding_log_interface::set_new_value_variable(data, new_value.as_ptr());
+                        return binding_log_interface::set_new_value_variable(
+                            data,
+                            new_value.as_ptr(),
+                        );
                     }
 
-                    true
+                    false
                 }
                 _ => false,
             };
