@@ -56,11 +56,12 @@ pub fn extract_zip_file(
 pub enum SevenZipBeforeExtractionAction {
     Extract,
     Jump,
+    Stop,
 }
 
-pub fn extract_7zip_file<CP>(src_path: PathBuf, dest: String, before_extraction: CP)
+pub fn extract_7zip_file<CP>(src_path: PathBuf, dest: String, mut before_extraction: CP)
 where
-    CP: Fn(FileProgress) -> SevenZipBeforeExtractionAction + Copy,
+    CP: FnMut(FileProgress) -> SevenZipBeforeExtractionAction,
 {
     let dest_path = PathBuf::from(dest);
     let mut used_names = HashMap::<String, usize>::new();
@@ -93,16 +94,22 @@ where
 
             match action {
                 SevenZipBeforeExtractionAction::Jump => {
+                    println!("jumping: {}", final_name);
                     // DRENA o stream
                     std::io::copy(reader, &mut std::io::sink())?;
                     Ok(true)
                 }
                 SevenZipBeforeExtractionAction::Extract => {
+                    println!("Extraction: {}", final_name);
                     let file_path = dest_path.join(final_name);
                     let file = File::create(&file_path)?;
                     let mut writer = BufWriter::new(file);
                     std::io::copy(reader, &mut writer)?;
                     Ok(true)
+                }
+                SevenZipBeforeExtractionAction::Stop => {
+                    println!("top: {}", final_name);
+                    Ok(false)
                 }
             }
         },

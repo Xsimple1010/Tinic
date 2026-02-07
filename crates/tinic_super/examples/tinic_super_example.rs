@@ -3,7 +3,7 @@ use std::ops::Not;
 use std::sync::Arc;
 use tinic_super::core_info::model::CoreInfo;
 use tinic_super::event::TinicSuperEventListener;
-use tinic_super::rdb_manager::game::GameInfo;
+use tinic_super::rdb_manager::game_model::GameInfo;
 use tinic_super::tinic_super::TinicSuper;
 
 struct TinicSuperListener;
