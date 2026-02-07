@@ -4,7 +4,7 @@ Um simples reprodutor de núcleos libreto
 
 ## Observação
 
-Este projeto ainda esta em fase inicial então muita coisa ainda pode muda e ser melhorada. tinic é dividido em 3 (tres) projetos cada qual com sua responsabilidade.
+Este projeto ainda está em fase inicial então muita coisa ainda pode mudar e ser melhorada. Tinic é dividido em 3 (três) projetos, cada qual com sua responsabilidade.
 
 ### [Retro_ab_rs](https://github.com/Xsimple1010/retro_ab_rs)
 
@@ -12,7 +12,7 @@ Todas as ligações aos núcleos são criadas aqui.
 
 ### [Retro_ab_av](https://github.com/Xsimple1010/retro_ab_av)
 
-Lida com renderização e a reprodução de audio.
+Lida com renderização e a reprodução de áudio.
 
 ### [Retro_ab_gamepad](https://github.com/Xsimple1010/retro_ab_gamepad)
 
