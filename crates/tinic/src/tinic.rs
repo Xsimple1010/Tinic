@@ -21,7 +21,7 @@ pub struct Tinic {
     window_listener: Option<Arc<Box<dyn WindowListener>>>,
 }
 
-pub enum TinicPumpStatus {
+pub enum TinicGameInstanceStatus {
     Continue,
     Exit(i32),
 }
@@ -48,6 +48,15 @@ impl Tinic {
         })
     }
 
+    #[doc = "
+        # Set Control Listener
+
+        Sets the control listener used to handle control events.
+
+        The control listener must implement the **DeviceListener** trait.
+
+        * **Warning:** The control listener must be set **before creating a `GameInstance`**.
+    "]
     pub fn set_controle_listener(
         &mut self,
         listener: Box<dyn DeviceListener>,
@@ -63,14 +72,36 @@ impl Tinic {
         Ok(())
     }
 
+    #[doc = "
+        # Set Window Listener
+
+        Sets the window listener used to handle window events.
+        The window listener must implement the **WindowListener** trait.
+
+        * **Warning**: The window listener must be set **before creating a `GameInstance`**.
+    "]
     pub fn set_window_listener(&mut self, listener: Box<dyn WindowListener>) {
         self.window_listener.replace(Arc::new(listener));
     }
 
+    #[doc = "
+        # Get Game Dispatchers
+
+        Retrieves the game dispatchers responsible for handling game events.
+        The returned dispatchers must be used to send events to the **GameInstance**.
+    "]
     pub fn get_game_dispatchers(&self) -> GameInstanceDispatchers {
         self.game_dispatchers.clone()
     }
 
+    #[doc = "
+        # Create Game Instance
+
+        Creates a **GameInstance** responsible for running the game.
+
+        Use the **get_game_dispatchers()** function to retrieve the game dispatchers,
+        which are used to handle game events.
+    "]
     pub fn create_game_instance(
         &mut self,
         game_info: TinicGameInfo,
@@ -103,6 +134,16 @@ impl Tinic {
         Ok(game_instance)
     }
 
+    #[doc = "
+        # Run
+
+        Consumes the **GameInstance** and runs the game
+
+        Please note that this function **blocks the current thread** until the game finishes
+
+        * **Warning**: You **cannot create another** **GameInstance** after calling this function.
+        If you attempt to create a new `GameInstance`, it will return an error.
+    "]
     pub fn run(&mut self, mut game_instance: GameInstance) -> Result<(), ErrorHandle> {
         let event_loop = match self.event_loop.take() {
             Some(event_loop) => event_loop,
@@ -115,27 +156,50 @@ impl Tinic {
         })
     }
 
-    pub fn pop_event(&mut self, game_instance: &mut GameInstance) -> TinicPumpStatus {
+    #[doc = "
+        # Pop Event
+
+        This function is useful if you need to run the `GameInstance` inside your own loop.
+        You only need to call it on each iteration of the loop.
+        Use the returned **`TinicGameInstanceStatus`** to determine whether the `GameInstance`
+        window has been closed.
+
+        * **Warning:** Like the `run` function, after calling this function you will no longer be
+        able to create a new `GameInstance`.
+        However, **unlike `run`, this function does not block the main thread**.
+
+    "]
+    pub fn pop_event(&mut self, game_instance: &mut GameInstance) -> TinicGameInstanceStatus {
         let event_loop = match self.event_loop.as_mut() {
             Some(event_loop) => event_loop,
-            None => return TinicPumpStatus::Exit(0),
+            None => return TinicGameInstanceStatus::Exit(0),
         };
 
         match event_loop.pump_app_events(None, game_instance) {
-            PumpStatus::Exit(code) => TinicPumpStatus::Exit(code),
-            PumpStatus::Continue => TinicPumpStatus::Continue,
+            PumpStatus::Exit(code) => TinicGameInstanceStatus::Exit(code),
+            PumpStatus::Continue => TinicGameInstanceStatus::Continue,
         }
     }
 
-    pub fn run_app_on_demand(&mut self, mut game_instance: GameInstance) -> TinicPumpStatus {
+    #[doc = "\
+        # Run On Demand
+
+        This function allows you to create multiple `GameInstance`s.
+        However, the main thread will be **blocked** until the window is closed.
+        Use the returned **`TinicGameInstanceStatus`** to determine whether the window has been closed.
+    "]
+    pub fn run_app_on_demand(
+        &mut self,
+        mut game_instance: GameInstance,
+    ) -> TinicGameInstanceStatus {
         let event_loop = match self.event_loop.as_mut() {
             Some(event_loop) => event_loop,
-            None => return TinicPumpStatus::Exit(0),
+            None => return TinicGameInstanceStatus::Exit(0),
         };
 
         match event_loop.run_app_on_demand(&mut game_instance) {
-            Ok(()) => TinicPumpStatus::Continue,
-            Err(_e) => TinicPumpStatus::Exit(1),
+            Ok(()) => TinicGameInstanceStatus::Continue,
+            Err(_e) => TinicGameInstanceStatus::Exit(1),
         }
     }
 }
