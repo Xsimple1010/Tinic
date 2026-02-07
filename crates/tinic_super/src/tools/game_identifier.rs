@@ -6,17 +6,22 @@ use tokio::fs::{File, read_dir};
 #[derive(Debug)]
 pub struct GameIdentifier {
     pub path: PathBuf,
-    pub rom_name: String,
+    pub file_name: String,
     pub crc: u32,
     pub size: u64,
 }
+
+const BLACKLIST_EXTENSIONS: &[&str] = &[
+    "txt", "nfo", "jpg", "jpeg", "png", "gif", "xml", "json", "ini", "cfg", "md", "db", "sqlite",
+    "log", "zip", "7z",
+];
 
 impl GameIdentifier {
     pub async fn new(path: PathBuf) -> Result<Self, ErrorHandle> {
         let file = File::open(path.clone()).await?;
         let size = file.metadata().await?.len();
         let crc = crc32_file(file).await?;
-        let rom_name = match path.file_name() {
+        let rom_name = match path.file_prefix() {
             Some(name) => match name.to_str() {
                 Some(name) => name.to_string(),
                 None => return Err(ErrorHandle::new("Não foi possivel recuperar o nome da rom")),
@@ -28,8 +33,21 @@ impl GameIdentifier {
             crc,
             path,
             size,
-            rom_name,
+            file_name: rom_name,
         })
+    }
+
+    fn is_probably_rom(path: &PathBuf) -> bool {
+        let ext = match path.extension().and_then(|e| e.to_str()) {
+            Some(ext) => ext.to_lowercase(),
+            None => return false,
+        };
+
+        if BLACKLIST_EXTENSIONS.contains(&ext.as_str()) {
+            return false;
+        }
+
+        true
     }
 
     pub async fn from_dir(dir: PathBuf) -> Result<Vec<Self>, ErrorHandle> {
@@ -38,6 +56,10 @@ impl GameIdentifier {
 
         while let Some(dir_entry) = read_dir.next_entry().await? {
             if dir_entry.metadata().await?.is_dir() {
+                continue;
+            }
+
+            if !Self::is_probably_rom(&dir_entry.path()) {
                 continue;
             }
 
