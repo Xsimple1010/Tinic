@@ -1,0 +1,16 @@
+[package]
+name = "retro_ab"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+core_logs = []
+
+[dependencies]
+sdl2.workspace = true
+libloading.workspace = true
+uuid.workspace = true
+
+[build-dependencies]
+cc.workspace = true
+bindgen.workspace = true

@@ -1,0 +1,18 @@
+[package]
+name = "retro_ab_av"
+version = "0.1.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+retro_ab.workspace = true
+rodio.workspace = true
+sdl2.workspace = true
+image.workspace = true
+
+[build-dependencies]
+cfg_aliases.workspace = true
+gl_generator.workspace = true
+
+

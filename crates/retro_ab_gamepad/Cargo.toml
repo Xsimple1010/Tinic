@@ -1,0 +1,16 @@
+[package]
+name = "retro_ab_gamepad"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+#[lints]
+#workspace = true
+
+[dependencies]
+lazy_static.workspace = true
+pc-keyboard.workspace = true
+gilrs.workspace = true
+retro_ab.workspace = true
+uuid.workspace = true
