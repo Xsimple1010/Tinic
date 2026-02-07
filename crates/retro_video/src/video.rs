@@ -23,15 +23,17 @@ pub struct RetroVideo {
     pub sync: RetroSync,
 }
 
-impl RetroVideo {
-    pub fn new() -> Self {
+impl Default for RetroVideo {
+    fn default() -> Self {
         Self {
             window_ctx: TMutex::new(None),
             texture: TMutex::new(RawTextureData::new()),
             sync: RetroSync::new(0.0002),
         }
     }
+}
 
+impl RetroVideo {
     pub fn create_window(
         &mut self,
         av_info: &Arc<AvInfo>,

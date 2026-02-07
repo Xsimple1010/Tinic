@@ -46,11 +46,11 @@ impl StdinReader {
                             core_path,
                             base_retro_path,
                         } => {
-                            if state.game_loaded.load(Ordering::SeqCst) {
-                                if state.game_dispatchers.exit().is_err() {
-                                    println!("Não foi possível parar o jogo atual!");
-                                    return;
-                                }
+                            if state.game_loaded.load(Ordering::SeqCst)
+                                && state.game_dispatchers.exit().is_err()
+                            {
+                                println!("Não foi possível parar o jogo atual!");
+                                return;
                             }
 
                             match state.game_info.lock() {

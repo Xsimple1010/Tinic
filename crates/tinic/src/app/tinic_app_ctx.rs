@@ -29,7 +29,7 @@ impl TinicGameCtx {
         controller: Arc<RetroController>,
         window_listener: Arc<Box<dyn WindowListener>>,
     ) -> Result<Self, ErrorHandle> {
-        let retro_video = RetroVideo::new();
+        let retro_video = RetroVideo::default();
         let retro_audio = RetroAudio::new()?;
 
         let callbacks = RetroEnvCallbacks {

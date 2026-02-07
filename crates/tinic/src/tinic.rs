@@ -1,11 +1,11 @@
-use crate::app::listener::WindowListener;
 use crate::app::GameInstance;
+use crate::app::listener::WindowListener;
 use crate::app_dispatcher::GameInstanceActions;
 use crate::device_listener::DeviceHandle;
 use crate::{
-    generics::error_handle::ErrorHandle,
-    retro_controllers::{devices_manager::DeviceListener, RetroController},
     GameInstanceDispatchers,
+    generics::error_handle::ErrorHandle,
+    retro_controllers::{RetroController, devices_manager::DeviceListener},
 };
 use std::sync::Arc;
 use winit::platform::run_on_demand::EventLoopExtRunOnDemand;
@@ -151,7 +151,7 @@ impl Tinic {
         };
 
         event_loop.run_app(&mut game_instance).map_err(|e| {
-            let erro_message = format!("Error on Tinic::Run -> {}", e.to_string());
+            let erro_message = format!("Error on Tinic::Run -> {e}");
             ErrorHandle::new(&erro_message)
         })
     }
