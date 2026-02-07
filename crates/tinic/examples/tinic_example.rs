@@ -1,7 +1,6 @@
-use generics::error_handle::ErrorHandle;
-use retro_controllers::RetroGamePad;
 use tinic::{
-    self, args_manager::RetroArgs, test_tools::paths, DeviceListener, Tinic, TinicPumpStatus,
+    self, args_manager::RetroArgs, test_tools::paths, DeviceListener, ErrorHandle, RetroGamePad,
+    Tinic, TinicPumpStatus,
 };
 
 #[derive(Debug, Default)]
