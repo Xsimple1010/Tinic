@@ -2,12 +2,12 @@ use crate::devices_manager::{DeviceRubble, DeviceStateListener, DevicesManager};
 use crate::gamepad::retro_gamepad::RetroGamePad;
 use crate::state_thread::EventThread;
 use generics::erro_handle::ErroHandle;
+use generics::types::{ArcTMuxte, TMutex};
 use libretro_sys::binding_libretro::retro_rumble_effect;
-use std::sync::{Arc, Mutex};
 
 lazy_static! {
-    static ref DEVICES_MANAGER: Arc<Mutex<DevicesManager>> =
-        Arc::new(Mutex::new(DevicesManager::new(None)));
+    static ref DEVICES_MANAGER: ArcTMuxte<DevicesManager> =
+        TMutex::new(DevicesManager::new().unwrap());
 }
 
 #[derive(Debug)]
@@ -23,10 +23,7 @@ impl Drop for RetroController {
 
 impl RetroController {
     pub fn new(listener: DeviceStateListener) -> Result<RetroController, ErroHandle> {
-        DEVICES_MANAGER
-            .lock()
-            .unwrap()
-            .set_listener(Arc::new(Mutex::new(listener)));
+        DEVICES_MANAGER.try_load()?.set_listener(listener);
 
         let mut event_thread = EventThread::new();
         event_thread.resume(DEVICES_MANAGER.clone())?;
@@ -35,12 +32,13 @@ impl RetroController {
     }
 
     #[doc = "retorna uma lista de gamepad disponíveis"]
-    pub fn get_list(&self) -> Vec<RetroGamePad> {
-        DEVICES_MANAGER.lock().unwrap().get_gamepads()
+    pub fn get_list(&self) -> Result<Vec<RetroGamePad>, ErroHandle> {
+        Ok(DEVICES_MANAGER.try_load()?.get_gamepads())
     }
 
-    pub fn set_max_port(max: usize) {
-        DEVICES_MANAGER.lock().unwrap().set_max_port(max);
+    pub fn set_max_port(max: usize) -> Result<(), ErroHandle> {
+        DEVICES_MANAGER.try_load()?.set_max_port(max);
+        Ok(())
     }
 
     #[doc = "Para que o CORE possa 'tomar posse' com existo dos eventos do gamepad é necessário interromper o a thread de eventos"]
@@ -53,18 +51,25 @@ impl RetroController {
         self.event_thread.resume(DEVICES_MANAGER.clone())
     }
 
-    pub fn apply_rumble(&self, rubble: DeviceRubble) {
-        DEVICES_MANAGER.lock().unwrap().apply_rumble(rubble);
+    pub fn apply_rumble(&self, rubble: DeviceRubble) -> Result<(), ErroHandle> {
+        DEVICES_MANAGER.try_load()?.apply_rumble(rubble);
+        Ok(())
     }
 }
 
 //***********ENVIE ESSAS CALLBACKS PARA CORE****************/
 pub fn input_poll_callback() {
-    DEVICES_MANAGER.lock().unwrap().update_state();
+    if let Ok(mut manager) = DEVICES_MANAGER.try_load() {
+        let _ = manager.update_state();
+    }
 }
 
 pub fn input_state_callback(port: i16, _device: i16, _index: i16, id: i16) -> i16 {
-    DEVICES_MANAGER.lock().unwrap().get_input_state(port, id)
+    if let Ok(manager) = DEVICES_MANAGER.try_load() {
+        manager.get_input_state(port, id)
+    } else {
+        0
+    }
 }
 
 pub fn rumble_callback(
@@ -72,10 +77,14 @@ pub fn rumble_callback(
     effect: retro_rumble_effect,
     strength: u16,
 ) -> bool {
-    DEVICES_MANAGER.lock().unwrap().apply_rumble(DeviceRubble {
-        port: port as usize,
-        effect,
-        strength,
-    })
+    if let Ok(manager) = DEVICES_MANAGER.try_load() {
+        manager.apply_rumble(DeviceRubble {
+            port: port as usize,
+            effect,
+            strength,
+        })
+    } else {
+        false
+    }
 }
 //****************************************************/

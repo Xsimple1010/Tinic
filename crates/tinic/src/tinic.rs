@@ -11,8 +11,8 @@ use crate::{
     thread_stack::main_stack::{SaveImg, SavePath},
     tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper},
 };
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex, RwLock};
-use std::{path::PathBuf, sync::atomic::Ordering};
 
 lazy_static! {
     static ref DEVICE_STATE_LISTENER: RwLock<DeviceStateListener> = RwLock::new(|_, _| {});

@@ -1,8 +1,17 @@
 use crate::gamepad::retro_gamepad::RetroGamePad;
-use generics::constants::DEFAULT_MAX_PORT;
+use generics::{
+    constants::DEFAULT_MAX_PORT,
+    erro_handle::ErroHandle,
+    types::{ArcTMuxte, TMutex},
+};
 use gilrs::Gilrs;
-use libretro_sys::binding_libretro::{retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK};
-use std::sync::{Arc, Mutex};
+use libretro_sys::binding_libretro::{
+    retro_log_level, retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK,
+};
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
+};
 use uuid::Uuid;
 
 #[derive(Debug)]
@@ -56,53 +65,59 @@ pub type DeviceStateListener = fn(DeviceState, Device);
 
 #[derive(Debug, Clone)]
 pub struct DevicesManager {
-    gilrs_instance: Arc<Mutex<Gilrs>>,
-    pub connected_gamepads: Arc<Mutex<Vec<RetroGamePad>>>,
-    max_ports: Arc<Mutex<usize>>,
-    listener: Option<Arc<Mutex<DeviceStateListener>>>,
+    gilrs: ArcTMuxte<Gilrs>,
+    connected_gamepads: ArcTMuxte<Vec<RetroGamePad>>,
+    max_ports: Arc<AtomicUsize>,
+    listener: ArcTMuxte<DeviceStateListener>,
 }
 
+fn none_(_: DeviceState, _: Device) {}
+
 impl DevicesManager {
-    pub fn new(listener: Option<Arc<Mutex<DeviceStateListener>>>) -> Self {
-        Self {
-            gilrs_instance: Arc::new(Mutex::new(Gilrs::new().unwrap())),
-            connected_gamepads: Arc::new(Mutex::new(Vec::new())),
-            max_ports: Arc::new(Mutex::new(DEFAULT_MAX_PORT)),
-            listener,
-        }
+    pub fn new() -> Result<Self, ErroHandle> {
+        let gilrs = match Gilrs::new() {
+            Ok(gilrs) => gilrs,
+            Err(e) => {
+                return Err(ErroHandle {
+                    level: retro_log_level::RETRO_LOG_ERROR,
+                    message: e.to_string(),
+                })
+            }
+        };
+        Ok(Self {
+            gilrs: TMutex::new(gilrs),
+            connected_gamepads: TMutex::new(Vec::new()),
+            max_ports: Arc::new(AtomicUsize::new(DEFAULT_MAX_PORT)),
+            listener: TMutex::new(none_),
+        })
     }
 
-    pub fn set_listener(&mut self, listener: Arc<Mutex<DeviceStateListener>>) {
-        self.listener = Some(listener);
+    pub fn set_listener(&mut self, listener: DeviceStateListener) {
+        self.listener.store(listener);
     }
 
-    pub fn update_state(&mut self) {
+    pub fn update_state(&mut self) -> Result<(), ErroHandle> {
         RetroGamePad::update(
-            &self.gilrs_instance,
+            &mut *self.gilrs.try_load()?,
             &self.connected_gamepads,
             &self.max_ports,
             &self.listener,
-        );
+        )
     }
 
     pub fn set_max_port(&self, max_port: usize) {
-        *self.max_ports.lock().unwrap() = max_port;
+        self.max_ports.store(max_port, Ordering::SeqCst);
     }
 
     pub fn get_gamepads(&self) -> Vec<RetroGamePad> {
-        let gamepads = self.connected_gamepads.lock().unwrap_or_else(|op| {
-            let mut gamepads = op.into_inner();
-
-            //TODO: o correto seria colocar uma lista verdadeira de gamepads aqui!
-            *gamepads = Vec::new();
-            gamepads
-        });
+        //TODO: o correto seria colocar uma lista verdadeira de gamepads aqui!
+        let gamepads = self.connected_gamepads.load_or(Vec::new());
 
         gamepads.clone()
     }
 
     pub fn get_input_state(&self, port: i16, key_id: i16) -> i16 {
-        for gamepad in &*self.connected_gamepads.lock().unwrap() {
+        for gamepad in &*self.connected_gamepads.load_or(Vec::new()) {
             if gamepad.retro_port == port {
                 return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
                     gamepad.get_key_pressed(key_id)

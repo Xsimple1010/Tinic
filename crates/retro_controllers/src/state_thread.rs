@@ -1,49 +1,38 @@
 use crate::devices_manager::DevicesManager;
-use generics::constants::THREAD_SLEEP_TIME;
 use generics::erro_handle::ErroHandle;
+use generics::types::TMutex;
+use generics::{constants::THREAD_SLEEP_TIME, types::ArcTMuxte};
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::{
-    sync::{Arc, Mutex},
     thread::{self, sleep},
     time::Duration,
 };
 
 #[derive(Debug)]
 pub struct EventThread {
-    event_thread_can_run: Arc<Mutex<bool>>,
+    event_thread_can_run: ArcTMuxte<bool>,
 }
 
 impl EventThread {
     pub fn new() -> Self {
         EventThread {
-            event_thread_can_run: Arc::new(Mutex::new(false)),
+            event_thread_can_run: TMutex::new(false),
         }
     }
 
     pub fn stop(&mut self) {
-        match self.event_thread_can_run.lock() {
-            Ok(mut event_thread_can_run) => {
-                *event_thread_can_run = false;
-            }
-            Err(poison) => {
-                *poison.into_inner() = false;
-            }
-        }
+        self.event_thread_can_run.store(false);
     }
 
-    pub fn resume(&mut self, devices: Arc<Mutex<DevicesManager>>) -> Result<(), ErroHandle> {
-        let event_thread_can_run = *self.event_thread_can_run.lock().unwrap_or_else(|op| {
-            let mut _is_enable = op.into_inner();
-            *_is_enable = false;
-            _is_enable
-        });
+    pub fn resume(&mut self, devices: ArcTMuxte<DevicesManager>) -> Result<(), ErroHandle> {
+        let event_thread_can_run = *self.event_thread_can_run.load_or(false);
 
         if event_thread_can_run {
             return Ok(());
         }
 
-        if let Err(_need_try_again) = self.try_enable_thread() {
-            if self.try_enable_thread().is_err() {
+        if self.try_enable_thread() {
+            if !self.try_enable_thread() {
                 return Err(ErroHandle {
                     level: RETRO_LOG_ERROR,
                     message: "Não foi possível iniciar a thread de eventos do gamepad".to_string(),
@@ -56,16 +45,11 @@ impl EventThread {
         Ok(())
     }
 
-    fn try_enable_thread(&self) -> Result<(), bool> {
+    fn try_enable_thread(&self) -> bool {
         let mut need_try_again = false;
 
-        match self.event_thread_can_run.lock() {
-            Ok(mut event_thread_can_run) => {
-                if !(*event_thread_can_run) {
-                    *event_thread_can_run = true;
-                }
-            }
-            Err(poison) => {
+        {
+            self.event_thread_can_run.store_or_else(true, |poison| {
                 let mut _is_enable = *poison.into_inner();
 
                 if _is_enable {
@@ -74,16 +58,15 @@ impl EventThread {
                 } else {
                     _is_enable = true;
                 }
-            }
+            });
         }
 
         if need_try_again {
             // A thread gamepad_listener precisará de tempo para ler o mutex novamente.
             sleep(Duration::from_millis(THREAD_SLEEP_TIME));
-            return Err(need_try_again);
         }
 
-        Ok(())
+        need_try_again
     }
 
     /// # event listener thread
@@ -97,21 +80,15 @@ impl EventThread {
     /// execução da thread quando não precisar mais dela.
     fn create_update_devices_state_thread(
         &mut self,
-        devices: Arc<Mutex<DevicesManager>>,
-        event_thread_is_enabled: Arc<Mutex<bool>>,
+        devices: ArcTMuxte<DevicesManager>,
+        event_thread_is_enabled: ArcTMuxte<bool>,
     ) {
         thread::spawn(move || {
-            while *event_thread_is_enabled.lock().unwrap_or_else(|poison| {
-                let mut can_run = poison.into_inner();
-                *can_run = false;
-                can_run
-            }) {
+            while *event_thread_is_enabled.load_or(false) {
                 //WITHOUT THIS, WI HAVE A HIGH CPU UTILIZATION!
                 sleep(Duration::from_millis(THREAD_SLEEP_TIME));
 
-                if let Ok(devices) = &mut devices.lock() {
-                    devices.update_state();
-                }
+                devices.try_load().unwrap().update_state().unwrap();
             }
         });
     }

@@ -74,7 +74,7 @@ impl ThreadState {
             //Pode ser que essa não seja a primeira vez que um game está sendo
             //executada. Então por garantia o ideal é conectar todos os devices
             //que ja existem agora! E depois os próximos conforme forem chegando.
-            for gamepad in ctr.get_list() {
+            for gamepad in ctr.get_list()? {
                 self.channel_notify
                     .notify_game_stack(DeviceConnected(Device::from_gamepad(&gamepad)))
             }

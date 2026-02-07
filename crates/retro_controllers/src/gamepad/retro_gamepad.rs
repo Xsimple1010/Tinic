@@ -3,8 +3,9 @@ use super::{
     update_gamepad_state_handle::{connect_handle, disconnect_handle, pressed_button_handle},
 };
 use crate::devices_manager::{DeviceStateListener, DevicesRequiredFunctions};
+use generics::{erro_handle::ErroHandle, types::ArcTMuxte};
 use gilrs::{Event, GamepadId, Gilrs};
-use std::sync::{Arc, Mutex};
+use std::sync::{atomic::AtomicUsize, Arc};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -50,20 +51,18 @@ impl RetroGamePad {
     }
 
     pub fn update(
-        gilrs_instance: &Arc<Mutex<Gilrs>>,
-        connected_gamepads: &Arc<Mutex<Vec<RetroGamePad>>>,
-        max_ports: &Arc<Mutex<usize>>,
-        listener: &Option<Arc<Mutex<DeviceStateListener>>>,
-    ) {
-        let gilrs = &mut *gilrs_instance.lock().unwrap();
-
+        gilrs: &mut Gilrs,
+        connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
+        max_ports: &Arc<AtomicUsize>,
+        listener: &ArcTMuxte<DeviceStateListener>,
+    ) -> Result<(), ErroHandle> {
         while let Some(Event { id, event, .. }) = gilrs.next_event() {
             match event {
                 gilrs::EventType::Connected => {
                     connect_handle(id, gilrs, connected_gamepads, max_ports, listener);
                 }
                 gilrs::EventType::Disconnected => {
-                    disconnect_handle(id, connected_gamepads, listener)
+                    disconnect_handle(id, connected_gamepads, listener)?
                 }
                 gilrs::EventType::ButtonPressed(button, _) => {
                     pressed_button_handle(&button, id, connected_gamepads, listener)
@@ -71,12 +70,14 @@ impl RetroGamePad {
                 _ => {}
             }
 
-            for gamepad_info in &mut *connected_gamepads.lock().unwrap() {
+            for gamepad_info in &mut *connected_gamepads.load_or(Vec::new()) {
                 if gamepad_info.inner_id == id {
                     gamepad_info.update_key_pressed(gilrs);
                 }
             }
         }
+
+        Ok(())
     }
 }
 
