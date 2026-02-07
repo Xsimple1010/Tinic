@@ -4,16 +4,14 @@ use crate::thread_stack::main_stack::MainStackCommand::{
     self, GameLoaded, GameStateSaved, SaveStateLoaded,
 };
 use generics::constants::SAVE_IMAGE_EXTENSION_FILE;
+use generics::types::ArcTMuxte;
 use generics::{constants::THREAD_SLEEP_TIME, erro_handle::ErroHandle, retro_paths::RetroPaths};
 use libretro_sys::{
     binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE,
     binding_libretro::retro_log_level,
 };
 use retro_av::{EventPump, RetroAv};
-use retro_controllers::{
-    devices_manager::Device, input_poll_callback, input_state_callback, rumble_callback,
-    RetroController,
-};
+use retro_controllers::{devices_manager::Device, RetroController};
 use retro_core::{
     graphic_api::GraphicApi, option_manager::OptionManager, RetroCore, RetroCoreIns,
     RetroEnvCallbacks,
@@ -22,7 +20,7 @@ use std::{
     path::PathBuf,
     sync::{
         atomic::{AtomicBool, Ordering},
-        Arc, Mutex, MutexGuard,
+        Arc,
     },
     thread,
     time::Duration,
@@ -34,7 +32,7 @@ pub struct ThreadState {
     pub pause_request_new_frames: bool,
     pub use_full_screen_mode: bool,
     pub event_pump: Option<EventPump>,
-    controller_ctx: Arc<Mutex<RetroController>>,
+    controller_ctx: ArcTMuxte<RetroController>,
     retro_core: Option<RetroCoreIns>,
     retro_av: Option<RetroAv>,
 }
@@ -65,7 +63,7 @@ impl ThreadState {
             }
         };
 
-        if let Ok(mut ctr) = self.controller_ctx.lock() {
+        if let Ok(mut ctr) = self.controller_ctx.try_load() {
             ctr.stop_thread_events();
 
             //Pode ser que essa não seja a primeira vez que um game está sendo
@@ -123,14 +121,14 @@ impl ThreadState {
     }
 
     pub fn pause(&mut self) -> Result<(), ErroHandle> {
-        self.try_get_controller_ctx()?.resume_thread_events()?;
+        self.controller_ctx.try_load()?.resume_thread_events()?;
         self.pause_request_new_frames = true;
 
         Ok(())
     }
 
     pub fn resume(&mut self) -> Result<(), ErroHandle> {
-        self.try_get_controller_ctx()?.stop_thread_events();
+        self.controller_ctx.try_load()?.stop_thread_events();
         self.pause_request_new_frames = false;
 
         Ok(())
@@ -167,7 +165,7 @@ impl ThreadState {
 impl ThreadState {
     pub fn new(
         channel_notify: ChannelNotify,
-        controller_ctx: Arc<Mutex<RetroController>>,
+        controller_ctx: ArcTMuxte<RetroController>,
         is_running: Arc<AtomicBool>,
     ) -> Self {
         Self {
@@ -206,16 +204,6 @@ impl ThreadState {
         }
     }
 
-    fn try_get_controller_ctx(&mut self) -> Result<MutexGuard<'_, RetroController>, ErroHandle> {
-        match self.controller_ctx.lock() {
-            Ok(guard) => Ok(guard),
-            Err(e) => Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
-                message: e.to_string(),
-            }),
-        }
-    }
-
     fn create_retro_contexts(
         &mut self,
         core_path: String,
@@ -223,12 +211,13 @@ impl ThreadState {
         paths: RetroPaths,
     ) -> Result<Arc<OptionManager>, ErroHandle> {
         let mut retro_av = RetroAv::new()?;
+
+        //configura as callbacks para o core
         let (video_cb, audio_cb) = retro_av.get_core_cb();
+        let controller_cb = self.controller_ctx.try_load()?.get_core_cb();
 
         let callbacks = RetroEnvCallbacks {
-            input_poll_callback,
-            input_state_callback,
-            rumble_callback,
+            controller: Box::new(controller_cb),
             video: Box::new(video_cb),
             audio: Box::new(audio_cb),
         };
@@ -279,7 +268,7 @@ impl Drop for ThreadState {
 
         //Para garantir que essa thread será fechada dando a posse da leitura dos inputs para a
         //thread de inputs novamente.
-        if let Ok(mut ctr) = self.controller_ctx.lock() {
+        if let Ok(mut ctr) = self.controller_ctx.try_load() {
             let _ = ctr.resume_thread_events();
         }
 

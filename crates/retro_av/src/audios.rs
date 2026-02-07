@@ -92,9 +92,10 @@ pub struct RetroAudioCb {
 impl RetroAudioEnvCallbacks for RetroAudioCb {
     fn audio_sample_batch_callback(&self, data: *const i16, frames: usize) -> usize {
         let mut buffer = match self.buffer.try_load() {
-            Ok(buf) => unsafe { buf.get().read() },
+            Ok(buf) => buf,
             Err(_) => return frames,
         };
+        let buffer = buffer.get_mut();
 
         buffer.data = data;
         buffer.frames = frames;

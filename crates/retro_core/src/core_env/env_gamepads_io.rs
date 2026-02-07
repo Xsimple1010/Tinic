@@ -16,14 +16,17 @@ unsafe extern "C" fn rumble_callback(
     strength: u16,
 ) -> bool {
     match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => (core_ctx.callbacks.rumble_callback)(port, effect, strength),
+        Some(core_ctx) => core_ctx
+            .callbacks
+            .controller
+            .rumble_callback(port, effect, strength),
         None => false,
     }
 }
 
 pub unsafe extern "C" fn input_poll_callback() {
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        (core_ctx.callbacks.input_poll_callback)()
+        core_ctx.callbacks.controller.input_poll_callback()
     }
 }
 
@@ -34,7 +37,7 @@ pub unsafe extern "C" fn input_state_callback(
     id: c_uint,
 ) -> i16 {
     match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => (core_ctx.callbacks.input_state_callback)(
+        Some(core_ctx) => core_ctx.callbacks.controller.input_state_callback(
             port as i16,
             device as i16,
             index as i16,

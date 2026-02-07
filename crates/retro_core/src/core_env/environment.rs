@@ -33,9 +33,7 @@ use std::{os::raw::c_void, ptr::addr_of};
 pub struct RetroEnvCallbacks {
     pub video: Box<dyn RetroVideoEnvCallbacks>,
     pub audio: Box<dyn RetroAudioEnvCallbacks>,
-    pub input_poll_callback: fn(),
-    pub input_state_callback: fn(port: i16, device: i16, index: i16, id: i16) -> i16,
-    pub rumble_callback: fn(port: c_uint, effect: retro_rumble_effect, strength: u16) -> bool,
+    pub controller: Box<dyn RetroControllerEnvCallbacks>,
 }
 
 pub trait RetroVideoEnvCallbacks {
@@ -51,6 +49,12 @@ pub trait RetroVideoEnvCallbacks {
 pub trait RetroAudioEnvCallbacks {
     fn audio_sample_callback(&self, left: i16, right: i16);
     fn audio_sample_batch_callback(&self, data: *const i16, frames: usize) -> usize;
+}
+
+pub trait RetroControllerEnvCallbacks {
+    fn input_poll_callback(&self);
+    fn input_state_callback(&self, port: i16, device: i16, index: i16, id: i16) -> i16;
+    fn rumble_callback(&self, port: c_uint, effect: retro_rumble_effect, strength: u16) -> bool;
 }
 
 #[doc = "pelo amor de deus MANTENHA isso dentro desse diretório"]

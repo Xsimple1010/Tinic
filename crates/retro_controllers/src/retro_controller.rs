@@ -4,15 +4,12 @@ use crate::state_thread::EventThread;
 use generics::erro_handle::ErroHandle;
 use generics::types::{ArcTMuxte, TMutex};
 use libretro_sys::binding_libretro::retro_rumble_effect;
-
-lazy_static! {
-    static ref DEVICES_MANAGER: ArcTMuxte<DevicesManager> =
-        TMutex::new(DevicesManager::new().unwrap());
-}
+use retro_core::RetroControllerEnvCallbacks;
 
 #[derive(Debug)]
 pub struct RetroController {
     event_thread: EventThread,
+    manager: ArcTMuxte<DevicesManager>,
 }
 
 impl Drop for RetroController {
@@ -23,21 +20,24 @@ impl Drop for RetroController {
 
 impl RetroController {
     pub fn new(listener: DeviceStateListener) -> Result<RetroController, ErroHandle> {
-        DEVICES_MANAGER.try_load()?.set_listener(listener);
+        let manager = TMutex::new(DevicesManager::new(listener)?);
 
         let mut event_thread = EventThread::new();
-        event_thread.resume(DEVICES_MANAGER.clone())?;
+        event_thread.resume(manager.clone())?;
 
-        Ok(Self { event_thread })
+        Ok(Self {
+            event_thread,
+            manager,
+        })
     }
 
     #[doc = "retorna uma lista de gamepad disponíveis"]
     pub fn get_list(&self) -> Result<Vec<RetroGamePad>, ErroHandle> {
-        Ok(DEVICES_MANAGER.try_load()?.get_gamepads())
+        Ok(self.manager.try_load()?.get_gamepads())
     }
 
-    pub fn set_max_port(max: usize) -> Result<(), ErroHandle> {
-        DEVICES_MANAGER.try_load()?.set_max_port(max);
+    pub fn set_max_port(&self, max: usize) -> Result<(), ErroHandle> {
+        self.manager.try_load()?.set_max_port(max);
         Ok(())
     }
 
@@ -48,43 +48,53 @@ impl RetroController {
 
     #[doc = "Devolve a 'posse' dos eventos do gamepad dada ao CORE para a thread de eventos. chame isso quando nao houve nenhuma rom em execução"]
     pub fn resume_thread_events(&mut self) -> Result<(), ErroHandle> {
-        self.event_thread.resume(DEVICES_MANAGER.clone())
+        self.event_thread.resume(self.manager.clone())
     }
 
     pub fn apply_rumble(&self, rubble: DeviceRubble) -> Result<(), ErroHandle> {
-        DEVICES_MANAGER.try_load()?.apply_rumble(rubble);
+        self.manager.try_load()?.apply_rumble(rubble);
         Ok(())
     }
-}
 
-//***********ENVIE ESSAS CALLBACKS PARA CORE****************/
-pub fn input_poll_callback() {
-    if let Ok(mut manager) = DEVICES_MANAGER.try_load() {
-        let _ = manager.update_state();
+    pub fn get_core_cb(&self) -> RetroControllerCb {
+        RetroControllerCb {
+            manager: self.manager.clone(),
+        }
     }
 }
-
-pub fn input_state_callback(port: i16, _device: i16, _index: i16, id: i16) -> i16 {
-    if let Ok(manager) = DEVICES_MANAGER.try_load() {
-        manager.get_input_state(port, id)
-    } else {
-        0
-    }
+pub struct RetroControllerCb {
+    manager: ArcTMuxte<DevicesManager>,
 }
 
-pub fn rumble_callback(
-    port: std::os::raw::c_uint,
-    effect: retro_rumble_effect,
-    strength: u16,
-) -> bool {
-    if let Ok(manager) = DEVICES_MANAGER.try_load() {
-        manager.apply_rumble(DeviceRubble {
-            port: port as usize,
-            effect,
-            strength,
-        })
-    } else {
-        false
+impl RetroControllerEnvCallbacks for RetroControllerCb {
+    fn input_poll_callback(&self) {
+        if let Ok(mut manager) = self.manager.try_load() {
+            let _ = manager.update_state();
+        }
+    }
+
+    fn input_state_callback(&self, port: i16, _device: i16, _index: i16, id: i16) -> i16 {
+        if let Ok(manager) = self.manager.try_load() {
+            manager.get_input_state(port, id)
+        } else {
+            0
+        }
+    }
+
+    fn rumble_callback(
+        &self,
+        port: std::os::raw::c_uint,
+        effect: retro_rumble_effect,
+        strength: u16,
+    ) -> bool {
+        if let Ok(manager) = self.manager.try_load() {
+            manager.apply_rumble(DeviceRubble {
+                port: port as usize,
+                effect,
+                strength,
+            })
+        } else {
+            false
+        }
     }
 }
-//****************************************************/

@@ -1,3 +1,5 @@
+use generics::types::TMutex;
+
 use crate::{
     channel::ThreadChannel,
     game_thread::game_thread_handle::GameThread,
@@ -12,7 +14,7 @@ use crate::{
     tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper},
 };
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
 
 lazy_static! {
     static ref DEVICE_STATE_LISTENER: RwLock<DeviceStateListener> = RwLock::new(|_, _| {});
@@ -20,7 +22,7 @@ lazy_static! {
 }
 
 pub struct Tinic {
-    pub controller: Arc<Mutex<RetroController>>,
+    pub controller: Arc<TMutex<RetroController>>,
     game_thread: GameThread,
     pub core_options: Option<Arc<OptionManager>>,
     retro_paths: Option<RetroPaths>,
@@ -44,9 +46,7 @@ impl Tinic {
             }
         }
 
-        let controller_ctx = Arc::new(Mutex::new(RetroController::new(
-            Tinic::device_state_listener,
-        )?));
+        let controller_ctx = TMutex::new(RetroController::new(Tinic::device_state_listener)?);
 
         Ok(Self {
             game_thread: GameThread::new(controller_ctx.clone()),

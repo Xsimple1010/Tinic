@@ -13,7 +13,9 @@ mod retro_core;
 pub mod system;
 pub mod test_tools;
 
-pub use core_env::{RetroAudioEnvCallbacks, RetroEnvCallbacks, RetroVideoEnvCallbacks};
+pub use core_env::{
+    RetroAudioEnvCallbacks, RetroControllerEnvCallbacks, RetroEnvCallbacks, RetroVideoEnvCallbacks,
+};
 pub use managers::args_manager;
 pub use managers::option_manager;
 pub use retro_core::{RetroCore, RetroCoreIns};

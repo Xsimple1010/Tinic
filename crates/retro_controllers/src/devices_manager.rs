@@ -71,10 +71,8 @@ pub struct DevicesManager {
     listener: ArcTMuxte<DeviceStateListener>,
 }
 
-fn none_(_: DeviceState, _: Device) {}
-
 impl DevicesManager {
-    pub fn new() -> Result<Self, ErroHandle> {
+    pub fn new(listener: DeviceStateListener) -> Result<Self, ErroHandle> {
         let gilrs = match Gilrs::new() {
             Ok(gilrs) => gilrs,
             Err(e) => {
@@ -88,12 +86,8 @@ impl DevicesManager {
             gilrs: TMutex::new(gilrs),
             connected_gamepads: TMutex::new(Vec::new()),
             max_ports: Arc::new(AtomicUsize::new(DEFAULT_MAX_PORT)),
-            listener: TMutex::new(none_),
+            listener: TMutex::new(listener),
         })
-    }
-
-    pub fn set_listener(&mut self, listener: DeviceStateListener) {
-        self.listener.store(listener);
     }
 
     pub fn update_state(&mut self) -> Result<(), ErroHandle> {

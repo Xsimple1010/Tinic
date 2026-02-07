@@ -2,20 +2,18 @@ use super::stack_commands_handle::stack_commands_handle;
 use super::{game_thread_state::ThreadState, game_window_handle::game_window_handle};
 use crate::channel::ChannelNotify;
 use generics::erro_handle::ErroHandle;
+use generics::types::ArcTMuxte;
 use retro_controllers::RetroController;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::{
-    sync::{Arc, Mutex},
-    thread,
-};
+use std::{sync::Arc, thread};
 
 pub struct GameThread {
     is_running: Arc<AtomicBool>,
-    controller_ctx: Arc<Mutex<RetroController>>,
+    controller_ctx: ArcTMuxte<RetroController>,
 }
 
 impl GameThread {
-    pub fn new(controller_ctx: Arc<Mutex<RetroController>>) -> Self {
+    pub fn new(controller_ctx: ArcTMuxte<RetroController>) -> Self {
         Self {
             is_running: Arc::new(AtomicBool::new(false)),
             controller_ctx,

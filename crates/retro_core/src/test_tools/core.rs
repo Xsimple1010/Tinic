@@ -1,4 +1,4 @@
-use crate::core_env::RetroEnvCallbacks;
+use crate::core_env::{RetroControllerEnvCallbacks, RetroEnvCallbacks};
 use crate::graphic_api::GraphicApi;
 use crate::retro_core::RetroCore;
 use crate::test_tools::constants::CORE_TEST_RELATIVE_PATH;
@@ -7,29 +7,11 @@ use crate::{RetroAudioEnvCallbacks, RetroCoreIns, RetroVideoEnvCallbacks};
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use std::ptr;
 
-fn input_poll_callback() {}
-
-fn input_state_callback(_port: i16, _device: i16, _index: i16, _id: i16) -> i16 {
-    println!("input_state_callback -> _port:{_port} device:{_device} index:{_index} id:{_id}");
-    0
-}
-
-fn rumble_callback(port: std::os::raw::c_uint, effect: retro_rumble_effect, strength: u16) -> bool {
-    println!(
-        "rumble_callback -> port:{:?} effect:{:?} strength:{:?}",
-        port, effect, strength
-    );
-
-    true
-}
-
 pub fn get_callbacks() -> RetroEnvCallbacks {
     RetroEnvCallbacks {
-        input_poll_callback,
-        input_state_callback,
         video: Box::new(Video {}),
         audio: Box::new(Audio {}),
-        rumble_callback,
+        controller: Box::new(Controller {}),
     }
 }
 
@@ -69,6 +51,31 @@ impl RetroAudioEnvCallbacks for Audio {
     fn audio_sample_batch_callback(&self, _data: *const i16, _frames: usize) -> usize {
         println!("audio_sample_batch_callback -> {_frames}");
         0
+    }
+}
+
+struct Controller;
+
+impl RetroControllerEnvCallbacks for Controller {
+    fn input_poll_callback(&self) {}
+
+    fn input_state_callback(&self, _port: i16, _device: i16, _index: i16, _id: i16) -> i16 {
+        println!("input_state_callback -> _port:{_port} device:{_device} index:{_index} id:{_id}");
+        0
+    }
+
+    fn rumble_callback(
+        &self,
+        port: std::os::raw::c_uint,
+        effect: retro_rumble_effect,
+        strength: u16,
+    ) -> bool {
+        println!(
+            "rumble_callback -> port:{:?} effect:{:?} strength:{:?}",
+            port, effect, strength
+        );
+
+        true
     }
 }
 
