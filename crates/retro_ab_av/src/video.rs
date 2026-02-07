@@ -54,7 +54,7 @@ pub fn get_proc_address(proc_name: &str) -> *const () {
 pub trait RetroVideoAPi {
     fn get_window_id(&self) -> u32;
 
-    fn draw_new_frame(&mut self, texture: &RawTextureData);
+    fn draw_new_frame(&self, texture: &RawTextureData);
 
     #[doc = "define um novo tamanho para a janela. 
         ```
@@ -87,15 +87,7 @@ impl RetroVideo {
     //noinspection RsPlaceExpression
     pub fn new(sdl: &Sdl, av_info: &Arc<AvInfo>) -> Result<Self, ErroHandle> {
         match &av_info.video.graphic_api.context_type {
-            RETRO_HW_CONTEXT_OPENGL_CORE => {
-                unsafe { WINDOW_CTX = Some(Box::new(GlWIndow::new(sdl, av_info)?)) }
-
-                Ok(Self {
-                    av_info: av_info.clone(),
-                })
-            }
-
-            RETRO_HW_CONTEXT_NONE => {
+            RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_NONE => {
                 unsafe { WINDOW_CTX = Some(Box::new(GlWIndow::new(sdl, av_info)?)) }
 
                 Ok(Self {
@@ -110,9 +102,9 @@ impl RetroVideo {
         }
     }
 
-    pub fn draw_new_frame(&mut self) {
+    pub fn draw_new_frame(&self) {
         unsafe {
-            if let Some(window) = &mut *addr_of_mut!(WINDOW_CTX) {
+            if let Some(window) = &*addr_of_mut!(WINDOW_CTX) {
                 window.draw_new_frame(&*addr_of!(RAW_TEX_POINTER))
             }
         }
@@ -128,7 +120,7 @@ impl RetroVideo {
         }
     }
 
-    pub fn resize(&mut self, new_size: (u32, u32)) {
+    pub fn resize(&self, new_size: (u32, u32)) {
         unsafe {
             if let Some(window) = &mut *addr_of_mut!(WINDOW_CTX) {
                 window.resize(new_size)
@@ -155,7 +147,7 @@ impl RetroVideo {
         }
     }
 
-    pub fn full_screen(&mut self) {
+    pub fn full_screen(&self) {
         unsafe {
             if let Some(window) = &mut *addr_of_mut!(WINDOW_CTX) {
                 window.enable_full_screen()

@@ -41,7 +41,7 @@ impl RetroVideoAPi for GlWIndow {
         self.window.id()
     }
 
-    fn draw_new_frame(&mut self, texture: &crate::video::RawTextureData) {
+    fn draw_new_frame(&self, texture: &crate::video::RawTextureData) {
         let (width, height) = self.window.size();
 
         self.render.draw_new_frame(
