@@ -51,7 +51,7 @@ mod test {
 
     #[tokio::test]
     async fn info_helper() {
-        let (tinic_super, work_dir) = setup("tinic_super..install_core").await;
+        let (tinic_super, work_dir) = setup("tinic_super..info_helper").await;
 
         tinic_super
             .info_helper
@@ -65,7 +65,7 @@ mod test {
         // get_infos
         {
             let infos = tinic_super.info_helper.get_infos().await;
-            assert_eq!(infos.len(), 295);
+            assert_eq!(infos.len(), 296);
             info = infos
                 .into_iter()
                 .find(|info| info.file_name == "snes9x_libretro");
@@ -132,17 +132,14 @@ mod test {
 
         tinic_super
             .core_helper
-            .install_blocking(vec!["snes9x_libretro".to_string()])
+            .install_blocking(vec!["mesen_libretro".to_string()])
             .await;
 
         let core_created = PathBuf::from(&work_dir)
             .join("cores")
-            .join("snes9x_libretro.so")
+            .join("mesen_libretro.so")
             .exists();
-        assert!(
-            core_created,
-            "o arquivo 'snes9x_libretro.so' não foi salvo!"
-        );
+        assert!(core_created, "o arquivo 'mesen_libretro.so' não foi salvo!");
 
         clean_up(&work_dir).await;
     }

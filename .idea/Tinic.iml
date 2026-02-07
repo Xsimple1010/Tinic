@@ -15,6 +15,8 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/tinic_ipc_protocol/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/tinic_super/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/tinic_database/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/retro_core/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tinic_super/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/dataSources" />
       <excludeFolder url="file://$MODULE_DIR$/crates/tinic_super/tinic_test_workspace" />
       <excludeFolder url="file://$MODULE_DIR$/target" />

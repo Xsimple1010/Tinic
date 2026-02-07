@@ -74,12 +74,14 @@ impl InputValidator {
         } else {
             // If it doesn't exist, validate parent exists and is accessible
             if let Some(parent) = path_buf.parent()
-                && parent.exists() && !parent.is_dir() {
-                    return Err(ErrorHandle::new(&format!(
-                        "Parent path exists but is not a directory: {}",
-                        parent.display()
-                    )));
-                }
+                && parent.exists()
+                && !parent.is_dir()
+            {
+                return Err(ErrorHandle::new(&format!(
+                    "Parent path exists but is not a directory: {}",
+                    parent.display()
+                )));
+            }
             path_buf
         };
 
@@ -274,16 +276,14 @@ impl InputValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use generics::test_workdir::get_rom_test_path;
     use std::fs::File;
     use tempfile::TempDir;
 
     #[test]
     fn test_validate_file_path_success() {
-        let temp_dir = TempDir::new().unwrap();
-        let file_path = temp_dir.path().join("test.txt");
-        File::create(&file_path).unwrap();
-
-        let result = InputValidator::validate_file_path(file_path.to_str().unwrap());
+        let rom_path = get_rom_test_path();
+        let result = InputValidator::validate_file_path(&rom_path.display().to_string());
         assert!(result.is_ok());
     }
 
