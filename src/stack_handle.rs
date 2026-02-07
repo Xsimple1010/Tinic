@@ -1,15 +1,20 @@
 use std::sync::{Arc, Mutex};
 
-use retro_ab::core::{self, RetroContext};
-use retro_ab_av::{context::RetroAvCtx, EventPump};
-use retro_ab_gamepad::context::GamepadContext;
+use retro_ab::core::{self, RetroContext, RetroEnvCallbacks};
+use retro_ab_av::{
+    audio_sample_batch_callback, audio_sample_callback, context::RetroAvCtx,
+    video_refresh_callback, EventPump,
+};
+use retro_ab_gamepad::context::{
+    input_poll_callback, input_state_callback, rumble_callback, GamepadContext,
+};
 
 use crate::retro_stack::{
     RetroStack,
     StackCommand::{GamepadConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState},
 };
 
-pub fn stack_handle(
+pub fn stack_commands_handle(
     stack: &Arc<RetroStack>,
     core_ctx: &mut Option<Arc<RetroContext>>,
     controller_ctx: &Arc<Mutex<GamepadContext>>,
@@ -20,10 +25,23 @@ pub fn stack_handle(
 
     for cmd in stack.read() {
         match cmd {
-            LoadGame(core_path, rom_path, paths, callbacks) => {
+            Quit => {
+                need_stop = true;
+                break;
+            }
+            LoadGame(core_path, rom_path, paths) => {
                 if core_ctx.is_some() {
                     break;
                 }
+
+                let callbacks = RetroEnvCallbacks {
+                    audio_sample_batch_callback,
+                    audio_sample_callback,
+                    input_poll_callback,
+                    input_state_callback,
+                    video_refresh_callback,
+                    rumble_callback,
+                };
 
                 match core::load(&core_path, paths, callbacks) {
                     Ok(ctx) => {
@@ -66,10 +84,6 @@ pub fn stack_handle(
                     }
                 }
             }
-            Quit => {
-                need_stop = true;
-                break;
-            }
             LoadState => {} //ainda e preciso adicionar isso em retro_ab
             SaveState => {} //ainda e preciso adicionar isso em retro_ab
             Pause => {
@@ -93,6 +107,8 @@ pub fn stack_handle(
                         if let Err(e) = core::de_init(ctx.to_owned()) {
                             println!("{:?}", e)
                         };
+
+                        need_stop = true;
                     };
                 };
             }

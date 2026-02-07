@@ -55,11 +55,13 @@ fn main() -> Result<(), String> {
                 } else if command.starts_with("6") {
                     tinic.quit();
                 } else if command.starts_with("7") {
-                    tinic.load_core(
+                    if let Err(e) = tinic.load_core(
                         core_path.clone(),
                         rom_path.clone(),
                         test_tools::paths::get_paths(),
-                    )?;
+                    ) {
+                        println!("{:?}", e);
+                    }
                 }
 
                 println!("");

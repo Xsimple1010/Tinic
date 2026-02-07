@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use retro_ab::{core::RetroEnvCallbacks, paths::Paths};
+use retro_ab::paths::Paths;
 use retro_ab_gamepad::retro_gamepad::RetroGamePad;
 
 //facilita o reconhecimento dos atributos usando a intellisense da ide
@@ -10,7 +10,7 @@ type RomPath = String;
 #[derive(Clone)]
 pub enum StackCommand {
     //core, rom, paths, callbacks
-    LoadGame(CorePath, RomPath, Paths, RetroEnvCallbacks),
+    LoadGame(CorePath, RomPath, Paths),
     SaveState,
     LoadState,
     Pause,
@@ -42,5 +42,14 @@ impl RetroStack {
         m_cmd.clear();
 
         cmd
+    }
+
+    pub fn clear(&self) {
+        match self.command.lock() {
+            Ok(mut cmd) => {
+                cmd.clear();
+            }
+            Err(_e) => {}
+        }
     }
 }

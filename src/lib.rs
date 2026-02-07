@@ -9,11 +9,8 @@ mod game_window_handle;
 mod retro_stack;
 mod stack_handle;
 
-use game_loop::init_game_loop;
-use retro_ab::core::RetroEnvCallbacks;
-use retro_ab::retro_sys::retro_rumble_effect;
-use retro_ab_av::{audio_sample_batch_callback, audio_sample_callback, video_refresh_callback};
-use retro_ab_gamepad::context::{input_poll_callback, input_state_callback, GamepadContext};
+use game_loop::GameThread;
+use retro_ab_gamepad::context::GamepadContext;
 use retro_stack::{RetroStack, StackCommand};
 use std::ptr::addr_of;
 use std::sync::{Arc, Mutex};
@@ -29,18 +26,6 @@ lazy_static! {
     static ref STACK: Arc<RetroStack> = RetroStack::new();
 }
 
-pub struct Tinic {
-    pub controller_ctx: Arc<Mutex<GamepadContext>>,
-}
-
-fn rumble_callback(
-    _port: ::std::os::raw::c_uint,
-    _effect: retro_rumble_effect,
-    _strength: u16,
-) -> bool {
-    true
-}
-
 fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
     unsafe {
         if let Some(listener) = &*addr_of!(GAMEPAD_LISTENER) {
@@ -53,6 +38,11 @@ fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
             listener(state, _gamepad);
         };
     }
+}
+
+pub struct Tinic {
+    pub controller_ctx: Arc<Mutex<GamepadContext>>,
+    game_thread: GameThread,
 }
 
 impl Drop for Tinic {
@@ -73,6 +63,7 @@ impl Tinic {
 
         Self {
             //TODO:o numero máximo de portas deve ser alterado no futuro
+            game_thread: GameThread::new(controller_ctx.clone(), STACK.clone()),
             controller_ctx,
         }
     }
@@ -83,29 +74,7 @@ impl Tinic {
         rom_path: String,
         paths: Paths,
     ) -> Result<(), String> {
-        match self.controller_ctx.clone().lock() {
-            Ok(controller) => {
-                let gamepads = controller.get_list();
-                init_game_loop(gamepads, self.controller_ctx.clone(), STACK.clone());
-
-                STACK.push(StackCommand::LoadGame(
-                    core_path.to_owned(),
-                    rom_path.to_owned(),
-                    paths,
-                    RetroEnvCallbacks {
-                        audio_sample_batch_callback,
-                        audio_sample_callback,
-                        input_poll_callback,
-                        input_state_callback,
-                        video_refresh_callback,
-                        rumble_callback,
-                    },
-                ));
-            }
-            Err(e) => println!("{:?}", e),
-        }
-
-        Ok(())
+        self.game_thread.start(core_path, rom_path, paths)
     }
 
     pub fn pause(&self) {
@@ -129,6 +98,6 @@ impl Tinic {
     }
 
     pub fn quit(&self) {
-        STACK.push(StackCommand::Quit);
+        self.game_thread.stop();
     }
 }
