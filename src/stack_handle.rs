@@ -4,7 +4,10 @@ use retro_ab::core::{self, RetroContext};
 use retro_ab_av::{context::RetroAvCtx, EventPump};
 use retro_ab_gamepad::context::GamepadContext;
 
-use crate::retro_stack::{RetroStack, StackCommand};
+use crate::retro_stack::{
+    RetroStack,
+    StackCommand::{GamepadConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState},
+};
 
 pub fn stack_handle(
     stack: &Arc<RetroStack>,
@@ -17,7 +20,7 @@ pub fn stack_handle(
 
     for cmd in stack.read() {
         match cmd {
-            StackCommand::LoadGame(core_path, rom_path, paths, callbacks) => {
+            LoadGame(core_path, rom_path, paths, callbacks) => {
                 if core_ctx.is_some() {
                     break;
                 }
@@ -63,25 +66,25 @@ pub fn stack_handle(
                     }
                 }
             }
-            StackCommand::Quit => {
+            Quit => {
                 need_stop = true;
                 break;
             }
-            StackCommand::LoadState => {} //ainda e preciso adicionar isso em retro_ab
-            StackCommand::SaveState => {} //ainda e preciso adicionar isso em retro_ab
-            StackCommand::Pause => {
+            LoadState => {} //ainda e preciso adicionar isso em retro_ab
+            SaveState => {} //ainda e preciso adicionar isso em retro_ab
+            Pause => {
                 if let Ok(mut controller) = controller_ctx.lock() {
                     controller.resume_thread_events();
                     *pause_request_new_frames = true
                 }
             }
-            StackCommand::Resume => {
+            Resume => {
                 if let Ok(mut controller) = controller_ctx.lock() {
                     controller.pause_thread_events();
                     *pause_request_new_frames = false
                 }
             }
-            StackCommand::Reset => {
+            Reset => {
                 if let Some(ctx) = &core_ctx {
                     if let Err(e) = core::reset(ctx) {
                         println!("{:?}", e);
@@ -91,7 +94,15 @@ pub fn stack_handle(
                     };
                 };
             }
-            _ => {}
+            GamepadConnected(gamepad) => {
+                if let Some(ctx) = core_ctx {
+                    let _ = core::connect_controller(
+                        ctx,
+                        gamepad.retro_port as u32,
+                        gamepad.retro_type,
+                    );
+                }
+            }
         }
     }
 

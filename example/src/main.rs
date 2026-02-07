@@ -32,9 +32,8 @@ fn main() -> Result<(), String> {
         println!("3: pause");
         println!("4: resume");
         println!("5: reset");
-        println!("6: procurar por novos gamepads disponíveis");
-        println!("7: stop rom");
-        println!("8: load rom");
+        println!("6: stop rom");
+        println!("7: load rom");
 
         let mut command = String::new();
 
@@ -54,10 +53,8 @@ fn main() -> Result<(), String> {
                 } else if command.starts_with("5") {
                     tinic.reset();
                 } else if command.starts_with("6") {
-                    tinic.change_controller_pending();
-                } else if command.starts_with("7") {
                     tinic.quit();
-                } else if command.starts_with("8") {
+                } else if command.starts_with("7") {
                     tinic.load_core(
                         core_path.clone(),
                         rom_path.clone(),

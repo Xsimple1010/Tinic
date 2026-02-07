@@ -46,11 +46,9 @@ fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
         if let Some(listener) = &GAMEPAD_LISTENER {
             match &state {
                 GamePadState::Connected | GamePadState::Disconnected => {
-                    STACK.push(StackCommand::UpdateControllers);
+                    STACK.push(StackCommand::GamepadConnected(_gamepad.clone()));
                 }
-                GamePadState::ButtonPressed(b) => {
-                    println!("{:?}", b);
-                }
+                _ => {}
             }
             listener(state, _gamepad);
         };
@@ -133,9 +131,5 @@ impl Tinic {
 
     pub fn quit(&self) {
         STACK.push(StackCommand::Quit);
-    }
-
-    pub fn change_controller_pending(&self) {
-        // STACK.push(StackCommand::UpdateControllers);
     }
 }
