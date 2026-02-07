@@ -11,18 +11,18 @@ lazy_static! {
 }
 
 #[derive(Debug)]
-pub struct RetroAbController {
+pub struct RetroController {
     event_thread: EventThread,
 }
 
-impl Drop for RetroAbController {
+impl Drop for RetroController {
     fn drop(&mut self) {
         self.event_thread.stop();
     }
 }
 
-impl RetroAbController {
-    pub fn new(listener: Option<DeviceStateListener>) -> Result<RetroAbController, ErroHandle> {
+impl RetroController {
+    pub fn new(listener: Option<DeviceStateListener>) -> Result<RetroController, ErroHandle> {
         if let Some(listener) = listener {
             DEVICES_MANAGER
                 .lock()

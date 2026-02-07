@@ -2,7 +2,7 @@
 extern crate lazy_static;
 extern crate retro_ab;
 extern crate retro_ab_av;
-extern crate retro_ab_gamepad;
+extern crate retro_controllers;
 
 mod channel;
 mod game_thread;
@@ -11,8 +11,8 @@ mod tinic;
 
 pub use retro_ab::{args_manager, test_tools};
 
-pub use retro_ab_gamepad::{
+pub use retro_controllers::{
     devices_manager::{Device, DeviceState, DeviceStateListener},
-    RetroAbController,
+    RetroController,
 };
 pub use tinic::Tinic;

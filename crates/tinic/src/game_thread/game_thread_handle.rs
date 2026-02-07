@@ -6,13 +6,13 @@ use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_DUMMY, RETRO_LOG
 use retro_ab::retro_ab::RetroAB;
 use retro_ab_av::retro_av::RetroAvCtx;
 use retro_ab_av::EventPump;
-use retro_ab_gamepad::RetroAbController;
+use retro_controllers::RetroController;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
 pub struct GameThread {
     pub is_running: Arc<Mutex<bool>>,
-    controller_ctx: Arc<Mutex<RetroAbController>>,
+    controller_ctx: Arc<Mutex<RetroController>>,
 }
 
 impl Drop for GameThread {
@@ -23,7 +23,7 @@ impl Drop for GameThread {
 }
 
 impl GameThread {
-    pub fn new(controller_ctx: Arc<Mutex<RetroAbController>>) -> Self {
+    pub fn new(controller_ctx: Arc<Mutex<RetroController>>) -> Self {
         Self {
             is_running: Arc::new(Mutex::new(false)),
             controller_ctx,

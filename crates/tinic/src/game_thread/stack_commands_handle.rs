@@ -18,8 +18,8 @@ use retro_ab_av::{
     audio_sample_batch_callback, audio_sample_callback, get_proc_address, retro_av::RetroAvCtx,
     video_refresh_callback, EventPump,
 };
-use retro_ab_gamepad::{
-    input_poll_callback, input_state_callback, rumble_callback, RetroAbController,
+use retro_controllers::{
+    input_poll_callback, input_state_callback, rumble_callback, RetroController,
 };
 use std::sync::{Arc, Mutex};
 
@@ -58,7 +58,7 @@ fn create_retro_contexts(
 pub fn stack_commands_handle(
     channel_notify: &ChannelNotify,
     core_ctx: &mut Option<RetroAB>,
-    controller_ctx: &Arc<Mutex<RetroAbController>>,
+    controller_ctx: &Arc<Mutex<RetroController>>,
     av_ctx: &mut Option<(RetroAvCtx, EventPump)>,
     pause_request_new_frames: &mut bool,
     use_full_screen: &mut bool,

@@ -1,5 +1,5 @@
 [package]
-name = "retro_ab_gamepad"
+name = "retro_controllers"
 version = "0.1.0"
 edition = "2021"
 

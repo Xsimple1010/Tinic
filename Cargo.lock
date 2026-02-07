@@ -1556,7 +1556,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "retro_ab_gamepad"
+name = "retro_controllers"
 version = "0.1.0"
 dependencies = [
  "generics",
@@ -1823,7 +1823,7 @@ dependencies = [
  "libretro_sys",
  "retro_ab",
  "retro_ab_av",
- "retro_ab_gamepad",
+ "retro_controllers",
 ]
 
 [[package]]

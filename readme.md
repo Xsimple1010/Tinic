@@ -15,7 +15,7 @@ Todas as ligações aos núcleos são criadas aqui (depende do SDL2).
 
 Lida com renderização e a reprodução de áudio (depende do SDL2).
 
-### [Retro_ab_gamepad](./crates/retro_ab_gamepad)
+### [Retro_ab_gamepad](./crates/retro_controllers)
 
 Gerencia os controles conectados.
 

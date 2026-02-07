@@ -6,8 +6,8 @@ use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use retro_ab::option_manager::OptionManager;
-use retro_ab_gamepad::devices_manager::{Device, DeviceState, DeviceStateListener};
-use retro_ab_gamepad::RetroAbController;
+use retro_controllers::devices_manager::{Device, DeviceState, DeviceStateListener};
+use retro_controllers::RetroController;
 use std::sync::{Arc, Mutex, RwLock};
 
 static DEVICE_STATE_LISTENER: RwLock<Option<DeviceStateListener>> = RwLock::new(None);
@@ -29,7 +29,7 @@ fn device_state_listener(state: DeviceState, device: Device) {
 }
 
 pub struct Tinic {
-    pub retro_ab_controller: Arc<Mutex<RetroAbController>>,
+    pub retro_ab_controller: Arc<Mutex<RetroController>>,
     game_thread: GameThread,
     pub core_options: Option<Arc<OptionManager>>,
 }
@@ -46,7 +46,7 @@ impl Tinic {
             }
         }
 
-        let controller_ctx = Arc::new(Mutex::new(RetroAbController::new(Some(
+        let controller_ctx = Arc::new(Mutex::new(RetroController::new(Some(
             device_state_listener,
         ))?));
 

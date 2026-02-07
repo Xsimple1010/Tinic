@@ -10,7 +10,7 @@ use crate::thread_stack::model_stack::RetroStackFn;
 use generics::constants::MAX_TIME_TO_AWAIT_THREAD_RESPONSE;
 use generics::retro_paths::RetroPaths;
 use retro_ab::option_manager::OptionManager;
-use retro_ab_gamepad::devices_manager::Device;
+use retro_controllers::devices_manager::Device;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
