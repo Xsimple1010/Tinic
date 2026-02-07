@@ -4,16 +4,16 @@ use tinic::{
     self, args_manager::RetroArgs, test_tools::paths::get_paths, Device, DeviceState, Tinic,
 };
 
-fn gamepad_state_listener(state: DeviceState, device: Device) {
+fn device_state_listener(state: DeviceState, device: Device) {
     println!("{:?} - {:?}", device.name, state);
 }
 
 fn main() -> Result<(), ErroHandle> {
     let args = RetroArgs::new()?;
 
-    let mut tinic = Tinic::new(Some(gamepad_state_listener))?;
+    let mut tinic = Tinic::new(Some(device_state_listener))?;
 
-    tinic.load_core(args.core, args.rom, get_paths()?)?;
+    tinic.load_core(&args.core, &args.rom, get_paths()?)?;
 
     'running: loop {
         println!("Para interagir digite o numero de um dos comandos disponíveis!");
@@ -33,9 +33,9 @@ fn main() -> Result<(), ErroHandle> {
                     tinic.quit();
                     break 'running;
                 } else if command.starts_with("1") {
-                    tinic.save_state();
+                    tinic.save_state(1);
                 } else if command.starts_with("2") {
-                    tinic.load_state();
+                    tinic.load_state(1);
                 } else if command.starts_with("3") {
                     tinic.pause();
                 } else if command.starts_with("4") {
@@ -44,6 +44,8 @@ fn main() -> Result<(), ErroHandle> {
                     tinic.reset();
                 } else if command.starts_with("6") {
                     tinic.quit();
+                } else if command.starts_with("7") {
+                    tinic.load_core(&args.core, &args.rom, get_paths()?)?;
                 }
 
                 println!();

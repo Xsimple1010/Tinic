@@ -1,7 +1,12 @@
-use crate::retro_stack::{
-    RetroStack,
-    StackCommand::{DeviceConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState},
+#![allow(unused_imports)]
+
+use crate::thread_stack::game_stack::{
+    GameStack,
+    GameStackCommand::{
+        DeviceConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState,
+    },
 };
+use crate::thread_stack::model_stack::{ModelStackManager, RetroStackFn};
 use retro_ab::{
     core::RetroEnvCallbacks,
     erro_handle::ErroHandle,
@@ -56,7 +61,7 @@ fn create_retro_contexts(
 }
 
 pub fn stack_commands_handle(
-    stack: &Arc<RetroStack>,
+    stack: &Arc<GameStack>,
     core_ctx: &mut Option<RetroAB>,
     controller_ctx: &Arc<Mutex<RetroAbController>>,
     av_ctx: &mut Option<(RetroAvCtx, EventPump)>,
@@ -123,7 +128,7 @@ pub fn stack_commands_handle(
                 }
             }
             Resume => {
-                //como a Rom estará em execução é necessário interromper a thread de eventos
+                //como o game estará em execução é necessário interromper a thread de eventos
                 if let Ok(mut controller) = controller_ctx.lock() {
                     controller.stop_thread_events();
                     *pause_request_new_frames = false

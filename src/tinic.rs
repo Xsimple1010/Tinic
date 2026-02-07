@@ -1,29 +1,29 @@
-use crate::game_thread::GameThread;
-use crate::retro_stack::{RetroStack, StackCommand};
+use crate::game_thread::game_thread::GameThread;
+use crate::thread_stack::game_stack::{GameStack, GameStackCommand};
+use crate::thread_stack::model_stack::RetroStackFn;
 use retro_ab::erro_handle::ErroHandle;
 use retro_ab::paths::Paths;
+use retro_ab::retro_sys::retro_log_level;
 use retro_ab_gamepad::devices_manager::{Device, DeviceState, DeviceStateListener};
 use retro_ab_gamepad::RetroAbController;
-use std::ptr::addr_of;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 
-static mut CONTROLLER_STATE_LISTENER: Option<DeviceStateListener> = None;
+static DEVICE_STATE_LISTENER: RwLock<Option<DeviceStateListener>> = RwLock::new(None);
+
 lazy_static! {
-    static ref STACK: Arc<RetroStack> = RetroStack::new();
+    static ref STACK: Arc<GameStack> = Arc::new(GameStack::new());
 }
 
 fn device_state_listener(state: DeviceState, device: Device) {
-    unsafe {
-        if let Some(listener) = &*addr_of!(CONTROLLER_STATE_LISTENER) {
-            match &state {
-                DeviceState::Connected | DeviceState::Disconnected => {
-                    STACK.push(StackCommand::DeviceConnected(device.clone()));
-                }
-                _ => {}
+    if let Some(listener) = DEVICE_STATE_LISTENER.read().unwrap().as_ref() {
+        match &state {
+            DeviceState::Connected | DeviceState::Disconnected => {
+                STACK.push(GameStackCommand::DeviceConnected(device.clone()));
             }
-            listener(state, device);
-        };
-    }
+            _ => {}
+        }
+        listener(state, device);
+    };
 }
 
 pub struct Tinic {
@@ -33,14 +33,21 @@ pub struct Tinic {
 
 impl Drop for Tinic {
     fn drop(&mut self) {
-        STACK.push(StackCommand::Quit);
+        STACK.push(GameStackCommand::Quit);
     }
 }
 
 impl Tinic {
+    //noinspection RsPlaceExpression
     pub fn new(listener: Option<DeviceStateListener>) -> Result<Tinic, ErroHandle> {
-        unsafe {
-            CONTROLLER_STATE_LISTENER = listener;
+        match DEVICE_STATE_LISTENER.write() {
+            Ok(mut device_listener) => *device_listener = listener,
+            Err(e) => {
+                return Err(ErroHandle {
+                    level: retro_log_level::RETRO_LOG_ERROR,
+                    message: e.to_string(),
+                })
+            }
         }
 
         let retro_ab_controller = Arc::new(Mutex::new(RetroAbController::new(Some(
@@ -63,27 +70,27 @@ impl Tinic {
     }
 
     pub fn pause(&self) {
-        STACK.push(StackCommand::Pause);
+        STACK.push(GameStackCommand::Pause);
     }
 
     pub fn resume(&self) {
-        STACK.push(StackCommand::Resume);
+        STACK.push(GameStackCommand::Resume);
     }
 
     pub fn save_state(&self, slot: usize) {
-        STACK.push(StackCommand::SaveState(slot));
+        STACK.push(GameStackCommand::SaveState(slot));
     }
 
     pub fn load_state(&self, slot: usize) {
-        STACK.push(StackCommand::LoadState(slot));
+        STACK.push(GameStackCommand::LoadState(slot));
     }
 
     pub fn connect_device(device: Device) {
-        STACK.push(StackCommand::DeviceConnected(device));
+        STACK.push(GameStackCommand::DeviceConnected(device));
     }
 
     pub fn reset(&self) {
-        STACK.push(StackCommand::Reset);
+        STACK.push(GameStackCommand::Reset);
     }
 
     pub fn quit(&self) {
