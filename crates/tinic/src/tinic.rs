@@ -1,5 +1,5 @@
 use crate::channel::ThreadChannel;
-use crate::game_thread::game_thread::GameThread;
+use crate::game_thread::game_thread_handle::GameThread;
 use async_std::task;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
