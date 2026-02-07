@@ -101,17 +101,19 @@ pub unsafe fn env_cb_option(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_VARIABLE -> ok");
 
-            let options_manager = &core_ctx.options;
-            if options_manager.updated_count.load(Ordering::SeqCst) < 1 {
+            if InputValidator::validate_non_null_ptr(
+                data,
+                "ptr data in RETRO_ENVIRONMENT_GET_VARIABLE",
+            )
+            .is_err()
+            {
                 return Ok(false);
             }
 
-            if InputValidator::validate_non_null_ptr(data, "ptr data in RETRO_ENVIRONMENT_GET_VARIABLE").is_err() {
-                return Ok(false);
-            }
-            
             let raw_variable = unsafe { &mut *(data as *mut retro_variable) };
             let key = get_str_from_ptr(raw_variable.key);
+
+            let options_manager = &core_ctx.options;
 
             match options_manager.get_opt_value(&key)? {
                 Some(value) => {
