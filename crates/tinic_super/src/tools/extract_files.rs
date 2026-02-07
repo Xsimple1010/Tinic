@@ -155,6 +155,4 @@ pub fn extract_7zip_file<C, CP>(
     );
 
     event_listener(ExtractProgress::Finished { origin_file });
-
-    println!("{_e:?}")
 }
