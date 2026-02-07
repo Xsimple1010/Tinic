@@ -18,8 +18,11 @@ fn main() -> Result<(), String> {
 
     let mut tinic = Tinic::new(Some(gamepad_state_listener));
 
-    tinic.load_core(core_path, test_tools::paths::get_paths())?;
-    tinic.load_rom(rom_path.clone().to_owned());
+    tinic.load_core(
+        core_path.clone(),
+        rom_path.clone(),
+        test_tools::paths::get_paths(),
+    )?;
 
     'running: loop {
         println!("Para interagir digite o numero de um dos comandos disponíveis!");
@@ -30,7 +33,7 @@ fn main() -> Result<(), String> {
         println!("4: resume");
         println!("5: reset");
         println!("6: procurar por novos gamepads disponíveis");
-        println!("7: unload rom");
+        println!("7: stop rom");
         println!("8: load rom");
 
         let mut command = String::new();
@@ -38,7 +41,7 @@ fn main() -> Result<(), String> {
         match io::stdin().read_line(&mut command) {
             Ok(..) => {
                 if command.starts_with("0") {
-                    tinic.quit_game();
+                    tinic.quit();
                     break 'running;
                 } else if command.starts_with("1") {
                     tinic.save_state();
@@ -53,9 +56,13 @@ fn main() -> Result<(), String> {
                 } else if command.starts_with("6") {
                     tinic.change_controller_pending();
                 } else if command.starts_with("7") {
-                    tinic.unload_rom();
+                    tinic.quit();
                 } else if command.starts_with("8") {
-                    tinic.load_rom(rom_path.clone().to_owned());
+                    tinic.load_core(
+                        core_path.clone(),
+                        rom_path.clone(),
+                        test_tools::paths::get_paths(),
+                    )?;
                 }
 
                 println!("");
