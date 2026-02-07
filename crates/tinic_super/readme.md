@@ -4,8 +4,6 @@ O **Tinic Super** é o módulo responsável por gerenciar todos os **recursos ex
 
 Ele não executa cores Libretro diretamente — em vez disso, atua como a **camada de gerenciamento de dados**, organizando, baixando e mantendo tudo que o Tinic precisa para funcionar.
 
-> Se o Tinic é o console, o Tinic Super é o sistema operacional que organiza os cartuchos, capas e banco de dados.
-
 ---
 
 ## 🎯 Responsabilidade Principal
