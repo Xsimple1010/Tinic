@@ -59,7 +59,28 @@ pub fn init_game_loop(
                         keycode: Some(Keycode::Escape),
                         ..
                     } => break 'running,
-
+                    Event::KeyDown {
+                        keycode: Some(Keycode::F1),
+                        ..
+                    } => {
+                        //reservado para o save state
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::F2),
+                        ..
+                    } => {
+                        //reservado para o save state
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::F3),
+                        ..
+                    } => {
+                        _pause = !_pause;
+                    }
+                    // Event::KeyDown {
+                    //     keycode: Some(Keycode::F5),
+                    //     ..
+                    // } => update_controllers(&core_ctx, &mut gamepads),
                     _ => {}
                 }
             }
