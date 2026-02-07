@@ -8,11 +8,11 @@ Este projeto ainda está em fase inicial então muita coisa ainda pode mudar e s
 
 ### [Retro_ab_rs](https://github.com/Xsimple1010/retro_ab_rs)
 
-Todas as ligações aos núcleos são criadas aqui.
+Todas as ligações aos núcleos são criadas aqui (depende do SDL2).
 
 ### [Retro_ab_av](https://github.com/Xsimple1010/retro_ab_av)
 
-Lida com renderização e a reprodução de áudio.
+Lida com renderização e a reprodução de áudio (depende do SDL2).
 
 ### [Retro_ab_gamepad](https://github.com/Xsimple1010/retro_ab_gamepad)
 
@@ -34,5 +34,6 @@ Agora basta executar ``cargo run --example example -- --core=caminho para o core
 
 ## O que esperar para as próximas versões?
 
-- Suporte a aceleração de hardware
+- Criar uma documentação decente
 - Suporte a comando enviados pelo teclado
+- Lidar melhor com os casos de erros em todos os projetos
