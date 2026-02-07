@@ -1,11 +1,12 @@
-use std::sync::Arc;
-
 use crate::devices_manager::{DeviceListener, DeviceRubble, DevicesManager};
 use crate::gamepad::retro_gamepad::RetroGamePad;
+use crate::keyboard::Keyboard;
 use crate::state_thread::EventThread;
 use generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use retro_core::RetroControllerEnvCallbacks;
+use std::sync::Arc;
+use winit::keyboard::{KeyCode, PhysicalKey};
 
 #[derive(Debug)]
 pub struct RetroController {
@@ -55,6 +56,18 @@ impl RetroController {
     pub fn apply_rumble(&self, rubble: DeviceRubble) -> Result<(), ErrorHandle> {
         self.manager.apply_rumble(rubble);
         Ok(())
+    }
+
+    pub fn update_keyboard(&self, native: PhysicalKey, pressed: bool) -> Result<(), ErrorHandle> {
+        Ok(self
+            .manager
+            .keyboard
+            .try_load()?
+            .set_key_pressed(native, pressed))
+    }
+
+    pub fn get_keyboard(&self) -> Result<Keyboard, ErrorHandle> {
+        Ok(self.manager.keyboard.try_load()?.clone())
     }
 
     pub fn get_core_cb(&self) -> RetroControllerCb {

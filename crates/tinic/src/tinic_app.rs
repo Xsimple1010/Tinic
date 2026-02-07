@@ -150,6 +150,11 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
                 event,
                 is_synthetic: _,
             } => {
+                self.ctx
+                    .controller
+                    .update_keyboard(event.physical_key.clone(), event.state.is_pressed())
+                    .unwrap();
+
                 if event.repeat || !event.state.is_pressed() {
                     return;
                 }
@@ -187,7 +192,7 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
     }
 
     fn exiting(&mut self, _: &ActiveEventLoop) {
-        if let Err(e) = self.ctx.close_retro_ctx() {
+        if let Err(e) = self.ctx.destroy_retro_ctx() {
             println!("{:?}", e);
         }
     }

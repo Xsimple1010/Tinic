@@ -14,7 +14,7 @@ pub struct TinicGameCtx {
     retro_core: RetroCoreIns,
     current_full_screen_mode: Fullscreen,
     can_request_new_frames: bool,
-    controller: Arc<RetroController>,
+    pub controller: Arc<RetroController>,
 }
 
 impl TinicGameCtx {
@@ -46,6 +46,9 @@ impl TinicGameCtx {
             retro_core.connect_controller(gamepad.retro_port, gamepad.retro_type)?;
         }
 
+        let keyboard = controller.get_keyboard()?;
+        retro_core.connect_controller(keyboard.retro_port, keyboard.retro_type)?;
+
         Ok(Self {
             retro_av,
             retro_core,
@@ -68,7 +71,7 @@ impl TinicGameCtx {
         self.controller.resume_thread_events();
     }
 
-    pub fn close_retro_ctx(&self) -> Result<(), ErrorHandle> {
+    pub fn destroy_retro_ctx(&self) -> Result<(), ErrorHandle> {
         self.retro_core.de_init()?;
         self.controller.resume_thread_events();
 
@@ -116,6 +119,19 @@ impl TinicGameCtx {
     }
 
     pub fn toggle_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
+        match self.current_full_screen_mode {
+            Fullscreen::Borderless(None) => self.disable_full_screen_mode(),
+            _ => self.enable_full_screen_mode(),
+        }
+    }
+
+    pub fn enable_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
+        self.current_full_screen_mode = Fullscreen::Borderless(None);
+        self.retro_av
+            .set_full_screen(self.current_full_screen_mode.clone())
+    }
+
+    pub fn disable_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {
         self.retro_av
             .set_full_screen(self.current_full_screen_mode.clone())
     }
