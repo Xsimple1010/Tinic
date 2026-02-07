@@ -16,7 +16,7 @@ pub async fn get_compatibility_core_infos(
     };
 
     let infos_dir = retro_paths.infos.to_string();
-    let core_dir = retro_paths.cores.clone();
+    let core_dir = PathBuf::from(retro_paths.cores.to_string());
 
     let res = tokio::task::spawn_blocking(move || {
         let entries = std::fs::read_dir(infos_dir).ok()?;
@@ -25,7 +25,7 @@ pub async fn get_compatibility_core_infos(
             .par_bridge()
             .filter_map(|entry| {
                 let entry = entry.ok()?;
-                let mut info = read_info_file_blocking(&entry.path()).ok()?;
+                let mut info = read_info_file_blocking(&entry.path(), &core_dir).ok()?;
 
                 let is_installed = this_core_is_installed(&core_dir, &mut info.file_name).ok()?;
                 info.is_installed = is_installed;
