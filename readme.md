@@ -5,7 +5,8 @@
 <h1 align="center">Tinic</h1>
 
 <p align="center">
-  Tinic é um runtime para núcleos Libretro que abstrai a API nativa e fornece uma base pronta para frontends multiplataforma.
+    Tinic é um runtime para núcleos Libretro que abstrai a API nativa e fornece uma base pronta para 
+    frontends multiplataforma.
 </p>
 
 # 🎯 Qual a finalidade do Tinic?
@@ -76,6 +77,46 @@ fn main() -> Result<(), ErrorHandle> {
 👉 Código completo disponível em:\
 **[`crates/tinic/examples/tinic_run.rs`](crates/tinic/examples/tinic_run.rs)**
 
+### 📢 Como se comunicar com o Tinic?
+
+Para se comunicar com Tinic você precisa criar uma **game_dispatchers**. Não é necessário ter uma janela 
+aberta para isso! Então você pode criar o **game_dispatchers** uma unica vez e usar para todas as chamadas.
+
+``` rust 
+   fn main() -> Result<(), ErrorHandle> {
+        let mut tinic = create_tinic()?;
+        let dispatch = tinic.get_game_dispatchers();
+        
+        // troca o slot atual(default: 1) para o slot 2
+        let _ = dispatch.change_default_slot(2);
+        
+        // salva o state atual no slot 2
+        let _ = dispatch.save_state(2);
+    
+        // carrega o state salvo no slot 2
+        let _ = dispatch.load_state(2);
+    
+        // pausa ou resulme o jogo
+        let _ = dispatch.pause();
+        let _ = dispatch.resume();
+        
+        // habilita ou desabilita o teclado, 
+        // por padrão ao conectar uma gamepad o teclado será desabilitado
+        let _ = dispatch.disable_keyboard();
+        let _ = dispatch.enable_keyboard();
+    
+        // pegar uma lista de dispositivos(gamepads) conectados
+        let devices = tinic.retro_controle.unwrap().get_list()?;
+        
+        // conecta um gamepad
+        let _ = dispatch.connect_device(devices[0].clone().into());
+        
+        // isso fecha a janela do jogo, para criar uma nova janela é necessario
+        // criar uma nova game_instance
+        let _ = dispatch.exit();
+   }
+```
+
 ------------------------------------------------------------------------
 
 ## 🌐 Tinic-ipc (Outras linguagens)
@@ -95,3 +136,4 @@ mensagens.
 📌 Exemplo disponível em:\
 **Retronic (frontend usando Tinic-ipc)**\
 https://github.com/Xsimple1010/retronic/tree/master/native
+
