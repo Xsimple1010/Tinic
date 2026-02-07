@@ -1659,7 +1659,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "libretro_sys"
+name = "libretro-sys"
 version = "0.1.0"
 dependencies = [
  "bindgen",
@@ -2851,7 +2851,7 @@ name = "retro_audio"
 version = "0.1.0"
 dependencies = [
  "cpal",
- "libretro_sys",
+ "libretro-sys",
  "retro_core",
  "ringbuf",
  "rubato",
@@ -2863,7 +2863,7 @@ name = "retro_controllers"
 version = "0.1.0"
 dependencies = [
  "gilrs",
- "libretro_sys",
+ "libretro-sys",
  "retro_core",
  "tinic_generics",
  "uuid",
@@ -2874,7 +2874,7 @@ dependencies = [
 name = "retro_core"
 version = "0.1.0"
 dependencies = [
- "libretro_sys",
+ "libretro-sys",
  "raw-cpuid",
  "tempfile",
  "tinic_generics",
@@ -2890,7 +2890,7 @@ dependencies = [
  "glutin",
  "glutin-winit",
  "image",
- "libretro_sys",
+ "libretro-sys",
  "raw-window-handle",
  "retro_core",
  "tinic_generics",
@@ -3525,7 +3525,7 @@ dependencies = [
 name = "tinic"
 version = "0.1.7"
 dependencies = [
- "libretro_sys",
+ "libretro-sys",
  "retro_audio",
  "retro_controllers",
  "retro_core",
@@ -3547,7 +3547,7 @@ dependencies = [
 name = "tinic_generics"
 version = "0.1.0"
 dependencies = [
- "libretro_sys",
+ "libretro-sys",
  "sqlite",
 ]
 

@@ -6,7 +6,7 @@ members = [
     "crates/retro_video",
     "crates/tinic",
     "crates/tinic_generics",
-    "crates/libretro_sys",
+    "crates/libretro-sys",
     "crates/tinic_super",
     "crates/retro_audio",
     "crates/tinic_ipc",
@@ -22,14 +22,13 @@ retro_core = { path = "crates/retro_core", version = "0.1.0", features = ["hw"] 
 retro_controllers = { path = "crates/retro_controllers", version = "0.1.0" }
 retro_video = { path = "crates/retro_video", version = "0.1.1" }
 retro_audio = { path = "crates/retro_audio", version = "0.1.0" }
-libretro_sys = { path = "crates/libretro_sys", version = "0.1.0" }
+libretro-sys = { path = "crates/libretro-sys", version = "0.1.0" }
 tinic_generics = { path = "crates/tinic_generics", version = "0.1.0" }
 tinic_super = { path = "crates/tinic_super", version = "0.1.4" }
 tinic_ipc_protocol = { path = "crates/tinic_ipc_protocol", version = "0.1.4" }
 tinic_ipc = { path = "crates/tinic_ipc", version = "0.1.3" }
 tinic_database = { path = "crates/tinic_database", version = "0.1.0" }
 tinic = { path = "crates/tinic", version = "0.1.7" }
-libretro-sys = {path = "crates/libretro_sys", version = "0.1.1"}
 
 
 # Extern deps

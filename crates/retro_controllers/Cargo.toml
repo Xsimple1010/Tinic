@@ -11,6 +11,6 @@ repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/retro_cont
 gilrs.workspace = true
 uuid.workspace = true
 tinic_generics.workspace = true
-libretro_sys.workspace = true
+libretro-sys.workspace = true
 retro_core.workspace = true
 winit.workspace = true
