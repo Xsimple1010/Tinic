@@ -6,6 +6,7 @@ extern crate retro_core;
 extern crate retro_video;
 
 mod app_dispatcher;
+mod device_listener;
 mod tinic;
 mod tinic_app;
 mod tinic_app_ctx;
@@ -16,5 +17,5 @@ pub use retro_controllers::{
     RetroGamePad,
 };
 pub use retro_core::{args_manager, test_tools};
-pub use tinic::Tinic;
+pub use tinic::{Tinic, TinicPumpStatus};
 pub use tinic_app::GameInstance;

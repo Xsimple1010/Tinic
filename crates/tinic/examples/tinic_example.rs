@@ -1,7 +1,8 @@
 use generics::error_handle::ErrorHandle;
 use retro_controllers::RetroGamePad;
-use tinic::{self, args_manager::RetroArgs, test_tools::paths, DeviceListener, Tinic};
-use winit::platform::pump_events::PumpStatus;
+use tinic::{
+    self, args_manager::RetroArgs, test_tools::paths, DeviceListener, Tinic, TinicPumpStatus,
+};
 
 #[derive(Debug, Default)]
 struct DeviceEventHandle;
@@ -31,9 +32,9 @@ fn main() -> Result<(), ErrorHandle> {
         // tinic.run(game_instance)?;
 
         loop {
-            let status = tinic.pop_event(&mut game_instance)?;
+            let status = tinic.pop_event(&mut game_instance);
 
-            if let PumpStatus::Exit(_) = status {
+            if let TinicPumpStatus::Exit(_) = status {
                 break;
             }
         }

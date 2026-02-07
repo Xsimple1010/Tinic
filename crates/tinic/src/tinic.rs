@@ -9,17 +9,22 @@ use generics::{
     retro_paths::RetroPaths,
     types::{ArcTMutex, TMutex},
 };
-use retro_controllers::RetroGamePad;
 use std::sync::Arc;
 use winit::{
     event_loop::EventLoop,
     platform::pump_events::{EventLoopExtPumpEvents, PumpStatus},
 };
+use crate::device_listener::DeviceHandle;
 
 pub struct Tinic {
     pub controller: Arc<RetroController>,
     dispatcher: ArcTMutex<Option<GameInstanceDispatchers>>,
     event_loop: Option<EventLoop<GameInstanceActions>>,
+}
+
+pub enum TinicPumpStatus {
+    Continue,
+    Exit(i32),
 }
 
 impl Tinic {
@@ -67,59 +72,14 @@ impl Tinic {
     pub fn pop_event(
         &mut self,
         game_instance: &mut GameInstance,
-    ) -> Result<PumpStatus, ErrorHandle> {
+    ) -> TinicPumpStatus {
         if let Some(event_loop) = self.event_loop.as_mut() {
-            Ok(event_loop.pump_app_events(None, game_instance))
+            match event_loop.pump_app_events(None, game_instance) { 
+                PumpStatus::Exit(code) => TinicPumpStatus::Exit(code),
+                PumpStatus::Continue => TinicPumpStatus::Continue,
+            }
         } else {
-            Err(ErrorHandle::new(""))
+            TinicPumpStatus::Exit(0)
         }
-    }
-}
-
-#[derive(Debug)]
-struct DeviceHandle {
-    extern_listener: Box<dyn DeviceListener>,
-    app_proxy: ArcTMutex<Option<GameInstanceDispatchers>>,
-}
-
-impl DeviceListener for DeviceHandle {
-    fn connected(&self, device: RetroGamePad) {
-        let mut invalid_proxy = false;
-
-        if let Some(dispatcher) = self.app_proxy.load_or(None).as_ref() {
-            if dispatcher.disable_keyboard().is_err() {
-                invalid_proxy = true;
-            }
-
-            if dispatcher.connect_device(device.clone()).is_err() {
-                invalid_proxy = true;
-            }
-        }
-
-        if invalid_proxy {
-            self.app_proxy.store(None);
-        }
-
-        self.extern_listener.connected(device);
-    }
-
-    fn disconnected(&self, device: RetroGamePad) {
-        let mut invalid_proxy = false;
-
-        if let Some(dispatcher) = self.app_proxy.load_or(None).as_ref()
-            && dispatcher.enable_keyboard().is_err()
-        {
-            invalid_proxy = true;
-        }
-
-        if invalid_proxy {
-            self.app_proxy.store(None);
-        }
-
-        self.extern_listener.disconnected(device);
-    }
-
-    fn button_pressed(&self, button: String, device: RetroGamePad) {
-        self.extern_listener.button_pressed(button, device);
     }
 }
