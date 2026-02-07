@@ -6,7 +6,7 @@ use generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use retro_core::RetroControllerEnvCallbacks;
 use std::sync::Arc;
-use winit::keyboard::{KeyCode, PhysicalKey};
+use winit::keyboard::PhysicalKey;
 
 #[derive(Debug)]
 pub struct RetroController {
@@ -58,16 +58,20 @@ impl RetroController {
         Ok(())
     }
 
-    pub fn update_keyboard(&self, native: PhysicalKey, pressed: bool) -> Result<(), ErrorHandle> {
-        Ok(self
-            .manager
-            .keyboard
-            .try_load()?
-            .set_key_pressed(native, pressed))
+    pub fn is_using_keyboar(&self) -> bool {
+        self.manager.is_using_keyboard()
     }
 
-    pub fn get_keyboard(&self) -> Result<Keyboard, ErrorHandle> {
-        Ok(self.manager.keyboard.try_load()?.clone())
+    pub fn update_keyboard(&self, native: PhysicalKey, pressed: bool) {
+        self.manager.update_keyboard(native, pressed)
+    }
+
+    pub fn active_keyboard(&self) -> Keyboard {
+        self.manager.active_keyboard()
+    }
+
+    pub fn disable_keyboard(&self) {
+        self.manager.disable_keyboard()
     }
 
     pub fn get_core_cb(&self) -> RetroControllerCb {

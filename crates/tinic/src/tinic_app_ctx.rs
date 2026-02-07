@@ -7,6 +7,7 @@ use libretro_sys::binding_libretro::retro_hw_context_type;
 use retro_av::RetroAv;
 use retro_controllers::{RetroController, RetroGamePad};
 use retro_core::{RetroCore, RetroCoreIns, RetroEnvCallbacks, graphic_api::GraphicApi};
+use winit::keyboard::PhysicalKey;
 use winit::{event_loop::ActiveEventLoop, window::Fullscreen};
 
 pub struct TinicGameCtx {
@@ -42,12 +43,16 @@ impl TinicGameCtx {
 
         retro_core.load_game(&rom_path)?;
 
-        for gamepad in controller.get_list()? {
-            retro_core.connect_controller(gamepad.retro_port, gamepad.retro_type)?;
-        }
+        let gamepads = controller.get_list()?;
 
-        let keyboard = controller.get_keyboard()?;
-        retro_core.connect_controller(keyboard.retro_port, keyboard.retro_type)?;
+        if gamepads.len().eq(&0) {
+            let keyboard = controller.active_keyboard();
+            retro_core.connect_controller(keyboard.retro_port, keyboard.retro_type)?;
+        } else {
+            for gamepad in gamepads {
+                retro_core.connect_controller(gamepad.retro_port, gamepad.retro_type)?;
+            }
+        }
 
         Ok(Self {
             retro_av,
@@ -56,6 +61,27 @@ impl TinicGameCtx {
             can_request_new_frames: true,
             current_full_screen_mode: Fullscreen::Borderless(None),
         })
+    }
+
+    pub fn toggle_keyboard_usage(&self) -> Result<(), ErrorHandle> {
+        if self.controller.is_using_keyboar() {
+            self.desable_keyboard();
+            Ok(())
+        } else {
+            self.active_keyboard()
+        }
+    }
+
+    pub fn desable_keyboard(&self) {
+        self.controller.disable_keyboard()
+    }
+    pub fn active_keyboard(&self) -> Result<(), ErrorHandle> {
+        let keyboard = self.controller.active_keyboard();
+        self.retro_core
+            .connect_controller(keyboard.retro_port, keyboard.retro_type)
+    }
+    pub fn update_keyboard_state(&self, native: PhysicalKey, pressed: bool) {
+        self.controller.update_keyboard(native, pressed)
     }
 
     pub fn create_window(&mut self, event_loop: &ActiveEventLoop) -> Result<(), ErrorHandle> {

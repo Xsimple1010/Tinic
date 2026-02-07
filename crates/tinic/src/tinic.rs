@@ -1,3 +1,4 @@
+use crate::tinic_app::GameInstanceDispatchers;
 use crate::{
     generics::error_handle::ErrorHandle,
     retro_controllers::{RetroController, devices_manager::DeviceListener},
@@ -12,29 +13,29 @@ use retro_controllers::RetroGamePad;
 use std::{path::PathBuf, sync::Arc};
 use tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper};
 use winit::{
-    event_loop::{EventLoop, EventLoopProxy},
+    event_loop::EventLoop,
     platform::pump_events::{EventLoopExtPumpEvents, PumpStatus},
 };
 
 pub struct Tinic {
     pub controller: Arc<RetroController>,
-    proxy: ArcTMutex<Option<EventLoopProxy<GameInstanceActions>>>,
+    dispatcher: ArcTMutex<Option<GameInstanceDispatchers>>,
     event_loop: Option<EventLoop<GameInstanceActions>>,
 }
 
 impl Tinic {
     pub fn new(listener: Box<dyn DeviceListener>) -> Result<Tinic, ErrorHandle> {
-        let proxy = TMutex::new(None);
+        let dispatcher = TMutex::new(None);
 
         let devices_listener = DeviceHandle {
             listener,
-            proxy: proxy.clone(),
+            dispatcher: dispatcher.clone(),
         };
         let controller = Arc::new(RetroController::new(Box::new(devices_listener))?);
 
         Ok(Self {
             controller,
-            proxy,
+            dispatcher,
             event_loop: None,
         })
     }
@@ -49,7 +50,8 @@ impl Tinic {
 
         let (game_instance, event_loop) = GameInstance::new(ctx);
 
-        self.proxy.store(Some(event_loop.create_proxy()));
+        self.dispatcher
+            .store(Some(game_instance.create_dispatcher()));
         self.event_loop.replace(event_loop);
 
         Ok(game_instance)
@@ -97,30 +99,43 @@ impl Tinic {
 #[derive(Debug)]
 struct DeviceHandle {
     listener: Box<dyn DeviceListener>,
-    proxy: ArcTMutex<Option<EventLoopProxy<GameInstanceActions>>>,
+    dispatcher: ArcTMutex<Option<GameInstanceDispatchers>>,
 }
 
 impl DeviceListener for DeviceHandle {
     fn connected(&self, device: RetroGamePad) {
         let mut invalid_proxy = false;
 
-        if let Some(proxy) = self.proxy.load_or(None).as_ref() {
-            if proxy
-                .send_event(GameInstanceActions::ConnectDevice(device.clone()))
-                .is_err()
-            {
+        if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref() {
+            if dispatcher.disable_keybaord().is_err() {
+                invalid_proxy = true;
+            }
+
+            if dispatcher.connect_device(device.clone()).is_err() {
                 invalid_proxy = true;
             }
         }
 
         if invalid_proxy {
-            self.proxy.store(None);
+            self.dispatcher.store(None);
         }
 
         self.listener.connected(device);
     }
 
     fn disconnected(&self, device: RetroGamePad) {
+        let mut invalid_proxy = false;
+
+        if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref() {
+            if dispatcher.enable_keybaord().is_err() {
+                invalid_proxy = true;
+            }
+        }
+
+        if invalid_proxy {
+            self.dispatcher.store(None);
+        }
+
         self.listener.disconnected(device);
     }
 

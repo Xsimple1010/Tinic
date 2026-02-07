@@ -7,7 +7,7 @@ use generics::constants::INVALID_CONTROLLER_PORT;
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::LibretroRaw;
-use std::ffi::c_void;
+use std::ffi::{c_uint, c_void};
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -182,7 +182,7 @@ impl RetroCore {
         if port != INVALID_CONTROLLER_PORT {
             unsafe {
                 self.raw
-                    .retro_set_controller_port_device(port as u32, controller);
+                    .retro_set_controller_port_device(port as c_uint, controller);
             }
         }
 
