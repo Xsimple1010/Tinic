@@ -64,6 +64,5 @@ fn main() -> Result<(), ErrorHandle> {
     let game_instance = tinic.create_game_instance(game_info)?;
     tinic.run(game_instance)?;
 
-    remove_test_work_dir_path(test_dir)?;
-    Ok(())
+    remove_test_work_dir_path(test_dir)
 }
