@@ -1,6 +1,7 @@
 use crate::{tools::validation::InputValidator, RetroCoreIns};
 use generics::constants::MAX_CORE_SUBSYSTEM_INFO;
 use generics::error_handle::ErrorHandle;
+use libretro_sys::binding_libretro::retro_vfs_interface_info;
 use libretro_sys::{
     binding_libretro::{
         retro_subsystem_info, RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY,
@@ -82,7 +83,18 @@ pub unsafe fn env_cb_directory(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_VFS_INTERFACE -> OK");
 
-            Ok(false)
+            InputValidator::validate_non_null_ptr(
+                data,
+                "data in RETRO_ENVIRONMENT_GET_VFS_INTERFACE",
+            )?;
+
+            let vfs_interface = unsafe {
+                &mut *(data as *mut retro_vfs_interface_info)
+            };
+            
+            println!("vfs_interface: {:?}", vfs_interface);
+
+            Ok(true)
         }
         _ => Ok(false),
     }
