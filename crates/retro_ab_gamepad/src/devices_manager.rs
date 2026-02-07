@@ -1,6 +1,6 @@
 use crate::{constants::DEFAULT_MAX_PORT, gamepad::retro_gamepad::RetroGamePad};
 use gilrs::Gilrs;
-use retro_ab::retro_sys::{retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK};
+use libretro_sys::binding_libretro::{retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK};
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
@@ -38,7 +38,6 @@ impl PartialEq for Device {
         self.id == other.id
     }
 }
-
 
 impl Device {
     pub fn from_gamepad(gamepad: &RetroGamePad) -> Self {

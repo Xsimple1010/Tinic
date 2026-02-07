@@ -1,6 +1,6 @@
+use generics::erro_handle::ErroHandle;
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::env;
-
-use crate::erro_handle::ErroHandle;
 
 pub struct RetroArgs {
     pub core: String,
@@ -43,7 +43,7 @@ pub fn get_value(args: &Vec<String>, key: &str) -> Result<String, ErroHandle> {
                 return Ok(value);
             } else {
                 return Err(ErroHandle {
-                    level: crate::erro_handle::RetroLogLevel::RETRO_LOG_ERROR,
+                    level: RETRO_LOG_ERROR,
                     message: "Valor não encontrado:".to_owned() + &key,
                 });
             }
@@ -51,7 +51,7 @@ pub fn get_value(args: &Vec<String>, key: &str) -> Result<String, ErroHandle> {
     }
 
     Err(ErroHandle {
-        level: crate::erro_handle::RetroLogLevel::RETRO_LOG_ERROR,
+        level: RETRO_LOG_ERROR,
         message: "Valor não encontrado:".to_owned() + key,
     })
 }

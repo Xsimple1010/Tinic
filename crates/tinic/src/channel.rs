@@ -8,8 +8,8 @@ use crate::thread_stack::main_stack::MainStackCommand::{
 };
 use crate::thread_stack::main_stack::{MainStack, MainStackCommand};
 use crate::thread_stack::model_stack::RetroStackFn;
+use generics::retro_paths::RetroPaths;
 use retro_ab::option_manager::OptionManager;
-use retro_ab::paths::Paths;
 use retro_ab_gamepad::devices_manager::Device;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -67,7 +67,7 @@ impl ThreadChannel {
         &self,
         core_path: &str,
         rom_path: &str,
-        paths: Paths,
+        paths: RetroPaths,
     ) -> (bool, Option<Arc<OptionManager>>) {
         self.game_stack
             .push(LoadGame(core_path.to_string(), rom_path.to_string(), paths));

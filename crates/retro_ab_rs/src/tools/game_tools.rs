@@ -1,10 +1,8 @@
 use super::ffi_tools::make_c_string;
 use crate::core::CoreWrapper;
-use crate::retro_sys::retro_log_level;
-use crate::{
-    binding::binding_libretro::retro_game_info,
-    erro_handle::{ErroHandle, RetroLogLevel},
-};
+use generics::erro_handle::ErroHandle;
+use libretro_sys::binding_libretro::retro_game_info;
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::fs;
 use std::io::Write;
 use std::{
@@ -20,7 +18,7 @@ fn get_full_path(path: &str) -> Result<PathBuf, ErroHandle> {
     match PathBuf::from(path).canonicalize() {
         Ok(full_path) => Ok(full_path),
         Err(e) => Err(ErroHandle {
-            level: RetroLogLevel::RETRO_LOG_ERROR,
+            level: RETRO_LOG_ERROR,
             message: e.to_string(),
         }),
     }
@@ -32,7 +30,7 @@ fn valid_rom_extension(ctx: &CoreWrapper, path: &Path) -> Result<(), ErroHandle>
 
     if !valid_extensions.contains(path_str) {
         return Err(ErroHandle {
-            level: RetroLogLevel::RETRO_LOG_ERROR,
+            level: RETRO_LOG_ERROR,
             message: "Extensão da rom invalida: valores esperados -> ".to_string()
                 + &valid_extensions.to_string()
                 + "; valor recebido -> "
@@ -112,7 +110,7 @@ impl RomTools {
         Ok(name)
     }
 
-    pub fn create_save_state(ctx: &CoreWrapper, slot: usize) -> Result<(), ErroHandle> {
+    pub fn create_save_state(ctx: &CoreWrapper, slot: usize) -> Result<String, ErroHandle> {
         let size = unsafe { ctx.raw.retro_serialize_size() };
         let mut data = vec![0u8; size];
 
@@ -123,7 +121,7 @@ impl RomTools {
 
         if !state {
             return Err(ErroHandle {
-                level: RetroLogLevel::RETRO_LOG_ERROR,
+                level: RETRO_LOG_ERROR,
                 message: "nao foi possível salva o estado atual".to_string(),
             });
         }
@@ -131,7 +129,15 @@ impl RomTools {
         let mut file = File::create(get_save_path(ctx, slot)?).unwrap();
         file.write(&data).unwrap();
 
-        Ok(())
+        // let path = PathBuf::from(file)
+        //     .as_path()
+        //     .canonicalize()
+        //     .unwrap()
+        //     .to_str()
+        //     .unwrap()
+        //     .to_string();
+
+        Ok("path".to_string())
     }
 
     pub fn load_save_state(ctx: &CoreWrapper, slot: usize) -> Result<(), ErroHandle> {
@@ -147,7 +153,7 @@ impl RomTools {
 
         if buffer_size != core_expect_size {
             return Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
+                level: RETRO_LOG_ERROR,
                 message: "o state escolhido nao e correspondente ao core".to_string(),
             });
         }
@@ -159,7 +165,7 @@ impl RomTools {
 
             if !suss {
                 return Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
+                    level: RETRO_LOG_ERROR,
                     message: "o core nao pode carregar o state escolhido".to_string(),
                 });
             }

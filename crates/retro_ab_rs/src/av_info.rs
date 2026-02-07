@@ -1,8 +1,7 @@
+use crate::core::retro_pixel_format;
 use crate::graphic_api::GraphicApi;
-use crate::retro_sys::LibretroRaw;
-use crate::{
-    binding::binding_libretro::{retro_game_geometry, retro_system_av_info, retro_system_timing},
-    core::retro_pixel_format,
+use libretro_sys::binding_libretro::{
+    retro_game_geometry, retro_system_av_info, retro_system_timing, LibretroRaw,
 };
 use std::sync::{Arc, Mutex, RwLock};
 

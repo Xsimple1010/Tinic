@@ -1,8 +1,8 @@
 use crate::devices_manager::{DeviceRubble, DeviceStateListener, DevicesManager};
 use crate::gamepad::retro_gamepad::RetroGamePad;
 use crate::state_thread::EventThread;
-use retro_ab::erro_handle::ErroHandle;
-use retro_ab::retro_sys::retro_rumble_effect;
+use generics::erro_handle::ErroHandle;
+use libretro_sys::binding_libretro::retro_rumble_effect;
 use std::sync::{Arc, Mutex};
 
 lazy_static! {

@@ -1,7 +1,6 @@
-use retro_ab::erro_handle::RetroLogLevel::RETRO_LOG_ERROR;
-use retro_ab::{erro_handle::ErroHandle, retro_sys::retro_log_level};
-
 use crate::{constants::EVENT_THREAD_SLEEP_TIME, devices_manager::DevicesManager};
+use generics::erro_handle::ErroHandle;
+use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_ERROR, RETRO_LOG_WARN};
 use std::{
     sync::{Arc, Mutex},
     thread::{self, sleep},
@@ -40,7 +39,7 @@ impl EventThread {
 
         if event_thread_can_run {
             return Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_WARN,
+                level: RETRO_LOG_WARN,
                 message: "A thread de eventos já está em execução".to_string(),
             });
         }

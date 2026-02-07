@@ -1,12 +1,10 @@
 use crate::{print_scree::PrintScree, retro_gl::window::GlWIndow};
-use retro_ab::{
-    core::AvInfo,
-    erro_handle::ErroHandle,
-    retro_sys::{
-        retro_hw_context_type::{RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL_CORE},
-        retro_log_level,
-    },
+use generics::erro_handle::ErroHandle;
+use libretro_sys::binding_libretro::{
+    retro_hw_context_type::{RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL_CORE},
+    retro_log_level,
 };
+use retro_ab::core::AvInfo;
 use sdl2::Sdl;
 use std::{
     ffi::{c_uint, c_void},
@@ -85,14 +83,23 @@ impl Drop for RetroVideo {
 }
 
 impl RetroVideo {
+    //noinspection RsPlaceExpression
     pub fn new(sdl: &Sdl, av_info: &Arc<AvInfo>) -> Result<Self, ErroHandle> {
         match &av_info.video.graphic_api.context_type {
-            RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_NONE => {
+            RETRO_HW_CONTEXT_OPENGL_CORE => {
                 unsafe { WINDOW_CTX = Some(Box::new(GlWIndow::new(sdl, av_info)?)) }
 
-                return Ok(Self {
+                Ok(Self {
                     av_info: av_info.clone(),
-                });
+                })
+            }
+
+            RETRO_HW_CONTEXT_NONE => {
+                unsafe { WINDOW_CTX = Some(Box::new(GlWIndow::new(sdl, av_info)?)) }
+
+                Ok(Self {
+                    av_info: av_info.clone(),
+                })
             }
             // RETRO_HW_CONTEXT_VULKAN => {}
             _ => Err(ErroHandle {

@@ -1,7 +1,5 @@
-use retro_ab::{
-    core::{retro_language, retro_pixel_format},
-    erro_handle::ErroHandle,
-};
+use generics::erro_handle::ErroHandle;
+use retro_ab::core::{retro_language, retro_pixel_format};
 
 mod common;
 

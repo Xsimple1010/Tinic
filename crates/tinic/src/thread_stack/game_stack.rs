@@ -1,5 +1,5 @@
 use crate::thread_stack::model_stack::{ModelStackManager, RetroStackFn};
-use retro_ab::paths::Paths;
+use generics::retro_paths::RetroPaths;
 use retro_ab_gamepad::devices_manager::Device;
 
 //facilita o reconhecimento dos atributos usando a intellisense da ide
@@ -10,7 +10,7 @@ type Slot = usize;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GameStackCommand {
     //core, rom, paths
-    LoadGame(CorePath, RomPath, Paths),
+    LoadGame(CorePath, RomPath, RetroPaths),
     SaveState(Slot),
     LoadState(Slot),
     Pause,

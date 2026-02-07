@@ -1,8 +1,9 @@
 use crate::core::CoreWrapperIns;
-use crate::erro_handle::ErroHandle;
-use crate::erro_handle::RetroLogLevel;
 use crate::graphic_api::GraphicApi;
-use crate::{core::CoreWrapper, environment::RetroEnvCallbacks, paths::Paths};
+use crate::{core::CoreWrapper, environment::RetroEnvCallbacks};
+use generics::erro_handle::ErroHandle;
+use generics::retro_paths::RetroPaths;
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::ptr::addr_of;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -25,7 +26,7 @@ impl Drop for RetroContext {
 impl RetroContext {
     pub fn new(
         core_path: &str,
-        paths: Paths,
+        paths: RetroPaths,
         callbacks: RetroEnvCallbacks,
         graphic_api: GraphicApi,
     ) -> Result<RetroCtxIns, ErroHandle> {
@@ -92,16 +93,16 @@ impl RetroContext {
 
         Err(ErroHandle {
             message: "O contexto voce esta tentando acessar não existe".to_string(),
-            level: RetroLogLevel::RETRO_LOG_ERROR,
+            level: RETRO_LOG_ERROR,
         })
     }
 }
 
 #[cfg(test)]
 mod retro_context {
-    use crate::erro_handle::ErroHandle;
-    use crate::test_tools::context::get_context;
     use crate::retro_context::RetroContext;
+    use crate::test_tools::context::get_context;
+    use generics::erro_handle::ErroHandle;
 
     #[test]
     fn test_create_and_delete() -> Result<(), ErroHandle> {
@@ -129,7 +130,7 @@ mod retro_context {
     }
 
     #[test]
-    fn get_from_id()  -> Result<(), ErroHandle> {
+    fn get_from_id() -> Result<(), ErroHandle> {
         let ctx = get_context()?;
 
         let same_ctx = RetroContext::get_from_id(&ctx.id)?;

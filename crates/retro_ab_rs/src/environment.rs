@@ -1,14 +1,8 @@
 use crate::{
-    binding::binding_log_interface,
     constants::{MAX_CORE_CONTROLLER_INFO_TYPES, MAX_CORE_SUBSYSTEM_INFO},
     controller_info::ControllerInfo,
     core::CoreWrapper,
-    retro_context::RetroContext,
-    retro_perf::{
-        core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
-        get_cpu_features, get_features_get_time_usec,
-    },
-    retro_sys::{
+    libretro_sys::binding_libretro::{
         retro_controller_info, retro_core_option_display, retro_core_options_v2_intl,
         retro_game_geometry, retro_hw_context_type, retro_hw_render_callback, retro_language,
         retro_log_level, retro_perf_callback, retro_pixel_format, retro_proc_address_t,
@@ -33,9 +27,15 @@ use crate::{
         RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, RETRO_ENVIRONMENT_SET_VARIABLE,
         RETRO_ENVIRONMENT_SET_VARIABLES,
     },
+    retro_context::RetroContext,
+    retro_perf::{
+        core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
+        get_cpu_features, get_features_get_time_usec,
+    },
     tools::ffi_tools::{get_str_from_ptr, make_c_string},
 };
 use ::std::os::raw;
+use libretro_sys::binding_log_interface;
 use std::mem;
 use std::{os::raw::c_void, ptr::addr_of, sync::Arc};
 
@@ -601,16 +601,15 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
 //TODO: novos teste para "fn core_environment"
 #[cfg(test)]
 mod test_environment {
-    use std::{ffi::c_void, ptr::addr_of};
-
     use crate::{
-        binding::binding_libretro::{
-            retro_pixel_format, RETRO_ENVIRONMENT_GET_INPUT_BITMASKS,
-            RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
-        },
         environment::{configure, CORE_CONTEXT},
         test_tools,
     };
+    use libretro_sys::binding_libretro::{
+        retro_pixel_format, RETRO_ENVIRONMENT_GET_INPUT_BITMASKS,
+        RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
+    };
+    use std::{ffi::c_void, ptr::addr_of};
 
     use super::core_environment;
 

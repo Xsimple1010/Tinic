@@ -1,4 +1,4 @@
-use retro_ab::erro_handle::ErroHandle;
+use generics::erro_handle::ErroHandle;
 use std::io;
 use tinic::{
     self, args_manager::RetroArgs, test_tools::paths::get_paths, Device, DeviceState, Tinic,

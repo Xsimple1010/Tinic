@@ -1,8 +1,8 @@
-use crate::erro_handle::ErroHandle;
-use crate::paths::Paths;
+use generics::erro_handle::ErroHandle;
+use generics::retro_paths::RetroPaths;
 
-pub fn get_paths() -> Result<Paths, ErroHandle> {
-    Paths::new(
+pub fn get_paths() -> Result<RetroPaths, ErroHandle> {
+    RetroPaths::new(
         "retro_out_test/system".to_string(),
         "retro_out_test/save".to_string(),
         "retro_out_test/opt".to_string(),

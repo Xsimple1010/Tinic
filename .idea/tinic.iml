@@ -10,6 +10,9 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/tinic/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/tinic/examples/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/tinic/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/generics/Generics/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/generics/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/libretro_sys/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/crates/retro_ab_av/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>

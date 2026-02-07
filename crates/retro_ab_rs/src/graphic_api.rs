@@ -1,6 +1,5 @@
+use libretro_sys::binding_libretro::retro_hw_context_type;
 use std::sync::RwLock;
-
-use crate::retro_sys::retro_hw_context_type;
 
 #[derive(Debug)]
 pub struct GraphicApi {

@@ -1,4 +1,6 @@
-use retro_ab::{core::AvInfo, erro_handle::ErroHandle, retro_sys::retro_log_level};
+use generics::erro_handle::ErroHandle;
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
+use retro_ab::core::AvInfo;
 use rodio::{buffer::SamplesBuffer, OutputStream, OutputStreamHandle, Sink};
 use std::{
     ptr::{null, slice_from_raw_parts},
@@ -54,7 +56,7 @@ impl RetroAudio {
             Ok(out) => out,
             Err(e) => {
                 return Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
+                    level: RETRO_LOG_ERROR,
                     message: e.to_string(),
                 })
             }
@@ -64,7 +66,7 @@ impl RetroAudio {
             Ok(sink) => sink,
             Err(e) => {
                 return Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
+                    level: RETRO_LOG_ERROR,
                     message: e.to_string(),
                 })
             }

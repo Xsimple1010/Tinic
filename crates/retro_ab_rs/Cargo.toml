@@ -8,9 +8,6 @@ core_logs = []
 
 [dependencies]
 sdl2.workspace = true
-libloading.workspace = true
 uuid.workspace = true
-
-[build-dependencies]
-cc.workspace = true
-bindgen.workspace = true
+libretro_sys.workspace = true
+generics.workspace = true

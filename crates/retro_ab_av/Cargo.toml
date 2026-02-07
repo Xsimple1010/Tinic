@@ -10,6 +10,8 @@ retro_ab.workspace = true
 rodio.workspace = true
 sdl2.workspace = true
 image.workspace = true
+libretro_sys.workspace = true
+generics.workspace = true
 
 [build-dependencies]
 cfg_aliases.workspace = true

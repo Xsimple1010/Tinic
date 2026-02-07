@@ -1,7 +1,7 @@
 use super::{gamepad_key_map::GamepadKeyMap, retro_gamepad::RetroGamePad};
 use crate::devices_manager::{Device, DeviceState, DeviceStateListener};
 use gilrs::{Button, GamepadId, Gilrs};
-use retro_ab::retro_sys::RETRO_DEVICE_JOYPAD;
+use libretro_sys::binding_libretro::RETRO_DEVICE_JOYPAD;
 use std::sync::{Arc, Mutex};
 
 //se o valor retornado for -1 significa que todas as portas suportas pelo Core ja estão sendo usadas

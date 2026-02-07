@@ -10,3 +10,5 @@ retro_ab_gamepad.workspace = true
 retro_ab_av.workspace = true
 async-std.workspace = true
 lazy_static.workspace = true
+libretro_sys.workspace = true
+generics.workspace = true

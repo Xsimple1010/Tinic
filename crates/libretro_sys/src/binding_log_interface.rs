@@ -1,4 +1,4 @@
-use super::binding_libretro::retro_log_level;
+use crate::binding_libretro::retro_log_level;
 
 #[doc = " essa callback deve ser criada no rust e envida para configure_log_interface"]
 pub type RsCbT = ::std::option::Option<

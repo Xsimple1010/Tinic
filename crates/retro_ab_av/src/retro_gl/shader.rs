@@ -1,11 +1,11 @@
-use gl::COMPILE_STATUS;
-use retro_ab::{erro_handle::ErroHandle, retro_sys::retro_log_level};
-use std::{ffi::CString, ptr::null, rc::Rc};
-
 use super::gl::gl::{
     self,
     types::{GLenum, GLuint},
 };
+use generics::erro_handle::ErroHandle;
+use gl::COMPILE_STATUS;
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
+use std::{ffi::CString, ptr::null, rc::Rc};
 
 pub struct Shader {
     // pub program: GLuint,
@@ -58,7 +58,7 @@ impl Shader {
                         let log = CString::from_raw(log_ptr);
 
                         return Err(ErroHandle {
-                            level: retro_log_level::RETRO_LOG_ERROR,
+                            level: RETRO_LOG_ERROR,
                             message: log.into_string().unwrap(),
                         });
                     }
@@ -66,7 +66,7 @@ impl Shader {
                     Ok(Self { id, gl })
                 }
                 Err(e) => Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
+                    level: RETRO_LOG_ERROR,
                     message: "Erro ao tentar criar um shader: ".to_string()
                         + e.to_string().as_str(),
                 }),

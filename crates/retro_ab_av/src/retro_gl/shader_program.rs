@@ -1,13 +1,11 @@
-use std::{ffi::CString, rc::Rc};
-
-use retro_ab::{erro_handle::ErroHandle, retro_sys::retro_log_level};
-
-use crate::retro_gl::gl::gl::types::GLint;
-
 use super::{
     gl::gl::{self, types::GLuint},
     shader::Shader,
 };
+use crate::retro_gl::gl::gl::types::GLint;
+use generics::erro_handle::ErroHandle;
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
+use std::{ffi::CString, rc::Rc};
 
 pub struct ShaderProgram {
     id: GLuint,
@@ -55,13 +53,13 @@ impl ShaderProgram {
                 match log {
                     Ok(log) => {
                         return Err(ErroHandle {
-                            level: retro_log_level::RETRO_LOG_ERROR,
+                            level: RETRO_LOG_ERROR,
                             message: log,
                         })
                     }
                     Err(e) => {
                         return Err(ErroHandle {
-                            level: retro_log_level::RETRO_LOG_ERROR,
+                            level: RETRO_LOG_ERROR,
                             message: e.to_string(),
                         })
                     }

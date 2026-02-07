@@ -1,11 +1,11 @@
 use crate::{
     core::{CoreWrapperIns, RetroEnvCallbacks},
-    erro_handle::ErroHandle,
     graphic_api::GraphicApi,
-    paths::Paths,
     retro_context::{RetroContext, RetroCtxIns},
-    retro_sys::retro_hw_context_type,
 };
+use generics::erro_handle::ErroHandle;
+use generics::retro_paths::RetroPaths;
+use libretro_sys::binding_libretro::retro_hw_context_type;
 
 pub struct RetroAB {
     retro_ctx: RetroCtxIns,
@@ -20,7 +20,7 @@ impl Drop for RetroAB {
 impl RetroAB {
     pub fn new(
         core_path: &str,
-        paths: Paths,
+        paths: RetroPaths,
         callbacks: RetroEnvCallbacks,
         hw_type: retro_hw_context_type,
     ) -> Result<Self, ErroHandle> {

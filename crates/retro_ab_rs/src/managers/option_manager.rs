@@ -1,7 +1,7 @@
 use crate::constants::CORE_OPTION_EXTENSION_FILE;
 use crate::{
     constants,
-    retro_sys::{
+    libretro_sys::binding_libretro::{
         retro_core_option_v2_category, retro_core_option_v2_definition, retro_core_options_v2,
         retro_core_options_v2_intl,
     },

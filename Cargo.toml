@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ['crates/retro_ab_gamepad', 'crates/retro_ab_rs', "crates/retro_ab_av", "crates/tinic"]
+members = ['crates/retro_ab_gamepad', 'crates/retro_ab_rs', "crates/retro_ab_av", "crates/tinic", "crates/generics", "crates/libretro_sys"]
 default-members = ["crates/tinic"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -9,6 +9,8 @@ default-members = ["crates/tinic"]
 retro_ab_gamepad = { path = "crates/retro_ab_gamepad" }
 retro_ab = { path = "crates/retro_ab_rs" }
 retro_ab_av = { path = "crates/retro_ab_av" }
+libretro_sys = { path = "crates/libretro_sys" }
+generics = { path = "crates/generics" }
 async-std = "1.13.0"
 lazy_static = "1.5.0"
 gilrs = "0.11.0"

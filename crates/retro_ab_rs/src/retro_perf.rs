@@ -3,7 +3,7 @@ use sdl2::sys::{
     SDL_HasSSE2, SDL_HasSSE3, SDL_HasSSE41, SDL_HasSSE42, SDL_bool,
 };
 
-use crate::retro_sys::{
+use crate::libretro_sys::binding_libretro::{
     retro_perf_counter, retro_perf_tick_t, retro_time_t, RETRO_SIMD_AVX, RETRO_SIMD_AVX2,
     RETRO_SIMD_MMX, RETRO_SIMD_SSE, RETRO_SIMD_SSE2, RETRO_SIMD_SSE3, RETRO_SIMD_SSE4,
     RETRO_SIMD_SSE42,

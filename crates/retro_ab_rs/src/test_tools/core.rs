@@ -1,9 +1,9 @@
 use crate::core::CoreWrapper;
 use crate::environment::RetroEnvCallbacks;
 use crate::graphic_api::GraphicApi;
-use crate::retro_sys::retro_rumble_effect;
 use crate::test_tools::constants::CORE_TEST_RELATIVE_PATH;
 use crate::test_tools::paths::get_paths;
+use libretro_sys::binding_libretro::retro_rumble_effect;
 use std::ptr;
 use std::sync::Arc;
 use uuid::Uuid;

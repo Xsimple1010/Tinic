@@ -1,13 +1,14 @@
+use super::{gl::gl, render::Render};
 use crate::video::RetroVideoAPi;
-use retro_ab::{core::AvInfo, erro_handle::ErroHandle, retro_sys::retro_log_level};
+use generics::erro_handle::ErroHandle;
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
+use retro_ab::core::AvInfo;
 use sdl2::video::FullscreenType;
 use sdl2::{
     video::{GLContext, GLProfile, Window},
     Sdl, VideoSubsystem,
 };
 use std::{rc::Rc, sync::Arc};
-
-use super::{gl::gl, render::Render};
 
 pub struct GlWIndow {
     video: VideoSubsystem,
@@ -76,7 +77,7 @@ impl GlWIndow {
             Ok(sdl) => sdl,
             Err(message) => {
                 return Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
+                    level: RETRO_LOG_ERROR,
                     message,
                 })
             }
@@ -116,7 +117,7 @@ impl GlWIndow {
 
                 if let Err(e) = result {
                     return Err(ErroHandle {
-                        level: retro_log_level::RETRO_LOG_ERROR,
+                        level: RETRO_LOG_ERROR,
                         message: e.to_string(),
                     });
                 }
@@ -132,7 +133,7 @@ impl GlWIndow {
                 })
             }
             Err(e) => Err(ErroHandle {
-                level: retro_log_level::RETRO_LOG_ERROR,
+                level: RETRO_LOG_ERROR,
                 message: e.to_string(),
             }),
         }

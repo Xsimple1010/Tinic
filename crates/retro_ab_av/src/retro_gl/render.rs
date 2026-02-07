@@ -15,10 +15,8 @@ use super::{
     vertex::{new_vertex, GlVertex},
     vertex_array::VertexArray,
 };
-use retro_ab::{
-    core::{AvInfo, Geometry},
-    erro_handle::ErroHandle,
-};
+use generics::erro_handle::ErroHandle;
+use retro_ab::core::{AvInfo, Geometry};
 use std::mem::size_of;
 use std::{rc::Rc, sync::Arc};
 

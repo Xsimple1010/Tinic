@@ -1,23 +1,18 @@
 #![allow(unused_imports)]
-use crate::channel::{ChannelNotify, ThreadChannel};
-use crate::thread_stack::game_stack::{
-    GameStack,
-    GameStackCommand::{
-        DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, LoadState, Pause, Quit,
-        Reset, Resume, SaveState,
-    },
+use crate::channel::ChannelNotify;
+use crate::thread_stack::game_stack::GameStackCommand::{
+    DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, LoadState, Pause, Quit, Reset,
+    Resume, SaveState,
 };
 use crate::thread_stack::main_stack::MainStackCommand::{
     GameLoaded, GameStateSaved, SaveStateLoaded,
 };
-use crate::thread_stack::model_stack::{ModelStackManager, RetroStackFn};
-use retro_ab::{
-    core::RetroEnvCallbacks,
-    erro_handle::ErroHandle,
-    paths::Paths,
-    retro_ab::RetroAB,
-    retro_sys::{retro_hw_context_type, retro_log_level},
+use generics::erro_handle::ErroHandle;
+use generics::retro_paths::RetroPaths;
+use libretro_sys::binding_libretro::{
+    retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE, retro_log_level::RETRO_LOG_ERROR,
 };
+use retro_ab::{core::RetroEnvCallbacks, retro_ab::RetroAB};
 use retro_ab_av::{
     audio_sample_batch_callback, audio_sample_callback, get_proc_address, retro_av::RetroAvCtx,
     video_refresh_callback, EventPump,
@@ -32,7 +27,7 @@ fn teste() {}
 fn create_retro_contexts(
     core_path: String,
     rom_path: String,
-    paths: Paths,
+    paths: RetroPaths,
 ) -> Result<(RetroAB, (RetroAvCtx, EventPump)), ErroHandle> {
     let callbacks = RetroEnvCallbacks {
         audio_sample_batch_callback,
@@ -46,12 +41,7 @@ fn create_retro_contexts(
         context_reset: teste,
     };
 
-    let retro_ab = RetroAB::new(
-        &core_path,
-        paths,
-        callbacks,
-        retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE,
-    )?;
+    let retro_ab = RetroAB::new(&core_path, paths, callbacks, RETRO_HW_CONTEXT_OPENGL_CORE)?;
 
     if retro_ab.core().load_game(&rom_path)? {
         let av = RetroAvCtx::new(retro_ab.core().av_info.clone())?;
@@ -59,7 +49,7 @@ fn create_retro_contexts(
     }
 
     Err(ErroHandle {
-        level: retro_log_level::RETRO_LOG_ERROR,
+        level: RETRO_LOG_ERROR,
         message: "nao foi possível criar uma instancia retro_ab".to_string(),
     })
 }
@@ -136,9 +126,21 @@ pub fn stack_commands_handle(
             }
             SaveState(slot) => {
                 if let Some(ctx) = core_ctx {
-                    let _ = ctx.core().save_state(slot);
-                    channel_notify
-                        .notify_main_stack(GameStateSaved("teste".to_owned(), "img".to_owned()));
+                    match ctx.core().save_state(slot) {
+                        Ok(saved_path) => {
+                            if let Some((av, _)) = av_ctx {
+                                // let d = av.video.print_screen();
+                            }
+
+                            channel_notify
+                                .notify_main_stack(GameStateSaved(saved_path, "img".to_owned()));
+                        }
+
+                        Err(e) => {
+                            println!("{:?}", e);
+                            need_stop = true;
+                        }
+                    }
                 }
             }
             Pause => {

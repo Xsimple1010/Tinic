@@ -1,9 +1,9 @@
 use crate::channel::ChannelNotify;
 use crate::game_thread::game_window_handle::game_window_handle;
 use crate::game_thread::stack_commands_handle::stack_commands_handle;
-use retro_ab::erro_handle::ErroHandle;
+use generics::erro_handle::ErroHandle;
+use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_DUMMY, RETRO_LOG_ERROR};
 use retro_ab::retro_ab::RetroAB;
-use retro_ab::retro_sys::retro_log_level;
 use retro_ab_av::retro_av::RetroAvCtx;
 use retro_ab_av::EventPump;
 use retro_ab_gamepad::RetroAbController;
@@ -48,7 +48,7 @@ impl GameThread {
                     *is_running = true;
                 } else {
                     return Err(ErroHandle {
-                        level: retro_log_level::RETRO_LOG_DUMMY,
+                        level: RETRO_LOG_DUMMY,
                         message: String::from("thread game ja esta iniciada"),
                     });
                 }
@@ -57,7 +57,7 @@ impl GameThread {
                 *op.into_inner() = false;
 
                 return Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
+                    level: RETRO_LOG_ERROR,
                     message: String::from("erro ao tentar cria a thread de game"),
                 });
             }

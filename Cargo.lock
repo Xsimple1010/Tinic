@@ -649,6 +649,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "generics"
+version = "0.1.0"
+dependencies = [
+ "libretro_sys",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -982,6 +989,15 @@ checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if",
  "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "libretro_sys"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cc",
+ "libloading",
 ]
 
 [[package]]
@@ -1519,9 +1535,8 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 name = "retro_ab"
 version = "0.1.0"
 dependencies = [
- "bindgen",
- "cc",
- "libloading",
+ "generics",
+ "libretro_sys",
  "sdl2",
  "uuid",
 ]
@@ -1531,8 +1546,10 @@ name = "retro_ab_av"
 version = "0.1.1"
 dependencies = [
  "cfg_aliases",
+ "generics",
  "gl_generator",
  "image",
+ "libretro_sys",
  "retro_ab",
  "rodio",
  "sdl2",
@@ -1542,8 +1559,10 @@ dependencies = [
 name = "retro_ab_gamepad"
 version = "0.1.0"
 dependencies = [
+ "generics",
  "gilrs",
  "lazy_static",
+ "libretro_sys",
  "pc-keyboard",
  "retro_ab",
  "uuid",
@@ -1799,7 +1818,9 @@ name = "tinic"
 version = "0.1.0"
 dependencies = [
  "async-std",
+ "generics",
  "lazy_static",
+ "libretro_sys",
  "retro_ab",
  "retro_ab_av",
  "retro_ab_gamepad",

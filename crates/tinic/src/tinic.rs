@@ -1,10 +1,10 @@
 use crate::channel::ThreadChannel;
 use crate::game_thread::game_thread::GameThread;
 use async_std::task;
-use retro_ab::erro_handle::ErroHandle;
+use generics::erro_handle::ErroHandle;
+use generics::retro_paths::RetroPaths;
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use retro_ab::option_manager::OptionManager;
-use retro_ab::paths::Paths;
-use retro_ab::retro_sys::retro_log_level;
 use retro_ab_gamepad::devices_manager::{Device, DeviceState, DeviceStateListener};
 use retro_ab_gamepad::RetroAbController;
 use std::sync::{Arc, Mutex, RwLock};
@@ -45,7 +45,7 @@ impl Tinic {
             Ok(mut device_listener) => *device_listener = listener,
             Err(e) => {
                 return Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
+                    level: RETRO_LOG_ERROR,
                     message: e.to_string(),
                 })
             }
@@ -66,7 +66,7 @@ impl Tinic {
         &mut self,
         core_path: &str,
         rom_path: &str,
-        paths: Paths,
+        paths: RetroPaths,
     ) -> Result<bool, ErroHandle> {
         self.game_thread.start(CHANNEL.get_notify())?;
 

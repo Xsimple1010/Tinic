@@ -1,15 +1,12 @@
+use crate::video::RawTextureData;
+use generics::erro_handle::ErroHandle;
 use image::{ImageBuffer, RgbImage};
-use retro_ab::{
-    core::{retro_pixel_format, AvInfo},
-    erro_handle::ErroHandle,
-    retro_sys::retro_log_level,
-};
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
+use retro_ab::core::{retro_pixel_format, AvInfo};
 use std::{
     path::{Path, PathBuf},
     sync::Arc,
 };
-
-use crate::video::RawTextureData;
 
 pub struct PrintScree {}
 
@@ -28,7 +25,7 @@ impl PrintScree {
             // retro_pixel_format::RETRO_PIXEL_FORMAT_RGB565 => ,
             _ => {
                 return Err(ErroHandle {
-                    level: retro_log_level::RETRO_LOG_ERROR,
+                    level: RETRO_LOG_ERROR,
                     message: "Formato de pixel desconhecido".to_string(),
                 })
             }
