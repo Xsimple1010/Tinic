@@ -104,4 +104,12 @@ impl Tinic {
         self.core_options.take();
         CHANNEL.quit();
     }
+
+    pub fn enable_full_screen(&self) {
+        CHANNEL.enable_full_screen();
+    }
+
+    pub fn disable_full_screen(&self) {
+        CHANNEL.disable_full_screen();
+    }
 }
