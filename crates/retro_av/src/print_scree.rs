@@ -4,16 +4,15 @@ use image::{ImageBuffer, RgbImage};
 use libretro_sys::binding_libretro::retro_pixel_format;
 use retro_core::av_info::AvInfo;
 use std::{
-    cell::UnsafeCell,
     path::{Path, PathBuf},
     sync::Arc,
 };
 
-pub struct PrintScree {}
+pub struct PrintScree;
 
 impl PrintScree {
     pub fn take(
-        raw_texture: &UnsafeCell<RawTextureData>,
+        raw_texture: &RawTextureData,
         av_info: &Arc<AvInfo>,
         out_path: &mut PathBuf,
     ) -> Result<(), ErroHandle> {
@@ -30,14 +29,14 @@ impl PrintScree {
     }
 
     fn _from_xrgb8888(
-        raw_texture: &UnsafeCell<RawTextureData>,
+        raw_texture: &RawTextureData,
         out_path: &mut PathBuf,
     ) -> Result<(), ErroHandle> {
-        let raw_texture = unsafe { raw_texture.get().read() };
+        let data = unsafe { raw_texture.data.get().read() };
 
         let buffer: &[u8] = unsafe {
             std::slice::from_raw_parts(
-                raw_texture.data as *const u8,
+                data as *const u8,
                 (raw_texture.width * raw_texture.height) as usize * 4,
             )
         };

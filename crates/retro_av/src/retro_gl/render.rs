@@ -63,16 +63,12 @@ impl Render {
 
     pub fn draw_new_frame(
         &self,
-        next_frame: &UnsafeCell<RawTextureData>,
+        texture: &RawTextureData,
         geo: &Geometry,
         win_width: i32,
         win_height: i32,
     ) {
-        let tex = next_frame.get();
-
         unsafe {
-            let texture = tex.read();
-
             self.refresh_vertex(
                 geo,
                 texture.width as f32,

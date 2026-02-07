@@ -20,8 +20,8 @@
                 
             },
             "args": [
-                "--core=./retro_out_test/cores/RetroArch-Win64/cores/mednafen_psx_hw_libretro.dll",
-                "--rom=C:/WFL/roms/MegaManX6.chd"
+                "--core=C:/WFL/cores/ppsspp_libretro.dll",
+                "--rom=C:/WFL/roms/VII.iso"
             ],
             "cwd": "${workspaceFolder}"
         },

@@ -1,7 +1,4 @@
-use crate::{
-    print_scree::PrintScree,
-    retro_gl::{ds::RetroGlWindow, render::Render},
-};
+use crate::{print_scree::PrintScree, retro_gl::window::RetroGlWindow};
 use generics::{
     erro_handle::ErroHandle,
     types::{ArcTMuxte, TMutex},
@@ -9,41 +6,51 @@ use generics::{
 use libretro_sys::binding_libretro::retro_hw_context_type::{
     RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
 };
-use retro_core::{av_info::AvInfo, RetroVideoEnvCallbacks};
+use retro_core::{
+    av_info::{AvInfo, Geometry},
+    RetroVideoEnvCallbacks,
+};
 use std::{
     cell::UnsafeCell,
     ffi::{c_uint, c_void},
     path::{Path, PathBuf},
     ptr::null,
-    rc::Rc,
     sync::Arc,
 };
 use winit::event_loop::ActiveEventLoop;
 
 pub struct RawTextureData {
-    pub data: *const c_void,
+    pub data: UnsafeCell<*const c_void>,
     pub width: c_uint,
     pub height: c_uint,
     pub pitch: usize,
 }
 
-pub trait RetroVideoAPi {
-    fn get_window_id(&self) -> u32;
+impl RawTextureData {
+    pub fn new() -> Self {
+        Self {
+            data: UnsafeCell::new(null()),
+            pitch: 0,
+            height: 0,
+            width: 0,
+        }
+    }
+}
 
-    fn draw_new_frame(&self, texture: &UnsafeCell<RawTextureData>);
+pub trait RetroVideoAPi {
+    fn request_redraw(&self);
+
+    fn draw_new_frame(&self, texture: &RawTextureData, geo: &Geometry);
 
     #[doc = "define um novo tamanho para a janela.
         ```
         resize((width, height))
         ```
     "]
-    fn resize(&mut self, new_size: (u32, u32));
 
     fn get_proc_address(&self, proc_name: &str) -> *const ();
 
-    fn enable_full_screen(&mut self);
-
-    fn disable_full_screen(&mut self);
+    fn full_screen(&mut self);
 
     fn context_destroy(&mut self);
 
@@ -51,24 +58,18 @@ pub trait RetroVideoAPi {
 }
 
 pub struct RetroVideo {
-    window_ctx: RetroGlWindow,
-    texture: ArcTMuxte<UnsafeCell<RawTextureData>>,
+    window_ctx: ArcTMuxte<Option<Box<dyn RetroVideoAPi>>>,
+    texture: ArcTMuxte<RawTextureData>,
 }
 
 impl RetroVideo {
     pub fn new() -> Self {
         Self {
-            window_ctx: RetroGlWindow::new(),
-            texture: TMutex::new(UnsafeCell::new(RawTextureData {
-                data: null(),
-                pitch: 0,
-                height: 0,
-                width: 0,
-            })),
+            window_ctx: TMutex::new(None),
+            texture: TMutex::new(RawTextureData::new()),
         }
     }
 
-    //noinspection RsPlaceExpression
     pub fn init(
         &mut self,
         av_info: &Arc<AvInfo>,
@@ -76,8 +77,9 @@ impl RetroVideo {
     ) -> Result<(), ErroHandle> {
         match &av_info.video.graphic_api.context_type {
             RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_OPENGL | RETRO_HW_CONTEXT_NONE => {
-                self.window_ctx.build(event_loop, av_info);
-
+                self.window_ctx
+                    .try_load()?
+                    .replace(Box::new(RetroGlWindow::new(event_loop, av_info)));
                 Ok(())
             }
             // RETRO_HW_CONTEXT_VULKAN => {}
@@ -87,22 +89,26 @@ impl RetroVideo {
         }
     }
 
-    pub fn request_redraw(&self) {
-        self.window_ctx.request_redraw();
+    pub fn destroy_window(&mut self) {
+        self.window_ctx.store(None);
+        self.texture.store(RawTextureData::new());
+    }
+
+    pub fn request_redraw(&self) -> Result<(), ErroHandle> {
+        if let Some(win) = &*self.window_ctx.try_load()? {
+            win.request_redraw();
+        }
+
+        Ok(())
     }
 
     pub fn draw_new_frame(&self, av_info: &Arc<AvInfo>) -> Result<(), ErroHandle> {
         let texture = &*self.texture.try_load()?;
 
-        self.window_ctx.try_render(texture, &av_info.video.geometry);
-        Ok(())
-    }
+        if let Some(win) = &*self.window_ctx.try_load()? {
+            win.draw_new_frame(texture, &av_info.video.geometry);
+        }
 
-    pub fn get_window_id(&self) -> Result<u32, ErroHandle> {
-        Ok(0)
-    }
-
-    pub fn resize(&self, new_size: (u32, u32)) -> Result<(), ErroHandle> {
         Ok(())
     }
 
@@ -114,23 +120,21 @@ impl RetroVideo {
         )
     }
 
-    pub fn disable_full_screen(&self) -> Result<(), ErroHandle> {
-        Ok(())
-    }
-
-    pub fn enable_full_screen(&self) -> Result<(), ErroHandle> {
+    pub fn full_screen(&self) -> Result<(), ErroHandle> {
         Ok(())
     }
 
     pub fn get_core_cb(&self) -> RetroVideoCb {
         RetroVideoCb {
             texture: self.texture.clone(),
+            window_ctx: self.window_ctx.clone(),
         }
     }
 }
 
 pub struct RetroVideoCb {
-    texture: ArcTMuxte<UnsafeCell<RawTextureData>>,
+    texture: ArcTMuxte<RawTextureData>,
+    window_ctx: ArcTMuxte<Option<Box<dyn RetroVideoAPi>>>,
 }
 
 impl RetroVideoEnvCallbacks for RetroVideoCb {
@@ -141,10 +145,10 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
         height: u32,
         pitch: usize,
     ) -> Result<(), ErroHandle> {
-        let mut tex_guard = self.texture.try_load()?;
-        let texture = tex_guard.get_mut();
+        let mut texture = self.texture.try_load()?;
+        let tex_data = texture.data.get_mut();
 
-        texture.data = data;
+        *tex_data = data;
         texture.width = width;
         texture.height = height;
         texture.pitch = pitch;
@@ -152,15 +156,25 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
         Ok(())
     }
 
-    fn get_proc_address(&self, _proc_name: &str) -> Result<*const (), ErroHandle> {
+    fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErroHandle> {
+        if let Some(win) = &mut *self.window_ctx.try_load()? {
+            win.get_proc_address(proc_name);
+        }
+
         Ok(null())
     }
 
     fn context_destroy(&self) -> Result<(), ErroHandle> {
+        if let Some(win) = &mut *self.window_ctx.try_load()? {
+            win.context_destroy();
+        }
         Ok(())
     }
 
     fn context_reset(&self) -> Result<(), ErroHandle> {
+        if let Some(win) = &mut *self.window_ctx.try_load()? {
+            win.context_reset();
+        }
         Ok(())
     }
 }

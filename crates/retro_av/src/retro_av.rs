@@ -4,12 +4,13 @@ use crate::video::RetroVideo;
 use crate::{audios::RetroAudio, video::RetroVideoCb};
 use generics::erro_handle::ErroHandle;
 use retro_core::av_info::AvInfo;
+use std::path::Path;
 use std::sync::Arc;
 use winit::event_loop::ActiveEventLoop;
 
 pub struct RetroAv {
-    pub video: RetroVideo,
-    pub audio: RetroAudio,
+    video: RetroVideo,
+    audio: RetroAudio,
     sync: RetroSync,
     av_info: Option<Arc<AvInfo>>,
 }
@@ -39,8 +40,13 @@ impl RetroAv {
         Ok(())
     }
 
-    pub fn redraw_request(&self) {
-        self.video.request_redraw();
+    pub fn destroy_window(&mut self) {
+        self.av_info.take();
+        self.video.destroy_window();
+    }
+
+    pub fn redraw_request(&self) -> Result<(), ErroHandle> {
+        Ok(self.video.request_redraw()?)
     }
 
     pub fn get_new_frame(&mut self) -> Result<(), ErroHandle> {
@@ -50,6 +56,14 @@ impl RetroAv {
         }
 
         Ok(())
+    }
+
+    pub fn print_screen(&self, out_path: &Path) -> Result<(), ErroHandle> {
+        if let Some(av_info) = &self.av_info {
+            self.video.print_screen(out_path, av_info)
+        } else {
+            Ok(())
+        }
     }
 
     pub fn sync(&mut self) -> bool {

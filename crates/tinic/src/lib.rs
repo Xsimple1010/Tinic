@@ -5,7 +5,6 @@ extern crate retro_controllers;
 extern crate retro_core;
 extern crate tinic_super;
 
-mod device_handle;
 mod tinic;
 mod tinic_app;
 

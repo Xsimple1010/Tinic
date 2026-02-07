@@ -1,28 +1,24 @@
-use winit::event_loop::EventLoop;
-
 use crate::{
-    device_handle::TinicDeviceHandle,
     generics::erro_handle::ErroHandle,
     retro_controllers::{devices_manager::DeviceListener, RetroController},
     retro_core::{option_manager::OptionManager, test_tools},
     tinic_app::TinicApp,
 };
 use std::sync::Arc;
+use winit::event_loop::EventLoop;
 
 pub struct Tinic {
     pub controller: Arc<RetroController>,
-    pub core_options: Option<Arc<OptionManager>>,
+    pub options: Arc<Option<OptionManager>>,
 }
 
 impl Tinic {
     pub fn new(listener: Box<dyn DeviceListener>) -> Result<Tinic, ErroHandle> {
-        let tinic_device_handle = TinicDeviceHandle::new(listener);
-
-        let controller = Arc::new(RetroController::new(Box::new(tinic_device_handle))?);
+        let controller = Arc::new(RetroController::new(listener)?);
 
         Ok(Self {
-            core_options: None,
             controller,
+            options: Arc::new(None),
         })
     }
 

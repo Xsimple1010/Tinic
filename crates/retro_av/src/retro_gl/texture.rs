@@ -46,7 +46,7 @@ impl Texture2D {
                 raw_data.height as i32,
                 self.pixel.typ,
                 self.pixel.format,
-                raw_data.data,
+                raw_data.data.get().read(),
             );
             self.gl.BindTexture(gl::TEXTURE0, 0);
         }
