@@ -12,6 +12,7 @@ use retro_ab_gamepad::retro_gamepad::RetroGamePad;
 
 use crate::retro_stack::{RetroStack, StackCommand};
 
+//TODO: criar uma callback para avisar a interface de possíveis erros
 pub fn init_game_loop(
     core_ctx: Arc<RetroContext>,
     gamepads: Arc<Mutex<Vec<RetroGamePad>>>,
@@ -67,11 +68,16 @@ pub fn init_game_loop(
                     StackCommand::UpdateControllers => {
                         for gamepad in &*gamepads.lock().unwrap() {
                             if gamepad.retro_port >= 0 {
-                                core::connect_controller(
+                                let result = core::connect_controller(
                                     &core_ctx,
                                     gamepad.retro_port as u32,
                                     gamepad.retro_type,
                                 );
+
+                                match result {
+                                    Ok(..) => {}
+                                    Err(e) => println!("{:?}", e),
+                                }
                             }
                         }
                     }
@@ -135,6 +141,9 @@ pub fn init_game_loop(
             }
         }
 
-        core::de_init(core_ctx).expect("erro ao tentar parar o núcleo");
+        match core::de_init(core_ctx) {
+            Ok(..) => {}
+            Err(e) => println!("{:?}", e),
+        };
     });
 }
