@@ -17,7 +17,6 @@ pub struct GameThread {
 impl Drop for GameThread {
     fn drop(&mut self) {
         //isso garante que a thread vai morrer
-        println!("Dropping game thread");
         self.stop();
     }
 }

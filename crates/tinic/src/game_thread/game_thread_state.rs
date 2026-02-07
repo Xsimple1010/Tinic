@@ -3,6 +3,7 @@ use crate::thread_stack::game_stack::GameStackCommand::DeviceConnected;
 use crate::thread_stack::main_stack::MainStackCommand::{
     GameLoaded, GameStateSaved, SaveStateLoaded,
 };
+use generics::constants::THREAD_SLEEP_TIME;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE;
@@ -23,15 +24,18 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use std::sync::{Arc, MutexGuard};
+use std::thread;
+use std::time::Duration;
 
 pub struct ThreadState {
     pub channel_notify: ChannelNotify,
-    pub controller_ctx: Arc<Mutex<RetroController>>,
     pub is_running: Arc<AtomicBool>,
     pub pause_request_new_frames: bool,
     pub use_full_screen_mode: bool,
-    pub retro_core: Option<RetroCoreIns>,
-    pub retro_av: Option<(RetroAv, EventPump)>,
+    pub event_pump: Option<EventPump>,
+    controller_ctx: Arc<Mutex<RetroController>>,
+    retro_core: Option<RetroCoreIns>,
+    retro_av: Option<RetroAv>,
 }
 
 impl ThreadState {
@@ -89,7 +93,7 @@ impl ThreadState {
     }
 
     pub fn save_state(&mut self, slot: usize) -> Result<(), ErroHandle> {
-        let (retro_av, _) = self.try_get_retro_av_ctx()?;
+        let retro_av = self.try_get_retro_av_ctx()?;
         let retro_core = self.try_get_retro_core_ctx()?;
 
         match retro_core.save_state(slot) {
@@ -143,7 +147,7 @@ impl ThreadState {
     }
 
     pub fn enable_full_screen(&mut self) -> Result<(), ErroHandle> {
-        let (retro_av, _) = self.try_get_retro_av_ctx()?;
+        let retro_av = self.try_get_retro_av_ctx()?;
 
         retro_av.video.enable_full_screen();
 
@@ -151,7 +155,7 @@ impl ThreadState {
     }
 
     pub fn disable_full_screen(&mut self) -> Result<(), ErroHandle> {
-        let (retro_av, _) = self.try_get_retro_av_ctx()?;
+        let retro_av = self.try_get_retro_av_ctx()?;
 
         retro_av.video.disable_full_screen();
 
@@ -181,6 +185,7 @@ impl ThreadState {
             use_full_screen_mode: false,
             retro_av: None,
             retro_core: None,
+            event_pump: None,
         }
     }
 
@@ -198,7 +203,7 @@ impl ThreadState {
         }
     }
 
-    pub fn try_get_retro_av_ctx(&self) -> Result<&(RetroAv, EventPump), ErroHandle> {
+    pub fn try_get_retro_av_ctx(&self) -> Result<&RetroAv, ErroHandle> {
         match &self.retro_av {
             Some(retro_av) => Ok(retro_av),
             None => Err(ErroHandle {
@@ -243,11 +248,12 @@ impl ThreadState {
             GraphicApi::with(RETRO_HW_CONTEXT_OPENGL_CORE),
         )?;
         let av_info = retro_core.load_game(&rom_path)?;
-        let retro_av = RetroAv::new(av_info)?;
+        let (retro_av, pump) = RetroAv::new(av_info)?;
 
         let op_manager = retro_core.options.clone();
 
         self.retro_core.replace(retro_core);
+        self.event_pump.replace(pump);
         self.retro_av.replace(retro_av);
 
         Ok(op_manager)
@@ -255,7 +261,7 @@ impl ThreadState {
 
     pub fn try_render_frame(&mut self) -> Result<(), ErroHandle> {
         if let Some(retro_core) = &self.retro_core {
-            if let Some((retro_av, _)) = &mut self.retro_av {
+            if let Some(retro_av) = &mut self.retro_av {
                 if !retro_av.sync() || self.pause_request_new_frames {
                     return Ok(());
                 }
@@ -265,6 +271,9 @@ impl ThreadState {
                 // Exibe os buffers gerados pelo core
                 retro_av.get_new_frame();
             }
+        } else {
+            //WITHOUT THIS, WI HAVE A HIGH CPU UTILIZATION!
+            thread::sleep(Duration::from_millis(THREAD_SLEEP_TIME));
         }
 
         Ok(())
@@ -273,16 +282,15 @@ impl ThreadState {
 
 impl Drop for ThreadState {
     fn drop(&mut self) {
-        println!("Dropping ThreadState");
         self.channel_notify.clear_game_stack();
 
-        //Gracas ao mutex is-running pode ser que algo externo atrapalhe a leitura dos comandos da stack,
-        //então so para garantir que essa thread será fechada dando a posse da leitura dos inputs para a
-        //thread de inputs novamente, o bom é fazer isso aqui mesmo!
+        //Para garantir que essa thread será fechada dando a posse da leitura dos inputs para a
+        //thread de inputs novamente.
         if let Ok(mut ctr) = self.controller_ctx.lock() {
             let _ = ctr.resume_thread_events();
         }
 
+        //retro-core nao implementa drop então chamar de_init() depois de terminar de usar é necessário.
         if let Some(core) = self.retro_core.take() {
             let _ = core.de_init();
         }
