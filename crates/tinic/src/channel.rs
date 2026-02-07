@@ -3,7 +3,7 @@ use crate::thread_stack::game_stack::GameStackCommand::{
 };
 use crate::thread_stack::game_stack::{GameStack, GameStackCommand};
 use crate::thread_stack::main_stack::MainStackCommand::{
-    GameLoaded, GameStateSaved, SaveStateLoaded,
+    GameLoaded, GameStateSaved, QuitSusses, SaveStateLoaded,
 };
 use crate::thread_stack::main_stack::{MainStack, MainStackCommand, SaveImg, SavePath};
 use crate::thread_stack::model_stack::{wait_response, RetroStackFn};
@@ -101,6 +101,24 @@ impl ThreadChannel {
 
     pub fn connect_device(&self, device: Device) {
         self.game_stack.push(DeviceConnected(device))
+    }
+
+    pub async fn quit(&self) -> bool {
+        self.game_stack.push(GameStackCommand::Quit);
+
+        let mut suss = false;
+
+        wait_response(&self.main_stack, |command| match command {
+            QuitSusses(s) => {
+                suss = *s;
+                true
+            }
+            _ => false,
+        });
+
+        self.main_stack.clear();
+
+        suss
     }
 
     //######################### AÇÕES RELACIONAS AO VIDEO FICAM AQUI! ##############################

@@ -1,6 +1,6 @@
 use super::game_thread_state::ThreadState;
 use crate::thread_stack::game_stack::GameStackCommand::{
-    DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, LoadState, Pause, Reset,
+    DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, LoadState, Pause, Quit, Reset,
     Resume, SaveState,
 };
 use generics::erro_handle::ErroHandle;
@@ -8,6 +8,7 @@ use generics::erro_handle::ErroHandle;
 pub fn stack_commands_handle(state: &mut ThreadState) -> Result<(), ErroHandle> {
     for cmd in state.channel_notify.read_game_stack() {
         match cmd {
+            Quit => state.quit(),
             LoadGame(core_path, rom_path, paths) => state.load_game(core_path, rom_path, paths)?,
             SaveState(slot) => state.save_state(slot)?,
             LoadState(slot) => state.load_state(slot)?,

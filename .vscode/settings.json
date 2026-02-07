@@ -13,6 +13,8 @@
         "JOYPAD",
         "libloading",
         "OPENGL",
+        "replacen",
+        "reqwest",
         "rodio",
         "rwlock",
         "tinic",

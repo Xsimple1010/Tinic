@@ -1,8 +1,9 @@
 use crate::channel::ChannelNotify;
 use crate::thread_stack::game_stack::GameStackCommand::DeviceConnected;
 use crate::thread_stack::main_stack::MainStackCommand::{
-    GameLoaded, GameStateSaved, SaveStateLoaded,
+    self, GameLoaded, GameStateSaved, SaveStateLoaded,
 };
+use generics::constants::SAVE_IMAGE_EXTENSION_FILE;
 use generics::{constants::THREAD_SLEEP_TIME, erro_handle::ErroHandle, retro_paths::RetroPaths};
 use libretro_sys::{
     binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE,
@@ -42,6 +43,11 @@ pub struct ThreadState {
 }
 
 impl ThreadState {
+    //a thread main sera notificada do encerramento em impl Drop
+    pub fn quit(&self) {
+        self.is_running.store(false, Ordering::SeqCst);
+    }
+
     pub fn load_game(
         &mut self,
         core_path: String,
@@ -78,9 +84,7 @@ impl ThreadState {
     }
 
     pub fn load_state(&mut self, slot: usize) -> Result<(), ErroHandle> {
-        let retro_core = self.try_get_retro_core_ctx()?;
-
-        match retro_core.load_state(slot) {
+        match self.try_get_retro_core_ctx()?.load_state(slot) {
             Ok(_) => {
                 self.channel_notify.notify_main_stack(SaveStateLoaded(true));
 
@@ -102,11 +106,9 @@ impl ThreadState {
         match retro_core.save_state(slot) {
             Ok(saved_path) => {
                 let mut img_path: PathBuf = PathBuf::new();
+                img_path.set_extension(SAVE_IMAGE_EXTENSION_FILE);
 
-                if let Ok(path) = retro_av
-                    .video
-                    .print_screen(saved_path.parent().unwrap(), &slot.to_string())
-                {
+                if let Ok(path) = retro_av.video.print_screen(saved_path.parent().unwrap()) {
                     img_path = path;
                 };
 
@@ -124,53 +126,42 @@ impl ThreadState {
     }
 
     pub fn pause(&mut self) -> Result<(), ErroHandle> {
+        self.try_get_controller_ctx()?.resume_thread_events()?;
         self.pause_request_new_frames = true;
-
-        let mut controller = self.try_get_controller_ctx()?;
-        controller.resume_thread_events()?;
 
         Ok(())
     }
 
     pub fn resume(&mut self) -> Result<(), ErroHandle> {
+        self.try_get_controller_ctx()?.stop_thread_events();
         self.pause_request_new_frames = false;
-
-        let mut controller = self.try_get_controller_ctx()?;
-        controller.stop_thread_events();
 
         Ok(())
     }
 
     pub fn reset(&self) -> Result<(), ErroHandle> {
-        let retro_core = self.try_get_retro_core_ctx()?;
-
-        retro_core.reset()?;
+        self.try_get_retro_core_ctx()?.reset()?;
 
         Ok(())
     }
 
     pub fn enable_full_screen(&mut self) -> Result<(), ErroHandle> {
-        let retro_av = self.try_get_retro_av_ctx()?;
-
-        retro_av.video.enable_full_screen();
+        self.try_get_retro_av_ctx()?.video.enable_full_screen();
         self.use_full_screen_mode = true;
 
         Ok(())
     }
 
     pub fn disable_full_screen(&mut self) -> Result<(), ErroHandle> {
-        let retro_av = self.try_get_retro_av_ctx()?;
-
-        retro_av.video.disable_full_screen();
+        self.try_get_retro_av_ctx()?.video.disable_full_screen();
         self.use_full_screen_mode = false;
 
         Ok(())
     }
 
     pub fn connect_device(&mut self, device: Device) -> Result<(), ErroHandle> {
-        let retro_core = self.try_get_retro_core_ctx()?;
-
-        retro_core.connect_controller(device.retro_port, device.retro_type)?;
+        self.try_get_retro_core_ctx()?
+            .connect_controller(device.retro_port, device.retro_type)?;
 
         Ok(())
     }
@@ -301,5 +292,8 @@ impl Drop for ThreadState {
         }
 
         self.is_running.store(false, Ordering::Relaxed);
+
+        self.channel_notify
+            .notify_main_stack(MainStackCommand::QuitSusses(true));
     }
 }

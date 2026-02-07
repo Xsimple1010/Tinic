@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 pub struct ModelStackManager<T> {
     commands: Arc<Mutex<Vec<T>>>,
 }
-
+/// tempo limite estabelecido em `MAX_TIME_TO_AWAIT_THREAD_RESPONSE`
 pub fn wait_response<C, S: RetroStackFn<C>, CA>(stack: &S, mut callback: CA)
 where
     CA: FnMut(&C) -> bool,

@@ -2,7 +2,7 @@ use super::{
     gamepad_key_map::GamepadKeyMap,
     update_gamepad_state_handle::{connect_handle, disconnect_handle, pressed_button_handle},
 };
-use crate::devices_manager::{DeviceStateListener, DevicesRequireFunctions};
+use crate::devices_manager::{DeviceStateListener, DevicesRequiredFunctions};
 use gilrs::{Event, GamepadId, Gilrs};
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
@@ -80,7 +80,7 @@ impl RetroGamePad {
     }
 }
 
-impl DevicesRequireFunctions for RetroGamePad {
+impl DevicesRequiredFunctions for RetroGamePad {
     fn get_key_pressed(&self, key_id: i16) -> i16 {
         for key_map in &self.key_map {
             if key_map.retro as i16 == key_id {

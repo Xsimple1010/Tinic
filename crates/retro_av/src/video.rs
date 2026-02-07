@@ -150,13 +150,12 @@ impl RetroVideo {
         }
     }
 
-    pub fn print_screen(&self, out_path: &Path, file_name: &str) -> Result<PathBuf, ErroHandle> {
+    pub fn print_screen(&self, out_path: &Path) -> Result<PathBuf, ErroHandle> {
         unsafe {
             PrintScree::take(
                 &*addr_of!(RAW_TEX_POINTER),
                 &self.av_info,
                 &mut PathBuf::from(out_path),
-                file_name,
             )
         }
     }

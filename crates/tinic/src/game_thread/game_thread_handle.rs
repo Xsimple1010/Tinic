@@ -14,13 +14,6 @@ pub struct GameThread {
     controller_ctx: Arc<Mutex<RetroController>>,
 }
 
-impl Drop for GameThread {
-    fn drop(&mut self) {
-        //isso garante que a thread vai morrer
-        self.stop();
-    }
-}
-
 impl GameThread {
     pub fn new(controller_ctx: Arc<Mutex<RetroController>>) -> Self {
         Self {
@@ -29,17 +22,12 @@ impl GameThread {
         }
     }
 
-    pub fn stop(&mut self) {
-        self.is_running.store(false, Ordering::SeqCst);
-    }
-
     pub fn start(&mut self, channel_notify: ChannelNotify) -> Result<(), ErroHandle> {
         if self.is_running.load(Ordering::SeqCst) {
             return Ok(());
         }
 
         self.is_running.store(true, Ordering::SeqCst);
-
         self.spawn_game_thread(channel_notify);
 
         Ok(())
@@ -58,10 +46,7 @@ impl GameThread {
                     break;
                 }
 
-                if let Err(e) = game_window_handle(&mut state) {
-                    println!("game_window_handle -> {:?}", e);
-                    break;
-                }
+                game_window_handle(&mut state);
 
                 if let Err(e) = state.try_render_frame() {
                     println!("try_render_frame -> {:?}", e);

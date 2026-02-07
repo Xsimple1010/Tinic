@@ -1,5 +1,5 @@
 use crate::video::RawTextureData;
-use generics::{constants::SAVE_IMAGE_EXTENSION_FILE, erro_handle::ErroHandle};
+use generics::erro_handle::ErroHandle;
 use image::{ImageBuffer, RgbImage};
 use libretro_sys::binding_libretro::{retro_log_level::RETRO_LOG_ERROR, retro_pixel_format};
 use retro_core::av_info::AvInfo;
@@ -15,11 +15,10 @@ impl PrintScree {
         raw_texture: &RawTextureData,
         av_info: &Arc<AvInfo>,
         out_path: &mut PathBuf,
-        file_name: &str,
     ) -> Result<PathBuf, ErroHandle> {
         match &*av_info.video.pixel_format.read().unwrap() {
             retro_pixel_format::RETRO_PIXEL_FORMAT_XRGB8888 => {
-                PrintScree::_from_xrgb8888(raw_texture, out_path, file_name)
+                PrintScree::_from_xrgb8888(raw_texture, out_path)
             }
             // retro_pixel_format::RETRO_PIXEL_FORMAT_0RGB1555 => ,
             // retro_pixel_format::RETRO_PIXEL_FORMAT_RGB565 => ,
@@ -33,7 +32,6 @@ impl PrintScree {
     fn _from_xrgb8888(
         raw_texture: &RawTextureData,
         out_path: &mut PathBuf,
-        file_name: &str,
     ) -> Result<PathBuf, ErroHandle> {
         let buffer: &[u8] = unsafe {
             std::slice::from_raw_parts(
@@ -61,9 +59,6 @@ impl PrintScree {
 
         let img: RgbImage =
             ImageBuffer::from_raw(raw_texture.width, raw_texture.height, img_buffer).unwrap();
-
-        let file_name = format!("{}{}", file_name, SAVE_IMAGE_EXTENSION_FILE);
-        out_path.push(file_name);
 
         img.save(Path::new(out_path))
             .map_err(|e| e.to_string())

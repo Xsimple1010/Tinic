@@ -1,14 +1,13 @@
 use crate::thread_stack::game_stack::GameStackCommand;
-use generics::erro_handle::ErroHandle;
 use retro_av::{Event, Keycode};
 use std::sync::atomic::Ordering;
 
 use super::game_thread_state::ThreadState;
 
-pub fn game_window_handle(state: &mut ThreadState) -> Result<(), ErroHandle> {
+pub fn game_window_handle(state: &mut ThreadState) {
     let event_pump = match &mut state.event_pump {
         Some(event_pump) => event_pump,
-        None => return Ok(()),
+        None => return,
     };
     let channel_notify = &state.channel_notify;
     let pause_request_new_frames = state.pause_request_new_frames;
@@ -58,6 +57,4 @@ pub fn game_window_handle(state: &mut ThreadState) -> Result<(), ErroHandle> {
             _ => {}
         }
     }
-
-    Ok(())
 }

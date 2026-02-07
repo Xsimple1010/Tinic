@@ -54,7 +54,7 @@ async fn main() -> Result<(), ErroHandle> {
         match io::stdin().read_line(&mut command) {
             Ok(..) => {
                 if command.starts_with("0") {
-                    tinic.quit();
+                    tinic.quit().await;
                     break 'running;
                 } else if command.starts_with("1") {
                     let f = tinic.save_state(1).await;
@@ -69,11 +69,8 @@ async fn main() -> Result<(), ErroHandle> {
                 } else if command.starts_with("5") {
                     tinic.reset();
                 } else if command.starts_with("6") {
-                    tinic.quit();
+                    tinic.quit().await;
                 } else if command.starts_with("7") {
-                    if let Some(core) = &args.core {
-                        tinic.load_game(&core, &args.rom).await?;
-                    }
                 }
 
                 println!();

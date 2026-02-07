@@ -55,7 +55,8 @@ pub struct OptionManager {
 
 impl OptionManager {
     pub fn new(opt_path: &str, library_name: String) -> OptionManager {
-        let file_path = PathBuf::from(opt_path).join(library_name + CORE_OPTION_EXTENSION_FILE);
+        let mut file_path = PathBuf::from(opt_path).join(library_name);
+        file_path.set_extension(CORE_OPTION_EXTENSION_FILE);
 
         OptionManager {
             updated_count: AtomicU16::new(0),

@@ -18,6 +18,7 @@ pub enum GameStackCommand {
     DisableFullScreen,
     DeviceConnected(Device),
     Reset,
+    Quit,
 }
 
 #[derive(Clone, Debug)]

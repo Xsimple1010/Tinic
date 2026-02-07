@@ -11,6 +11,7 @@ pub enum MainStackCommand {
     GameLoaded(Option<Arc<OptionManager>>),
     GameStateSaved(Option<(SavePath, SaveImg)>),
     SaveStateLoaded(bool),
+    QuitSusses(bool),
 }
 
 #[derive(Debug, Clone)]

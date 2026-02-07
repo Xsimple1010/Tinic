@@ -11,8 +11,8 @@ use crate::{
     thread_stack::main_stack::{SaveImg, SavePath},
     tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper},
 };
-use std::path::PathBuf;
 use std::sync::{Arc, Mutex, RwLock};
+use std::{path::PathBuf, sync::atomic::Ordering};
 
 lazy_static! {
     static ref DEVICE_STATE_LISTENER: RwLock<DeviceStateListener> = RwLock::new(|_, _| {});
@@ -24,6 +24,12 @@ pub struct Tinic {
     game_thread: GameThread,
     pub core_options: Option<Arc<OptionManager>>,
     retro_paths: Option<RetroPaths>,
+}
+
+impl Drop for Tinic {
+    fn drop(&mut self) {
+        let _ = self.quit();
+    }
 }
 
 impl Tinic {
@@ -90,9 +96,13 @@ impl Tinic {
         CHANNEL.reset_game();
     }
 
-    pub fn quit(&mut self) {
-        self.core_options.take();
-        self.game_thread.stop();
+    pub async fn quit(&mut self) -> bool {
+        if self.game_thread.is_running.load(Ordering::SeqCst) {
+            self.core_options.take();
+            CHANNEL.quit().await
+        } else {
+            true
+        }
     }
 
     pub fn enable_full_screen(&self) {
@@ -148,13 +158,13 @@ impl Tinic {
         let path = test_tools::paths::get_paths()?;
         retro_paths.replace(path.clone());
 
-        return if let Some(path) = retro_paths {
+        if let Some(path) = retro_paths {
             Ok(path)
         } else {
             Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
                 message: "retro_path nao foi definido".to_string(),
             })
-        };
+        }
     }
 }

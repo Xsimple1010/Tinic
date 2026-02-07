@@ -121,7 +121,7 @@ impl DevicesManager {
     }
 }
 
-pub trait DevicesRequireFunctions {
+pub trait DevicesRequiredFunctions {
     #[doc = "deve retornar 1 se estive pressionado e 0 se nao estive"]
     fn get_key_pressed(&self, key_id: i16) -> i16;
 
