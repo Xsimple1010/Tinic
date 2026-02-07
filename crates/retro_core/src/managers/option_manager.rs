@@ -94,7 +94,7 @@ impl OptionManager {
         None
     }
 
-    pub fn change_visibility(&self, key: &str, visibility: bool) {
+    pub fn change_visibility(&self, key: &String, visibility: bool) {
         for core_opt in &mut *self.opts.lock().unwrap() {
             if !core_opt.key.to_string().eq(key) {
                 continue;
