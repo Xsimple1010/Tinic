@@ -1,7 +1,7 @@
 use crate::{
     game_window_handle::game_window_handle,
     retro_stack::{RetroStack, StackCommand},
-    stack_handle::stack_commands_handle,
+    stack_commands_handle::stack_commands_handle,
 };
 use retro_ab::{
     core::{self, RetroContext},
@@ -112,12 +112,12 @@ fn spawn_game_thread(
             }
         }
 
-        //preciso adiciona Drop ao RetroContext
+        //TODO: preciso adiciona Drop ao RetroContext
         if let Some(core_ctx) = core_ctx.take() {
             let _ = retro_ab::core::de_init(core_ctx);
         };
 
-        //isso pode fica na stack_handle
+        //TODO: isso pode fica na stack_handle
         if let Ok(ctr) = &mut controller_ctx.lock() {
             ctr.resume_thread_events();
         }

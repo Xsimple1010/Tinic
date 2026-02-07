@@ -43,6 +43,7 @@ pub fn stack_commands_handle(
                     rumble_callback,
                 };
 
+                //TODO: criar uma macro para fazer isso parecer um pouco melhor
                 match core::load(&core_path, paths, callbacks) {
                     Ok(ctx) => {
                         match core::init(&ctx) {
