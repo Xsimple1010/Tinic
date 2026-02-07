@@ -1,16 +1,25 @@
-[package]
-name = "tinic"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+resolver = "2"
+members = ['crates/retro_ab_gamepad', 'crates/retro_ab_rs', "crates/retro_ab_av", "crates/tinic"]
+default-members = ["crates/tinic"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-retro_ab_gamepad = { path = "../retro_ab_gamepad" }
-retro_ab = { git = "https://github.com/Xsimple1010/retro_ab_rs.git" }
-retro_ab_av = { git = "https://github.com/Xsimple1010/retro_ab_av.git" }
-lazy_static = "1.4.0"
+[workspace.dependencies]
+retro_ab_gamepad = { path = "crates/retro_ab_gamepad" }
+retro_ab = { path = "crates/retro_ab_rs" }
+retro_ab_av = { path = "crates/retro_ab_av" }
 async-std = "1.13.0"
+lazy_static = "1.5.0"
+gilrs = "0.11.0"
+pc-keyboard = "0.8.0"
+image = "0.25.5"
+rodio = "0.20.1"
+sdl2 = "0.37.0"
+uuid = { features = ["v4"], version = "1.11.0" }
+bindgen = "0.70.1"
+libloading = "0.8.6"
+cc = "1.2.2"
+cfg_aliases = "0.2.1"
+gl_generator = "0.14.0"
 
-[[example]]
-name = "tinic_example"

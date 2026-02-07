@@ -33,9 +33,11 @@ fn main() -> Result<(), ErroHandle> {
                     tinic.quit();
                     break 'running;
                 } else if command.starts_with("1") {
-                    tinic.save_state(1);
+                    let f = tinic.save_state(1);
+                    println!("{:?}", f);
                 } else if command.starts_with("2") {
-                    tinic.load_state(1);
+                    let d = tinic.load_state(1);
+                    println!("laoded -> {:?}", d);
                 } else if command.starts_with("3") {
                     tinic.pause();
                 } else if command.starts_with("4") {

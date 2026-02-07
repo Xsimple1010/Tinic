@@ -21,7 +21,7 @@
             },
             "args": [
                 "--core=C:/RetroArch-Win64/cores/mednafen_psx_hw_libretro.dll",
-                "--rom=C:/Users/aderv/Downloads/MegaManX6(USA).chd"
+                "--rom=C:/Users/aderv/Downloads/MegaManX6.chd"
             ],
             "cwd": "${workspaceFolder}"
         },

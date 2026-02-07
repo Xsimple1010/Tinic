@@ -1,0 +1,12 @@
+[package]
+name = "tinic"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+retro_ab.workspace = true
+retro_ab_gamepad.workspace = true
+retro_ab_av.workspace = true
+async-std.workspace = true
+lazy_static.workspace = true

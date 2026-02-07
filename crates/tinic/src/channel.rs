@@ -1,3 +1,7 @@
+use crate::thread_stack::game_stack::GameStackCommand::{
+    DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, Pause, Quit, Reset, Resume,
+    SaveState,
+};
 use crate::thread_stack::game_stack::{GameStack, GameStackCommand};
 use crate::thread_stack::main_stack::MainStackCommand::{
     GameLoaded, GameStateSaved, SaveStateLoaded,
@@ -65,11 +69,8 @@ impl ThreadChannel {
         rom_path: &str,
         paths: Paths,
     ) -> (bool, Option<Arc<OptionManager>>) {
-        self.game_stack.push(GameStackCommand::LoadGame(
-            core_path.to_string(),
-            rom_path.to_string(),
-            paths,
-        ));
+        self.game_stack
+            .push(LoadGame(core_path.to_string(), rom_path.to_string(), paths));
 
         let mut core_options: Option<Arc<OptionManager>> = None;
         let mut rom_loaded = false;
@@ -128,32 +129,31 @@ impl ThreadChannel {
     }
 
     pub fn resume_game(&self) {
-        self.game_stack.push(GameStackCommand::Resume);
+        self.game_stack.push(Resume);
     }
 
     pub fn pause_game(&self) {
-        self.game_stack.push(GameStackCommand::Pause);
+        self.game_stack.push(Pause);
     }
 
     pub fn reset_game(&self) {
-        self.game_stack.push(GameStackCommand::Reset);
+        self.game_stack.push(Reset);
     }
 
     pub fn quit(&self) {
-        self.game_stack.push(GameStackCommand::Quit);
+        self.game_stack.push(Quit);
     }
     pub fn connect_device(&self, device: Device) {
-        self.game_stack
-            .push(GameStackCommand::DeviceConnected(device))
+        self.game_stack.push(DeviceConnected(device))
     }
 
     //######################### AÇÕES RELACIONAS AO VIDEO FICAM AQUI! ##############################
     pub fn enable_full_screen(&self) {
-        self.game_stack.push(GameStackCommand::EnableFullScreen);
+        self.game_stack.push(EnableFullScreen);
     }
 
     pub fn disable_full_screen(&self) {
-        self.game_stack.push(GameStackCommand::DisableFullScreen);
+        self.game_stack.push(DisableFullScreen);
     }
 }
 

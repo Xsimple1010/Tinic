@@ -2,9 +2,15 @@
 <module type="EMPTY_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/retro_ab_av/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/retro_ab_av/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/retro_ab_gamepad/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/retro_ab_rs/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/retro_ab_rs/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tinic/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tinic/examples/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tinic/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/retro_ab_av/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
