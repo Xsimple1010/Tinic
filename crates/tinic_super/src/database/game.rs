@@ -3,7 +3,7 @@ use serde::{de, Deserialize, Deserializer};
 use std::fmt;
 
 #[derive(Debug, Default)]
-pub struct Game {
+pub struct GameInfo {
     pub name: Option<String>,
     pub description: Option<String>,
     pub genre: Option<String>,
@@ -35,7 +35,7 @@ enum SerialRepr {
     Bin(serde_bytes::ByteBuf),
 }
 
-impl<'de> Deserialize<'de> for Game {
+impl<'de> Deserialize<'de> for GameInfo {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -43,17 +43,17 @@ impl<'de> Deserialize<'de> for Game {
         struct GameVisitor;
 
         impl<'de> Visitor<'de> for GameVisitor {
-            type Value = Game;
+            type Value = GameInfo;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str("a RetroArch RDB game map")
             }
 
-            fn visit_map<M>(self, mut map: M) -> Result<Game, M::Error>
+            fn visit_map<M>(self, mut map: M) -> Result<GameInfo, M::Error>
             where
                 M: MapAccess<'de>,
             {
-                let mut game = Game::default();
+                let mut game = GameInfo::default();
 
                 while let Some(key) = map.next_key::<String>()? {
                     match key.as_str() {
@@ -77,9 +77,13 @@ impl<'de> Deserialize<'de> for Game {
                                 }
                                 Crc32Repr::Bin(raw) => {
                                     if raw.len() == 4 {
-                                        game.crc32 = Some(u32::from_le_bytes([
-                                            raw[0], raw[1], raw[2], raw[3],
-                                        ]));
+                                        // game.crc32 = Some(u32::from_le_bytes([
+                                        //     raw[0], raw[1], raw[2], raw[3],
+                                        // ]));
+
+                                        let crc =
+                                            u32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]);
+                                        game.crc32 = Some(crc.to_be());
                                     }
                                 }
                             }

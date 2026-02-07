@@ -24,6 +24,12 @@ pub const LINUX_CORES_URL: &str =
 pub const RDB_BASE_URL: &str =
     "https://raw.githubusercontent.com/libretro/libretro-database/master/rdb";
 
+// pub const THUMBNAIL_BASE_URL: &str = "https://raw.githubusercontent.com/libretro/libretro-thumbnails/master/Nintendo%20-%20Wii/Named_Boxarts/1%2C000%2C000%20Dollar%20Pyramid%20(USA).png";
+pub const THUMBNAIL_BASE_URL: &str =
+    "https://raw.githubusercontent.com/libretro/libretro-thumbnails/master";
+
+
+
 pub fn cores_url() -> Result<&'static str, ErrorHandle> {
     if cfg!(target_os = "windows") {
         Ok(WINDOWS_CORES_URL)

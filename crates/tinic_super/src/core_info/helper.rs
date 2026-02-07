@@ -1,13 +1,13 @@
 use crate::core_info::model::CoreInfo;
+use crate::download::download_file;
 use crate::download::FileProgress;
-use crate::extract_files::extract_zip_file;
-use crate::{download::download_file, extract_files::extract_7zip_file};
+use crate::extract_files::{extract_7zip_file, extract_zip_file, SevenZipBeforeExtractionAction};
 use generics::constants::{cores_url, CORE_INFOS_URL};
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader},
+    io::{BufRead, BufReader},
     path::PathBuf,
 };
 
@@ -45,9 +45,7 @@ impl CoreInfoHelper {
             &temp_dir,
             force_update,
             on_progress,
-            |path_buf| {
-                extract_7zip_file(path_buf, retro_paths.cores.clone().to_string(), on_progress);
-            },
+            |_| {},
         )
         .await
         .map_err(|e| ErrorHandle::new(&e.to_string()))?;
@@ -55,7 +53,7 @@ impl CoreInfoHelper {
         Ok(())
     }
 
-    pub fn read_info_file(file_path: &PathBuf) -> Result<CoreInfo, io::Error> {
+    pub fn read_info_file(file_path: &PathBuf) -> Result<CoreInfo, ErrorHandle> {
         let file = File::open(file_path)?;
         let reader = BufReader::new(file);
         let mut lines = reader.lines();
@@ -74,7 +72,31 @@ impl CoreInfoHelper {
             }
         }
 
+        info.file_name = file_path
+            .file_name()
+            .ok_or(ErrorHandle::new("File has no file name"))?
+            .to_str()
+            .ok_or(ErrorHandle::new("File has no file name"))?
+            .to_string()
+            .replace(".info", "");
+
         Ok(info)
+    }
+
+    pub fn install_core(retro_paths: &RetroPaths, core_info: &CoreInfo) {
+        extract_7zip_file(
+            format!("{}/cores.7z", &retro_paths.temps).into(),
+            retro_paths.cores.to_string(),
+            |file_progress: FileProgress| match file_progress {
+                FileProgress::Extract(name) => {
+                    if name.contains(&core_info.file_name) {
+                        return SevenZipBeforeExtractionAction::Extract;
+                    }
+                    SevenZipBeforeExtractionAction::Jump
+                }
+                FileProgress::Download(_, _) => SevenZipBeforeExtractionAction::Jump,
+            },
+        );
     }
 
     pub fn get_core_infos(dir: &String) -> Vec<CoreInfo> {
@@ -94,8 +116,13 @@ impl CoreInfoHelper {
         infos
     }
 
-    pub fn get_compatibility_core_infos(rom_path: PathBuf) -> Vec<CoreInfo> {
-        let mut read_dir = rom_path.read_dir().unwrap();
+    pub fn get_compatibility_core_infos(
+        rom_path: &PathBuf,
+        retro_paths: &RetroPaths,
+    ) -> Vec<CoreInfo> {
+        let mut read_dir = PathBuf::from(retro_paths.infos.to_string())
+            .read_dir()
+            .unwrap();
 
         let mut infos = Vec::new();
 

@@ -1,37 +1,29 @@
 use generics::retro_paths::RetroPaths;
-use tinic_super::{
-    core_info::helper::CoreInfoHelper, database::helper::DatabaseHelper, FileProgress,
-};
+use tinic_super::tinic_super::TinicSuper;
+use tinic_super::FileProgress;
 
 #[tokio::main]
 async fn main() {
-    let paths =
+    let retro_paths =
         RetroPaths::from_base("/home/aderval/Downloads/RetroArch_cores".to_owned()).unwrap();
 
-    CoreInfoHelper::try_update_core_infos(&paths, false, |progress| match progress {
-        FileProgress::Download(file, progress) => println!("Download {}: {:.2}%", file, progress),
-        FileProgress::Extract(file) => println!("Extract {}", file),
-    })
-    .await
-    .unwrap();
+    let tinic_super = TinicSuper { retro_paths };
 
-    DatabaseHelper::download_db(
-        &paths,
-        "Nintendo - GameCube|Nintendo - Wii|Nintendo - Wii (Digital)",
-        false,
-        |progress| match progress {
-            FileProgress::Download(file, progress) => {
-                println!("Download {}: {:.2}%", file, progress)
-            }
-            FileProgress::Extract(file) => println!("Extract {}", file),
-        },
-    )
-    .await
-    .unwrap();
+    let rom = "/home/aderval/Downloads/RetroArch_cores/Super Mario World (USA).sfc";
+    let core_infos = { tinic_super.get_compatibility_core_infos(rom) };
 
-    let rdbs = DatabaseHelper::get_installed_rdb(&paths).unwrap();
-
-    for rdb in rdbs {
-        println!("{rdb:?}")
+    for core in &core_infos {
+        tinic_super
+            .install_core(&core, false, |progress| match progress {
+                FileProgress::Download(file_name, percent) => {
+                    println!("{file_name}: {percent}%")
+                }
+                FileProgress::Extract(file_name) => println!("extracting: {file_name}"),
+            })
+            .await
+            .unwrap();
     }
+
+    let game_info = tinic_super.identifier_rom_file(rom, &core_infos).unwrap();
+    println!("{game_info:?}");
 }

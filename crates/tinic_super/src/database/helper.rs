@@ -1,4 +1,6 @@
-use crate::database::game::Game;
+use crate::core_info::model::CoreInfo;
+use crate::database::crc32::crc32_file;
+use crate::database::game::GameInfo;
 use crate::database::rdb::{parse_all_rdb_to_vec, parse_rdb};
 use crate::download::download_file;
 use crate::FileProgress;
@@ -17,28 +19,52 @@ pub struct RDBDatabase {
 }
 
 impl DatabaseHelper {
-    pub fn get_all_games(self) -> Result<Vec<Game>, ErrorHandle> {
+    pub fn get_all_games(self) -> Result<Vec<GameInfo>, ErrorHandle> {
         parse_all_rdb_to_vec(&self.rdb_file)
     }
 
-    pub fn search_by_crc(&self, src: u32) -> Result<Option<Game>, ErrorHandle> {
+    pub fn identifier_rom_file(
+        rom_file: &str,
+        core_info: &CoreInfo,
+        database_dir: &String,
+    ) -> Result<Option<GameInfo>, ErrorHandle> {
+        let rbs: Vec<RDBDatabase> = Self::get_installed_rdb(database_dir)?
+            .into_iter()
+            .filter(|rdb| {
+                core_info
+                    .database
+                    .contains(&rdb.name.clone().replace(".rdb", ""))
+            })
+            .collect();
+
+        let src32 = crc32_file(rom_file)?;
         let mut out_game = None;
 
-        let _ = parse_rdb(&self.rdb_file, |game| {
-            if game.crc32 == Some(src) {
-                out_game = Some(game);
+        for rdb in rbs {
+            let rdb_file = rdb
+                .file
+                .to_str()
+                .ok_or_else(|| ErrorHandle::new("rdb file no exist"))?;
 
-                true
-            } else {
-                false
+            let _ = parse_rdb(rdb_file, |game| {
+                if game.crc32 == Some(src32) {
+                    out_game = Some(game);
+                    true
+                } else {
+                    false
+                }
+            });
+
+            if out_game.is_some() {
+                break;
             }
-        });
+        }
 
         Ok(out_game)
     }
 
-    pub fn search_by_name(&self, name: &String) -> Result<Vec<Game>, ErrorHandle> {
-        let mut out_game: Vec<Game> = Vec::new();
+    pub fn search_by_name(&self, name: &str) -> Result<Vec<GameInfo>, ErrorHandle> {
+        let mut out_game: Vec<GameInfo> = Vec::new();
 
         parse_rdb(&self.rdb_file, |game| {
             // println!("{game:?}");
@@ -48,7 +74,8 @@ impl DatabaseHelper {
                 None => return false,
             };
 
-            if game_name.to_lowercase().contains(name) {
+            let name = name.to_lowercase();
+            if game_name.to_lowercase().contains(&name) {
                 out_game.push(game);
             }
 
@@ -58,9 +85,7 @@ impl DatabaseHelper {
         Ok(out_game)
     }
 
-    pub fn get_installed_rdb(paths: &RetroPaths) -> Result<Vec<RDBDatabase>, ErrorHandle> {
-        let database_dir = paths.databases.to_string();
-
+    pub fn get_installed_rdb(database_dir: &String) -> Result<Vec<RDBDatabase>, ErrorHandle> {
         let read_dir = std::fs::read_dir(database_dir)?;
 
         let mut out: Vec<RDBDatabase> = Vec::new();
@@ -83,28 +108,33 @@ impl DatabaseHelper {
 
     pub async fn download_db<CP>(
         paths: &RetroPaths,
-        rdb_name: &str,
+        rdbs: &Vec<String>,
         force_update: bool,
         on_progress: CP,
     ) -> Result<(), ErrorHandle>
     where
         CP: Fn(FileProgress) + Copy,
     {
-        if rdb_name.is_empty() {
-            return Err(ErrorHandle::new("rdb_name is empty"));
+        if rdbs.is_empty() {
+            return Err(ErrorHandle::new("dbs is empty"));
         }
 
         let mut dbs: Vec<String> = Vec::new();
-
-        for db in rdb_name.split("|") {
-            if !db.ends_with(".rdb") {
-                dbs.push(format!("{db}.rdb"));
+        //
+        for rdb in rdbs {
+            if !rdb.ends_with(".rdb") {
+                dbs.push(format!("{rdb}.rdb"));
             }
         }
 
         for rdb_name in dbs {
-            let url = format!("{RDB_BASE_URL}/{rdb_name}");
+            let rdb_path = PathBuf::from(paths.databases.to_string()).join(rdb_name.clone());
 
+            if rdb_path.exists() {
+                continue;
+            }
+
+            let url = format!("{RDB_BASE_URL}/{rdb_name}");
             download_file(
                 &url,
                 &rdb_name,

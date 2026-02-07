@@ -1,12 +1,12 @@
-use crate::database::game::Game;
+use crate::database::game::GameInfo;
 use generics::error_handle::ErrorHandle;
 use rmp_serde::Deserializer;
 use serde::Deserialize;
 use std::io::Cursor;
 
-pub fn parse_rdb<C>(rdb_file: &String, mut callback: C) -> Result<(), ErrorHandle>
+pub fn parse_rdb<C>(rdb_file: &str, mut callback: C) -> Result<(), ErrorHandle>
 where
-    C: FnMut(Game) -> bool,
+    C: FnMut(GameInfo) -> bool,
 {
     let file = std::fs::read(rdb_file)?;
     let data = file.as_slice();
@@ -15,12 +15,12 @@ where
     let mut de = Deserializer::new(cursor);
 
     loop {
-        match Game::deserialize(&mut de) {
+        match GameInfo::deserialize(&mut de) {
             Ok(game) => {
                 if callback(game) {
                     break;
                 }
-            },
+            }
             Err(rmp_serde::decode::Error::InvalidMarkerRead(e))
             | Err(rmp_serde::decode::Error::InvalidDataRead(e)) => {
                 println!("Invalid marker read: {}", e);
@@ -38,7 +38,7 @@ where
     Ok(())
 }
 
-pub fn parse_all_rdb_to_vec(rdb_dir: &String) -> Result<Vec<Game>, ErrorHandle> {
+pub fn parse_all_rdb_to_vec(rdb_dir: &String) -> Result<Vec<GameInfo>, ErrorHandle> {
     let mut games = Vec::new();
     parse_rdb(rdb_dir, |game| {
         games.push(game);

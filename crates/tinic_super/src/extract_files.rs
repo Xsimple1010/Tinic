@@ -55,12 +55,16 @@ where
     Ok(())
 }
 
-pub fn extract_7zip_file<CP>(src_path: PathBuf, dest: String, on_progress: CP)
+pub enum SevenZipBeforeExtractionAction {
+    Extract,
+    Jump,
+}
+
+pub fn extract_7zip_file<CP>(src_path: PathBuf, dest: String, before_extraction: CP)
 where
-    CP: Fn(FileProgress) + Copy,
+    CP: Fn(FileProgress) -> SevenZipBeforeExtractionAction + Copy,
 {
     let dest_path = PathBuf::from(dest);
-    println!("dest: {:?}", dest_path);
 
     let _e = sevenz_rust::decompress_file_with_extract_fn(
         src_path,
@@ -79,16 +83,18 @@ where
                 .ok_or(Error::BadTerminatedSubStreamsInfo)?
                 .to_string();
 
-            on_progress(FileProgress::Extract(file_name.clone()));
+            let action = before_extraction(FileProgress::Extract(file_name.clone()));
 
-            let file_path = dest_path.join(file_name);
-            let file = File::create(&file_path)?;
-            let mut writer = BufWriter::new(file);
-            std::io::copy(reader, &mut writer).map_err(Error::io)?;
-
-            Ok(true)
+            match action {
+                SevenZipBeforeExtractionAction::Jump => Ok(true),
+                SevenZipBeforeExtractionAction::Extract => {
+                    let file_path = dest_path.join(file_name);
+                    let file = File::create(&file_path)?;
+                    let mut writer = BufWriter::new(file);
+                    std::io::copy(reader, &mut writer).map_err(Error::io)?;
+                    Ok(true)
+                }
+            }
         },
     );
-
-    println!("{_e:?}");
 }

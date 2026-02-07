@@ -1,5 +1,6 @@
 #[derive(Debug, Default)]
 pub struct CoreInfo {
+    pub file_name: String,
     // Informações de Software
     pub display_name: String,
     pub authors: String,
@@ -26,7 +27,7 @@ pub struct CoreInfo {
     pub core_options: bool,
     pub core_options_version: String,
     pub supports_no_game: bool,
-    pub database: String,
+    pub database: Vec<String>,
     pub hw_render: bool,
     pub needs_full_path: bool,
     pub disk_control: bool,
@@ -69,7 +70,9 @@ impl CoreInfo {
             "core_options_version" => self.core_options_version = value,
             "load_subsystem" => self.load_subsystem = self.get_boolean_value(&value),
             "supports_no_game" => self.supports_no_game = self.get_boolean_value(&value),
-            "database" => self.database = value,
+            "database" => {
+                self.database = value.split("|").map(String::from).collect::<Vec<String>>()
+            }
             "hw_render" => self.hw_render = self.get_boolean_value(&value),
             "needs_fullpath" => self.needs_full_path = self.get_boolean_value(&value),
             "disk_control" => self.disk_control = self.get_boolean_value(&value),
