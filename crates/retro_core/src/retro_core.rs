@@ -225,19 +225,20 @@ impl RetroCore {
             ));
         }
 
-        RomTools::create_save_state(
-            SaveInfo {
-                slot,
-                library_name: &self.system.info.library_name,
-                rom_name: &*self.rom_name.read()?,
-                save_dir: &self.paths.save,
-                buffer_size: unsafe { self.raw.retro_serialize_size() },
-            },
-            |data, size| unsafe {
-                self.raw
-                    .retro_serialize(data.as_mut_ptr() as *mut c_void, size)
-            },
-        )
+        let rom_name = self.rom_name.read()?.to_string();
+
+        let save_info = SaveInfo::new(
+            &self.paths.save,
+            &self.system.info.library_name,
+            &rom_name,
+            slot,
+            unsafe { self.raw.retro_serialize_size() },
+        )?;
+
+        RomTools::create_save_state(save_info, |data, size| unsafe {
+            self.raw
+                .retro_serialize(data.as_mut_ptr() as *mut c_void, size)
+        })
     }
 
     pub fn load_state(&self, slot: usize) -> Result<(), ErrorHandle> {
@@ -251,19 +252,20 @@ impl RetroCore {
             ));
         }
 
-        RomTools::load_save_state(
-            SaveInfo {
-                slot,
-                library_name: &self.system.info.library_name,
-                rom_name: &*self.rom_name.read()?,
-                save_dir: &self.paths.save,
-                buffer_size: unsafe { self.raw.retro_serialize_size() },
-            },
-            |data, size| unsafe {
-                self.raw
-                    .retro_unserialize(data.as_mut_ptr() as *mut c_void, size)
-            },
+        let rom_name = self.rom_name.read()?.to_string();
+
+        let save_info = SaveInfo::new(
+            &self.paths.save,
+            &self.system.info.library_name,
+            &rom_name,
+            slot,
+            unsafe { self.raw.retro_serialize_size() },
         )?;
+
+        RomTools::load_save_state(save_info, |data, size| unsafe {
+            self.raw
+                .retro_unserialize(data.as_mut_ptr() as *mut c_void, size)
+        })?;
 
         Ok(())
     }

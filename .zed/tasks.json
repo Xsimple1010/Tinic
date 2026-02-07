@@ -1,0 +1,94 @@
+[
+    {
+        "label": "build-debug",
+        "command": "cargo",
+        "args": ["build", "--example", "tinic_example"],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "env": {},
+        "use_new_terminal": false,
+        "allow_concurrent_runs": false,
+        "reveal": "always"
+    },
+    {
+        "label": "build-release",
+        "command": "cargo",
+        "args": ["build", "--release", "--example", "tinic_example"],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "env": {},
+        "use_new_terminal": false,
+        "allow_concurrent_runs": false,
+        "reveal": "always"
+    },
+    {
+        "label": "run-debug",
+        "command": "cargo",
+        "args": ["run", "--example", "tinic_example"],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "env": {
+            "RUST_BACKTRACE": "1",
+            "RUST_LOG": "debug"
+        },
+        "use_new_terminal": true,
+        "allow_concurrent_runs": false,
+        "reveal": "always"
+    },
+    {
+        "label": "run-release",
+        "command": "cargo",
+        "args": ["run", "--release", "--example", "tinic_example"],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "env": {},
+        "use_new_terminal": true,
+        "allow_concurrent_runs": false,
+        "reveal": "always"
+    },
+    {
+        "label": "clean",
+        "command": "cargo",
+        "args": ["clean"],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "env": {},
+        "use_new_terminal": false,
+        "allow_concurrent_runs": false,
+        "reveal": "always"
+    },
+    {
+        "label": "check",
+        "command": "cargo",
+        "args": ["check", "--example", "tinic_example"],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "env": {},
+        "use_new_terminal": false,
+        "allow_concurrent_runs": true,
+        "reveal": "always"
+    },
+    {
+        "label": "clippy",
+        "command": "cargo",
+        "args": [
+            "clippy",
+            "--example",
+            "tinic_example",
+            "--",
+            "-D",
+            "warnings"
+        ],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "env": {},
+        "use_new_terminal": false,
+        "allow_concurrent_runs": false,
+        "reveal": "always"
+    },
+    {
+        "label": "test",
+        "command": "cargo",
+        "args": ["test"],
+        "cwd": "${ZED_WORKTREE_ROOT}",
+        "env": {
+            "RUST_BACKTRACE": "1"
+        },
+        "use_new_terminal": true,
+        "allow_concurrent_runs": false,
+        "reveal": "always"
+    }
+]
