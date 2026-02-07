@@ -6,7 +6,7 @@ use libretro_sys::binding_libretro::{
     retro_controller_description, retro_controller_info, retro_subsystem_info,
     retro_subsystem_memory_info, retro_subsystem_rom_info, retro_system_info, LibretroRaw,
 };
-use std::sync::{Arc, RwLock};
+use std::sync::{atomic::AtomicU8, Arc, RwLock};
 
 #[derive(Default, Debug)]
 pub struct SysInfo {
@@ -53,6 +53,7 @@ pub struct System {
     pub info: SysInfo,
     pub ports: RwLock<Vec<ControllerDescription>>,
     pub subsystem: RwLock<Vec<SubSystemInfo>>,
+    pub performance_level: AtomicU8,
 }
 
 impl System {
@@ -71,6 +72,7 @@ impl System {
             System {
                 ports: RwLock::new(Vec::new()),
                 subsystem: RwLock::new(Vec::new()),
+                performance_level: AtomicU8::new(0),
                 info: SysInfo {
                     library_name: Arc::new(get_str_from_ptr(sys_info.library_name)),
                     library_version: Arc::new(get_str_from_ptr(sys_info.library_version)),

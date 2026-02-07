@@ -3,18 +3,16 @@ use crate::tools::ffi_tools::get_str_from_ptr;
 use crate::{
     core::CoreWrapper,
     core_env::{
-        env_gamepads_io::env_cb_gamepad_io, env_option::env_cb_option, env_video::env_cb_av,
+        env_directory::env_cb_directory, env_gamepads_io::env_cb_gamepad_io,
+        env_option::env_cb_option, env_video::env_cb_av,
     },
-    generics::constants::MAX_CORE_SUBSYSTEM_INFO,
     libretro_sys::{
         binding_libretro::{
             retro_language, retro_log_level, retro_perf_callback, retro_rumble_effect,
-            retro_subsystem_info, RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY,
             RETRO_ENVIRONMENT_GET_LANGUAGE, RETRO_ENVIRONMENT_GET_LOG_INTERFACE,
-            RETRO_ENVIRONMENT_GET_PERF_INTERFACE, RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY,
-            RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, RETRO_ENVIRONMENT_GET_VARIABLE,
-            RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO,
-            RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
+            RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, RETRO_ENVIRONMENT_GET_PERF_INTERFACE,
+            RETRO_ENVIRONMENT_GET_VARIABLE, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
+            RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
         },
         binding_log_interface,
     },
@@ -22,7 +20,6 @@ use crate::{
         core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
         get_cpu_features, get_features_get_time_usec,
     },
-    tools::ffi_tools::make_c_string,
 };
 use std::{
     ffi::{c_char, c_uint},
@@ -81,36 +78,6 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
 
                 true
             }
-            RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY => {
-                #[cfg(feature = "core_ev_logs")]
-                println!("RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY -> ok");
-
-                let sys_dir = make_c_string(&core_ctx.paths.system).unwrap();
-
-                binding_log_interface::set_directory(data, sys_dir.as_ptr());
-
-                true
-            }
-            RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY => {
-                #[cfg(feature = "core_ev_logs")]
-                println!("RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY -> ok");
-
-                let save_dir = make_c_string(&core_ctx.paths.save).unwrap();
-
-                binding_log_interface::set_directory(data, save_dir.as_ptr());
-
-                true
-            }
-            RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY => {
-                #[cfg(feature = "core_ev_logs")]
-                println!("RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY -> ok");
-
-                let assents_dir = make_c_string(&core_ctx.paths.assets).unwrap();
-
-                binding_log_interface::set_directory(data, assents_dir.as_ptr());
-
-                true
-            }
             RETRO_ENVIRONMENT_GET_LANGUAGE => {
                 #[cfg(feature = "core_ev_logs")]
                 println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
@@ -127,12 +94,22 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
 
                 true
             }
-            RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO => {
+            RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION => {
                 #[cfg(feature = "core_ev_logs")]
                 println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
 
-                let raw_subsystem = *(data as *mut [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]);
-                core_ctx.system.get_subsystem(raw_subsystem);
+                *(data as *mut usize) = 1;
+
+                true
+            }
+            RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL => {
+                #[cfg(feature = "core_ev_logs")]
+                println!("RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL -> OK");
+
+                core_ctx
+                    .system
+                    .performance_level
+                    .store(*(data as *mut u8), Ordering::SeqCst);
 
                 true
             }
@@ -155,6 +132,7 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
             _ => {
                 if env_cb_av(core_ctx, cmd, data) | env_cb_gamepad_io(core_ctx, cmd, data)
                     || env_cb_option(core_ctx, cmd, data)
+                    || env_cb_directory(core_ctx, cmd, data)
                 {
                     return true;
                 }
