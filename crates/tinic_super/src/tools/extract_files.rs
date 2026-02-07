@@ -14,7 +14,9 @@ pub enum ExtractProgress {
         origin_file: String,
         inner_file_name: String,
     },
-    Finished,
+    Finished {
+        origin_file: String,
+    },
 }
 
 pub fn extract_zip_file<C>(
@@ -70,7 +72,9 @@ where
         }
     }
 
-    event_listener(ExtractProgress::Finished);
+    event_listener(ExtractProgress::Finished {
+        origin_file: origin_file,
+    });
 
     Ok(())
 }
@@ -150,7 +154,7 @@ pub fn extract_7zip_file<C, CP>(
         },
     );
 
-    event_listener(ExtractProgress::Finished);
+    event_listener(ExtractProgress::Finished { origin_file });
 
     println!("{_e:?}")
 }
