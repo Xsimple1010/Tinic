@@ -1,6 +1,6 @@
 use crate::model::GameInfoInDb;
 
-pub(crate) fn get_data_test() -> Vec<GameInfoInDb> {
+pub(crate) fn _get_data_test() -> Vec<GameInfoInDb> {
     vec![
         GameInfoInDb {
             name: Some("Super Mario World".into()),
