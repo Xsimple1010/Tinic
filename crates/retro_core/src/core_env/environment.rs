@@ -1,18 +1,19 @@
 #[cfg(feature = "core_logs")]
 use crate::tools::ffi_tools::get_str_from_ptr;
 use crate::{
+    RetroCoreIns,
     core_env::{
         env_directory::env_cb_directory, env_gamepads_io::env_cb_gamepad_io,
         env_option::env_cb_option, env_video::env_cb_av,
     },
     libretro_sys::{
         binding_libretro::{
-            retro_language::{self, RETRO_LANGUAGE_PORTUGUESE_BRAZIL},
-            retro_log_level, retro_perf_callback, retro_rumble_effect,
             RETRO_ENVIRONMENT_GET_LANGUAGE, RETRO_ENVIRONMENT_GET_LOG_INTERFACE,
             RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, RETRO_ENVIRONMENT_GET_PERF_INTERFACE,
             RETRO_ENVIRONMENT_GET_VARIABLE, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
             RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
+            retro_language::{self, RETRO_LANGUAGE_PORTUGUESE_BRAZIL},
+            retro_log_level, retro_perf_callback, retro_rumble_effect,
         },
         binding_log_interface::configure_log_interface,
     },
@@ -21,7 +22,6 @@ use crate::{
         core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
         get_cpu_features, get_features_get_time_usec,
     },
-    RetroCoreIns,
 };
 use generics::error_handle::ErrorHandle;
 use std::{
@@ -113,90 +113,92 @@ fn handle_env_result(core_ctx: &Rc<RetroCore>, core_env_result: Result<bool, Err
 }
 
 pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> bool {
-    match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => match cmd {
-            RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME => {
-                #[cfg(feature = "core_ev_logs")]
-                println!("RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME -> ok");
+    unsafe {
+        match &*addr_of!(CORE_CONTEXT) {
+            Some(core_ctx) => match cmd {
+                RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME -> ok");
 
-                core_ctx
-                    .support_no_game
-                    .store(*(data as *mut bool), Ordering::SeqCst);
+                    core_ctx
+                        .support_no_game
+                        .store(*(data as *mut bool), Ordering::SeqCst);
 
-                true
-            }
-            RETRO_ENVIRONMENT_GET_LANGUAGE => {
-                #[cfg(feature = "core_ev_logs")]
-                println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
-
-                *(data as *mut retro_language) = RETRO_LANGUAGE_PORTUGUESE_BRAZIL;
-
-                true
-            }
-            RETRO_ENVIRONMENT_GET_LOG_INTERFACE => {
-                #[cfg(feature = "core_ev_logs")]
-                println!("RETRO_ENVIRONMENT_GET_LOG_INTERFACE -> ok");
-
-                configure_log_interface(Some(core_log), data);
-
-                true
-            }
-            RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION => {
-                #[cfg(feature = "core_ev_logs")]
-                println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
-
-                *(data as *mut usize) = 1;
-
-                true
-            }
-            RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL => {
-                #[cfg(feature = "core_ev_logs")]
-                println!("RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL -> OK");
-
-                println!("{:?}", *(data as *mut u8));
-
-                core_ctx
-                    .system
-                    .performance_level
-                    .store(*(data as *mut u8), Ordering::SeqCst);
-
-                true
-            }
-            RETRO_ENVIRONMENT_GET_PERF_INTERFACE => {
-                #[cfg(feature = "core_ev_logs")]
-                println!("RETRO_ENVIRONMENT_GET_PERF_INTERFACE -> ok");
-
-                let mut perf = *(data as *mut retro_perf_callback);
-
-                perf.get_time_usec = Some(get_features_get_time_usec);
-                perf.get_cpu_features = Some(get_cpu_features);
-                perf.get_perf_counter = Some(core_get_perf_counter);
-                perf.perf_register = Some(core_perf_register);
-                perf.perf_start = Some(core_perf_start);
-                perf.perf_stop = Some(core_perf_stop);
-                perf.perf_log = Some(core_perf_log);
-
-                true
-            }
-            _ => {
-                if handle_env_result(core_ctx, env_cb_av(core_ctx, cmd, data))
-                    || handle_env_result(core_ctx, env_cb_gamepad_io(core_ctx, cmd, data))
-                    || handle_env_result(core_ctx, env_cb_option(core_ctx, cmd, data))
-                    || handle_env_result(core_ctx, env_cb_directory(core_ctx, cmd, data))
-                {
-                    return true;
+                    true
                 }
+                RETRO_ENVIRONMENT_GET_LANGUAGE => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_GET_LANGUAGE -> ok");
 
-                if cmd != RETRO_ENVIRONMENT_GET_VARIABLE
-                    && cmd != RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS
-                {
-                    println!("new core cmd -> {:?}", cmd);
+                    *(data as *mut retro_language) = RETRO_LANGUAGE_PORTUGUESE_BRAZIL;
+
+                    true
                 }
+                RETRO_ENVIRONMENT_GET_LOG_INTERFACE => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_GET_LOG_INTERFACE -> ok");
 
-                false
-            }
-        },
-        None => false,
+                    configure_log_interface(Some(core_log), data);
+
+                    true
+                }
+                RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
+
+                    *(data as *mut usize) = 1;
+
+                    true
+                }
+                RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL -> OK");
+
+                    println!("{:?}", *(data as *mut u8));
+
+                    core_ctx
+                        .system
+                        .performance_level
+                        .store(*(data as *mut u8), Ordering::SeqCst);
+
+                    true
+                }
+                RETRO_ENVIRONMENT_GET_PERF_INTERFACE => {
+                    #[cfg(feature = "core_ev_logs")]
+                    println!("RETRO_ENVIRONMENT_GET_PERF_INTERFACE -> ok");
+
+                    let mut perf = *(data as *mut retro_perf_callback);
+
+                    perf.get_time_usec = Some(get_features_get_time_usec);
+                    perf.get_cpu_features = Some(get_cpu_features);
+                    perf.get_perf_counter = Some(core_get_perf_counter);
+                    perf.perf_register = Some(core_perf_register);
+                    perf.perf_start = Some(core_perf_start);
+                    perf.perf_stop = Some(core_perf_stop);
+                    perf.perf_log = Some(core_perf_log);
+
+                    true
+                }
+                _ => {
+                    if handle_env_result(core_ctx, env_cb_av(core_ctx, cmd, data))
+                        || handle_env_result(core_ctx, env_cb_gamepad_io(core_ctx, cmd, data))
+                        || handle_env_result(core_ctx, env_cb_option(core_ctx, cmd, data))
+                        || handle_env_result(core_ctx, env_cb_directory(core_ctx, cmd, data))
+                    {
+                        return true;
+                    }
+
+                    if cmd != RETRO_ENVIRONMENT_GET_VARIABLE
+                        && cmd != RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS
+                    {
+                        println!("new core cmd -> {:?}", cmd);
+                    }
+
+                    false
+                }
+            },
+            None => false,
+        }
     }
 }
 
@@ -206,8 +208,8 @@ mod test_environment {
     use crate::{core_env::environment::CORE_CONTEXT, test_tools};
     use generics::error_handle::ErrorHandle;
     use libretro_sys::binding_libretro::{
-        retro_pixel_format, RETRO_ENVIRONMENT_GET_INPUT_BITMASKS,
-        RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
+        RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
+        retro_pixel_format,
     };
     use std::{ffi::c_void, ptr::addr_of};
 

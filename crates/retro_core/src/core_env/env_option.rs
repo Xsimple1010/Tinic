@@ -1,17 +1,17 @@
 use crate::{
-    tools::ffi_tools::{get_str_from_ptr, make_c_string},
     RetroCoreIns,
+    tools::ffi_tools::{get_str_from_ptr, make_c_string},
 };
 use generics::error_handle::ErrorHandle;
 use libretro_sys::{
     binding_libretro::{
-        retro_core_option_display, retro_core_options_v2_intl, retro_variable,
         RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, RETRO_ENVIRONMENT_GET_VARIABLE,
         RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
         RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL,
         RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK,
         RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL, RETRO_ENVIRONMENT_SET_VARIABLE,
-        RETRO_ENVIRONMENT_SET_VARIABLES,
+        RETRO_ENVIRONMENT_SET_VARIABLES, retro_core_option_display, retro_core_options_v2_intl,
+        retro_variable,
     },
     binding_log_interface,
 };
@@ -27,7 +27,9 @@ pub unsafe fn env_cb_option(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION -> ok");
 
-            *(data as *mut u32) = 2;
+            unsafe {
+                *(data as *mut u32) = 2;
+            }
 
             Ok(true)
         }
@@ -40,7 +42,7 @@ pub unsafe fn env_cb_option(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL -> ok");
 
-            let option_intl_v2 = *(data as *mut retro_core_options_v2_intl);
+            let option_intl_v2 = unsafe { *(data as *mut retro_core_options_v2_intl) };
 
             let _ = core_ctx.options.convert_option_v2_intl(option_intl_v2);
             let _ = core_ctx.options.try_reload_pref_option();
@@ -51,7 +53,7 @@ pub unsafe fn env_cb_option(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY -> ok");
 
-            let option = *(data as *mut retro_core_option_display);
+            let option = unsafe { *(data as *mut retro_core_option_display) };
 
             let _ = core_ctx
                 .options
@@ -71,7 +73,10 @@ pub unsafe fn env_cb_option(
                 core_ctx.options.updated_count.load(Ordering::SeqCst) > 0
             );
 
-            *(data as *mut bool) = core_ctx.options.updated_count.load(Ordering::SeqCst) > 0;
+            unsafe {
+                *(data as *mut bool) = core_ctx.options.updated_count.load(Ordering::SeqCst) > 0;
+            }
+
             Ok(true)
         }
         RETRO_ENVIRONMENT_SET_VARIABLES => {
@@ -100,7 +105,7 @@ pub unsafe fn env_cb_option(
                 return Ok(false);
             }
 
-            let raw_variable = *(data as *const retro_variable);
+            let raw_variable = unsafe { *(data as *const retro_variable) };
             let key = get_str_from_ptr(raw_variable.key);
 
             match options_manager.get_opt_value(&key)? {
@@ -110,7 +115,9 @@ pub unsafe fn env_cb_option(
                         "Nao foi possivel cria uma C String do novo valor de core_opt",
                     )?;
 
-                    binding_log_interface::set_new_value_variable(data, new_value.as_ptr());
+                    unsafe {
+                        binding_log_interface::set_new_value_variable(data, new_value.as_ptr());
+                    }
 
                     Ok(true)
                 }

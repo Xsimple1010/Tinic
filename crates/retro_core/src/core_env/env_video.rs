@@ -2,18 +2,18 @@ use super::environment::CORE_CONTEXT;
 #[cfg(feature = "hw")]
 use crate::libretro_sys::{
     binding_libretro::{
-        retro_hw_context_type, retro_hw_render_callback, retro_proc_address_t,
         RETRO_ENVIRONMENT_EXPERIMENTAL, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
-        RETRO_ENVIRONMENT_SET_HW_RENDER,
+        RETRO_ENVIRONMENT_SET_HW_RENDER, retro_hw_context_type, retro_hw_render_callback,
+        retro_proc_address_t,
     },
     binding_log_interface,
 };
 use crate::{
-    libretro_sys::binding_libretro::{
-        retro_game_geometry, retro_pixel_format, RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE,
-        RETRO_ENVIRONMENT_SET_GEOMETRY, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
-    },
     RetroCoreIns,
+    libretro_sys::binding_libretro::{
+        RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE, RETRO_ENVIRONMENT_SET_GEOMETRY,
+        RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, retro_game_geometry, retro_pixel_format,
+    },
 };
 use generics::error_handle::ErrorHandle;
 #[cfg(feature = "hw")]
@@ -24,31 +24,35 @@ use std::{
 };
 
 pub unsafe extern "C" fn audio_sample_callback(left: i16, right: i16) {
-    if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        if let Err(e) = core_ctx.callbacks.audio.audio_sample_callback(left, right) {
-            println!("{:?}", e);
-            let _ = core_ctx.de_init();
+    unsafe {
+        if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
+            if let Err(e) = core_ctx.callbacks.audio.audio_sample_callback(left, right) {
+                println!("{:?}", e);
+                let _ = core_ctx.de_init();
+            }
         }
     }
 }
 
 pub unsafe extern "C" fn audio_sample_batch_callback(data: *const i16, frames: usize) -> usize {
-    if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        let res = core_ctx
-            .callbacks
-            .audio
-            .audio_sample_batch_callback(data, frames);
+    unsafe {
+        if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
+            let res = core_ctx
+                .callbacks
+                .audio
+                .audio_sample_batch_callback(data, frames);
 
-        match res {
-            Ok(frames) => frames,
-            Err(e) => {
-                println!("{:?}", e);
-                let _ = core_ctx.de_init();
-                0
+            match res {
+                Ok(frames) => frames,
+                Err(e) => {
+                    println!("{:?}", e);
+                    let _ = core_ctx.de_init();
+                    0
+                }
             }
+        } else {
+            0
         }
-    } else {
-        0
     }
 }
 
@@ -58,14 +62,16 @@ pub unsafe extern "C" fn video_refresh_callback(
     height: c_uint,
     pitch: usize,
 ) {
-    if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        if let Err(e) = core_ctx
-            .callbacks
-            .video
-            .video_refresh_callback(data, width, height, pitch)
-        {
-            println!("{:?}", e);
-            let _ = core_ctx.de_init();
+    unsafe {
+        if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
+            if let Err(e) = core_ctx
+                .callbacks
+                .video
+                .video_refresh_callback(data, width, height, pitch)
+            {
+                println!("{:?}", e);
+                let _ = core_ctx.de_init();
+            }
         }
     }
 }
@@ -73,16 +79,18 @@ pub unsafe extern "C" fn video_refresh_callback(
 #[cfg(feature = "hw")]
 unsafe extern "C" fn get_current_frame_buffer() -> usize {
     println!("get_current_frame_buffer");
-    match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => core_ctx
-            .av_info
-            .video
-            .graphic_api
-            .fbo
-            .read()
-            .unwrap()
-            .unwrap(),
-        None => 0,
+    unsafe {
+        match &*addr_of!(CORE_CONTEXT) {
+            Some(core_ctx) => core_ctx
+                .av_info
+                .video
+                .graphic_api
+                .fbo
+                .read()
+                .unwrap()
+                .unwrap(),
+            None => 0,
+        }
     }
 }
 
@@ -158,7 +166,9 @@ pub unsafe fn env_cb_av(
                 return Ok(false);
             }
 
-            core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr)?;
+            unsafe {
+                core_ctx.av_info.try_set_new_geometry(raw_geometry_ptr)?;
+            }
 
             Ok(true)
         }
@@ -166,13 +176,15 @@ pub unsafe fn env_cb_av(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_PIXEL_FORMAT -> ok");
 
-            core_ctx.av_info.video.pixel_format.store_or_else(
-                *(data as *mut retro_pixel_format),
-                |p| {
-                    let mut _pixel = *p.into_inner();
-                    _pixel = retro_pixel_format::RETRO_PIXEL_FORMAT_UNKNOWN;
-                },
-            );
+            unsafe {
+                core_ctx.av_info.video.pixel_format.store_or_else(
+                    *(data as *mut retro_pixel_format),
+                    |p| {
+                        let mut _pixel = *p.into_inner();
+                        _pixel = retro_pixel_format::RETRO_PIXEL_FORMAT_UNKNOWN;
+                    },
+                );
+            }
 
             Ok(true)
         }
@@ -180,7 +192,9 @@ pub unsafe fn env_cb_av(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE -> ok");
 
-            *(data as *mut u32) = 1 << 0 | 1 << 1;
+            unsafe {
+                *(data as *mut u32) = 1 << 0 | 1 << 1;
+            }
 
             Ok(true)
         }
@@ -189,7 +203,10 @@ pub unsafe fn env_cb_av(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER");
 
-            *(data as *mut retro_hw_context_type) = core_ctx.av_info.video.graphic_api.context_type;
+            unsafe {
+                *(data as *mut retro_hw_context_type) =
+                    core_ctx.av_info.video.graphic_api.context_type;
+            }
 
             Ok(true)
         }
@@ -202,21 +219,22 @@ pub unsafe fn env_cb_av(
                 return Ok(false);
             }
 
-            binding_log_interface::set_hw_callback(
-                data,
-                Some(context_reset),
-                Some(get_current_frame_buffer),
-                Some(context_destroy),
-                Some(get_proc_address),
-            );
+            unsafe {
+                binding_log_interface::set_hw_callback(
+                    data,
+                    Some(context_reset),
+                    Some(get_current_frame_buffer),
+                    Some(context_destroy),
+                    Some(get_proc_address),
+                );
 
-            Ok(core_ctx
-                .av_info
-                .video
-                .graphic_api
-                .try_update_from_raw(data as *mut retro_hw_render_callback))
+                Ok(core_ctx
+                    .av_info
+                    .video
+                    .graphic_api
+                    .try_update_from_raw(data as *mut retro_hw_render_callback))
+            }
         }
-
         _ => Ok(false),
     }
 }

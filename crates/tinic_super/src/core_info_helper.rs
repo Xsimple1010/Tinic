@@ -4,7 +4,7 @@ use crate::{
     extract_files::{extract_7zip_file, extract_zip_file},
 };
 use generics::{
-    constants::{CORES_URL, CORE_INFOS_URL},
+    constants::{CORE_INFOS_URL, CORES_URL},
     retro_paths::RetroPaths,
 };
 use reqwest::Error;
@@ -82,10 +82,7 @@ impl CoreInfoHelper {
     }
 
     pub fn get_compatibility_core_infos(rom_path: PathBuf) -> Vec<CoreInfo> {
-        let path = "C:/projetos/tinic/retro_out_test/infos";
-        let path = PathBuf::from(path);
-
-        let mut read_dir = path.read_dir().unwrap();
+        let mut read_dir = rom_path.read_dir().unwrap();
 
         let mut infos = Vec::new();
 

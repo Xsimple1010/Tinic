@@ -1,12 +1,12 @@
 use crate::{
+    RetroCoreIns,
     core_env::environment::CORE_CONTEXT,
     generics::constants::MAX_CORE_CONTROLLER_INFO_TYPES,
     libretro_sys::binding_libretro::{
-        retro_controller_info, retro_rumble_effect, retro_rumble_interface,
         RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE,
         RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
+        retro_controller_info, retro_rumble_effect, retro_rumble_interface,
     },
-    RetroCoreIns,
 };
 use generics::error_handle::ErrorHandle;
 use std::{ffi::c_uint, os::raw::c_void, ptr::addr_of};
@@ -16,9 +16,11 @@ unsafe extern "C" fn rumble_callback(
     effect: retro_rumble_effect,
     strength: u16,
 ) -> bool {
-    let retro_core = match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => core_ctx,
-        None => return false,
+    let retro_core = unsafe {
+        match &*addr_of!(CORE_CONTEXT) {
+            Some(core_ctx) => core_ctx,
+            None => return false,
+        }
     };
 
     let res = retro_core
@@ -37,9 +39,11 @@ unsafe extern "C" fn rumble_callback(
 }
 
 pub unsafe extern "C" fn input_poll_callback() {
-    let retro_core = match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => core_ctx,
-        None => return,
+    let retro_core = unsafe {
+        match &*addr_of!(CORE_CONTEXT) {
+            Some(core_ctx) => core_ctx,
+            None => return,
+        }
     };
 
     if let Err(e) = retro_core.callbacks.controller.input_poll_callback() {
@@ -54,9 +58,11 @@ pub unsafe extern "C" fn input_state_callback(
     index: c_uint,
     id: c_uint,
 ) -> i16 {
-    let retro_core = match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => core_ctx,
-        None => return 0,
+    let retro_core = unsafe {
+        match &*addr_of!(CORE_CONTEXT) {
+            Some(core_ctx) => core_ctx,
+            None => return 0,
+        }
     };
 
     let res = retro_core.callbacks.controller.input_state_callback(
@@ -92,7 +98,7 @@ pub unsafe fn env_cb_gamepad_io(
             println!("RETRO_ENVIRONMENT_SET_CONTROLLER_INFO -> ok");
 
             let raw_ctr_infos =
-                *(data as *mut [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES]);
+                unsafe { *(data as *mut [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES]) };
 
             let _ = core_ctx.system.get_ports(raw_ctr_infos);
 
@@ -107,7 +113,7 @@ pub unsafe fn env_cb_gamepad_io(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE -> ok");
 
-            let mut rumble_raw = *(data as *mut retro_rumble_interface);
+            let mut rumble_raw = unsafe { *(data as *mut retro_rumble_interface) };
             rumble_raw.set_rumble_state = Some(rumble_callback);
 
             Ok(true)

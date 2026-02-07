@@ -1,11 +1,11 @@
-use crate::{tools::ffi_tools::make_c_string, RetroCoreIns};
+use crate::{RetroCoreIns, tools::ffi_tools::make_c_string};
 use generics::constants::MAX_CORE_SUBSYSTEM_INFO;
 use generics::error_handle::ErrorHandle;
 use libretro_sys::{
     binding_libretro::{
-        retro_subsystem_info, RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY,
-        RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY,
-        RETRO_ENVIRONMENT_GET_VFS_INTERFACE, RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO,
+        RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY, RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY,
+        RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, RETRO_ENVIRONMENT_GET_VFS_INTERFACE,
+        RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, retro_subsystem_info,
     },
     binding_log_interface,
 };
@@ -26,7 +26,9 @@ pub unsafe fn env_cb_directory(
                 "Nao foi possivel cria uma C String de sys_dir para enviar ao core",
             )?;
 
-            binding_log_interface::set_directory(data, sys_dir.as_ptr());
+            unsafe {
+                binding_log_interface::set_directory(data, sys_dir.as_ptr());
+            }
 
             Ok(true)
         }
@@ -39,7 +41,9 @@ pub unsafe fn env_cb_directory(
                 "Nao foi possivel cria uma C String de save_dir para enviar ao core",
             )?;
 
-            binding_log_interface::set_directory(data, save_dir.as_ptr());
+            unsafe {
+                binding_log_interface::set_directory(data, save_dir.as_ptr());
+            }
 
             Ok(true)
         }
@@ -52,7 +56,9 @@ pub unsafe fn env_cb_directory(
                 "Nao foi possivel cria uma C String de assents_dir para enviar ao core",
             )?;
 
-            binding_log_interface::set_directory(data, assents_dir.as_ptr());
+            unsafe {
+                binding_log_interface::set_directory(data, assents_dir.as_ptr());
+            }
 
             Ok(true)
         }
@@ -60,7 +66,8 @@ pub unsafe fn env_cb_directory(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
 
-            let raw_subsystem = *(data as *mut [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]);
+            let raw_subsystem =
+                unsafe { *(data as *mut [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]) };
             core_ctx.system.get_subsystem(raw_subsystem)?;
 
             Ok(true)

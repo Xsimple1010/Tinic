@@ -1,7 +1,7 @@
 use crate::libretro_sys::binding_libretro::{
-    retro_perf_counter, retro_perf_tick_t, retro_time_t, RETRO_SIMD_AVX, RETRO_SIMD_AVX2,
-    RETRO_SIMD_MMX, RETRO_SIMD_SSE, RETRO_SIMD_SSE2, RETRO_SIMD_SSE3, RETRO_SIMD_SSE4,
-    RETRO_SIMD_SSE42,
+    RETRO_SIMD_AVX, RETRO_SIMD_AVX2, RETRO_SIMD_MMX, RETRO_SIMD_SSE, RETRO_SIMD_SSE2,
+    RETRO_SIMD_SSE3, RETRO_SIMD_SSE4, RETRO_SIMD_SSE42, retro_perf_counter, retro_perf_tick_t,
+    retro_time_t,
 };
 use raw_cpuid::CpuId;
 use std::time::{Instant, SystemTime};
@@ -13,27 +13,35 @@ pub unsafe extern "C" fn core_get_perf_counter() -> retro_perf_tick_t {
 }
 
 pub unsafe extern "C" fn core_perf_register(counter_raw: *mut retro_perf_counter) {
-    let mut counter = *counter_raw;
-    counter.registered = true;
-    LAST_COUNTER = Some(counter_raw);
+    unsafe {
+        let mut counter = *counter_raw;
+        counter.registered = true;
+        LAST_COUNTER = Some(counter_raw);
+    }
 }
 
 pub unsafe extern "C" fn core_perf_start(counter_raw: *mut retro_perf_counter) {
-    let mut counter = *counter_raw;
-    if counter.registered {
-        counter.start = core_get_perf_counter();
+    unsafe {
+        let mut counter = *counter_raw;
+        if counter.registered {
+            counter.start = core_get_perf_counter();
+        }
     }
 }
 
 pub unsafe extern "C" fn core_perf_stop(counter_raw: *mut retro_perf_counter) {
-    let mut counter = *counter_raw;
-    counter.total = core_get_perf_counter() - counter.start;
+    unsafe {
+        let mut counter = *counter_raw;
+        counter.total = core_get_perf_counter() - counter.start;
+    }
 }
 
 pub unsafe extern "C" fn core_perf_log() {
-    if let Some(counter_raw) = LAST_COUNTER {
-        let counter = *counter_raw;
-        println!("[timer] {:?}", counter);
+    unsafe {
+        if let Some(counter_raw) = LAST_COUNTER {
+            let counter = *counter_raw;
+            println!("[timer] {:?}", counter);
+        }
     }
 }
 

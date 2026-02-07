@@ -4,7 +4,7 @@ Um simples reprodutor de núcleos libreto
 
 ## Observação
 
-Este projeto ainda está em fase inicial então muita coisa ainda pode mudar e ser melhorada.
+Este projeto está em fase inicial então muita coisa ainda pode mudar e ser melhorada.
 Tinic é dividido em 3 (três) projetos, cada qual com sua responsabilidade.
 
 ### [Retro_core](./crates/retro_core)

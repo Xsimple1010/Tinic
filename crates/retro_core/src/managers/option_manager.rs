@@ -1,5 +1,4 @@
 use crate::tools::ffi_tools::get_arc_string_from_ptr;
-use crate::tools::mutex_tools::get_string_mutex_from_ptr;
 use crate::{
     libretro_sys::binding_libretro::{
         retro_core_option_v2_category, retro_core_option_v2_definition, retro_core_options_v2,
@@ -9,8 +8,8 @@ use crate::{
 };
 use generics::constants::{CORE_OPTION_EXTENSION_FILE, MAX_CORE_OPTIONS};
 use generics::error_handle::ErrorHandle;
-use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 use std::{
     fs::File,
     io::{Read, Write},
@@ -20,7 +19,7 @@ use std::{
 
 #[derive(Default, Debug)]
 pub struct CoreValue {
-    pub value: Mutex<String>,
+    pub value: Arc<String>,
     pub label: Arc<String>,
 }
 
@@ -145,7 +144,7 @@ impl OptionManager {
             }
 
             for core_value in &*core_opt.values.lock()? {
-                if *core_value.value.lock()? != new_value_selected {
+                if *core_value.value != new_value_selected {
                     continue;
                 }
 
@@ -195,9 +194,8 @@ impl OptionManager {
         Ok(())
     }
 
-    //TODO: adiciona um meio do usuário saber se ocorrer um erro ao tentar salva ou ler o arquivo
     pub fn try_reload_pref_option(&self) -> Result<(), ErrorHandle> {
-        let file_path = self.file_path.read()?.clone();
+        let file_path = self.file_path.read()?;
 
         //se o arquivo ainda nao existe apenas
         //crie um novo arquivo e salve a configuração padrão do núcleo
@@ -240,7 +238,8 @@ impl OptionManager {
         &self,
         definitions: *mut retro_core_option_v2_definition,
     ) -> Result<(), ErrorHandle> {
-        let definitions = unsafe { *(definitions as *mut [retro_core_option_v2_definition; 90]) };
+        let definitions =
+            unsafe { *(definitions as *mut [retro_core_option_v2_definition; MAX_CORE_OPTIONS]) };
 
         for definition in definitions {
             if !definition.key.is_null() {
@@ -257,7 +256,7 @@ impl OptionManager {
 
                 for retro_value in definition.values {
                     if !retro_value.label.is_null() {
-                        let value = get_string_mutex_from_ptr(retro_value.value);
+                        let value = get_arc_string_from_ptr(retro_value.value);
                         let label = get_arc_string_from_ptr(retro_value.label);
 
                         values.lock()?.push(CoreValue { label, value });
