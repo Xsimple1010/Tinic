@@ -1,14 +1,17 @@
-use crate::channel::ChannelNotify;
 use crate::thread_stack::game_stack::GameStackCommand;
-use retro_av::{Event, EventPump, Keycode};
+use generics::erro_handle::ErroHandle;
+use retro_av::{Event, Keycode};
 
-pub fn game_window_handle(
-    event_pump: &mut EventPump,
-    channel_notify: &ChannelNotify,
-    pause_request_new_frames: bool,
-    use_full_screen: bool,
-) -> bool {
-    let mut need_stop = false;
+use super::game_thread_state::ThreadState;
+
+pub fn game_window_handle(state: &mut ThreadState) -> Result<(), ErroHandle> {
+    let (_, ref mut event_pump) = match &mut state.retro_av {
+        Some(av) => av,
+        None => return Ok(()),
+    };
+    let channel_notify = &state.channel_notify;
+    let pause_request_new_frames = state.pause_request_new_frames;
+    let use_full_screen = state.use_full_screen_mode;
 
     for event in event_pump.poll_iter() {
         match event {
@@ -16,7 +19,14 @@ pub fn game_window_handle(
             | Event::KeyDown {
                 keycode: Some(Keycode::Escape),
                 ..
-            } => need_stop = true,
+            } => match state.is_running.lock() {
+                Ok(mut is_running) => {
+                    *is_running = false;
+                }
+                Err(op) => {
+                    *op.into_inner() = false;
+                }
+            },
             Event::KeyDown {
                 keycode: Some(Keycode::F1),
                 ..
@@ -55,5 +65,5 @@ pub fn game_window_handle(
         }
     }
 
-    need_stop
+    Ok(())
 }

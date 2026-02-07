@@ -1,7 +1,7 @@
 use crate::devices_manager::DevicesManager;
 use generics::constants::THREAD_SLEEP_TIME;
 use generics::erro_handle::ErroHandle;
-use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_ERROR, RETRO_LOG_WARN};
+use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::{
     sync::{Arc, Mutex},
     thread::{self, sleep},
@@ -39,10 +39,7 @@ impl EventThread {
         });
 
         if event_thread_can_run {
-            return Err(ErroHandle {
-                level: RETRO_LOG_WARN,
-                message: "A thread de eventos já está em execução".to_string(),
-            });
+            return Ok(());
         }
 
         if let Err(_need_try_again) = self.try_enable_thread() {

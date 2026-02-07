@@ -10,7 +10,7 @@ fn device_state_listener(state: DeviceState, device: Device) {
 
 #[tokio::main]
 async fn main() -> Result<(), ErroHandle> {
-    let mut args = RetroArgs::new()?;
+    let args = RetroArgs::new()?;
 
     let mut tinic = Tinic::new(device_state_listener, get_paths()?)?;
 
