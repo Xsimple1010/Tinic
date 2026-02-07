@@ -3419,7 +3419,6 @@ dependencies = [
  "retro_av",
  "retro_controllers",
  "retro_core",
- "tinic_super",
  "tokio",
  "winit",
 ]

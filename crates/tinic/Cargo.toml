@@ -5,7 +5,6 @@ edition = "2024"
 
 
 [dependencies]
-tinic_super.workspace = true
 retro_core.workspace = true
 retro_controllers.workspace = true
 retro_av.workspace = true

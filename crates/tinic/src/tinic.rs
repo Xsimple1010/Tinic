@@ -1,7 +1,7 @@
 use crate::app_dispatcher::{GameInstanceActions, GameInstanceDispatchers};
 use crate::{
     generics::error_handle::ErrorHandle,
-    retro_controllers::{RetroController, devices_manager::DeviceListener},
+    retro_controllers::{devices_manager::DeviceListener, RetroController},
     tinic_app::GameInstance,
     tinic_app_ctx::TinicGameCtx,
 };
@@ -10,8 +10,7 @@ use generics::{
     types::{ArcTMutex, TMutex},
 };
 use retro_controllers::RetroGamePad;
-use std::{path::PathBuf, sync::Arc};
-use tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper};
+use std::sync::Arc;
 use winit::{
     event_loop::EventLoop,
     platform::pump_events::{EventLoopExtPumpEvents, PumpStatus},
@@ -75,25 +74,6 @@ impl Tinic {
             Err(ErrorHandle::new(""))
         }
     }
-
-    pub async fn try_update_core_infos(
-        &mut self,
-        force_update: bool,
-        retro_paths: &RetroPaths,
-    ) -> Result<(), ErrorHandle> {
-        match CoreInfoHelper::try_update_core_infos(retro_paths, force_update).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(ErrorHandle::new(e.to_string().as_str())),
-        }
-    }
-
-    pub fn get_cores_infos(&mut self, retro_paths: &RetroPaths) -> Vec<CoreInfo> {
-        CoreInfoHelper::get_core_infos(&retro_paths.infos.clone().to_owned())
-    }
-
-    pub fn get_compatibility_info_cores(&self, rom: &String) -> Vec<CoreInfo> {
-        CoreInfoHelper::get_compatibility_core_infos(PathBuf::from(rom))
-    }
 }
 
 #[derive(Debug)]
@@ -127,9 +107,10 @@ impl DeviceListener for DeviceHandle {
         let mut invalid_proxy = false;
 
         if let Some(dispatcher) = self.dispatcher.load_or(None).as_ref()
-            && dispatcher.enable_keyboard().is_err() {
-                invalid_proxy = true;
-            }
+            && dispatcher.enable_keyboard().is_err()
+        {
+            invalid_proxy = true;
+        }
 
         if invalid_proxy {
             self.dispatcher.store(None);
