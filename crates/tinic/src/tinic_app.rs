@@ -64,8 +64,8 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
         };
 
         if let Err(e) = result {
-            println!("{:?}", e);
-            event_loop.exiting();
+            let _ = self.ctx.destroy_retro_ctx();
+            event_loop.exit();
         }
     }
 
@@ -109,14 +109,14 @@ impl ApplicationHandler<GameInstanceActions> for GameInstance {
         };
 
         if let Err(e) = result {
-            println!("{:?}", e);
+            let _ = self.ctx.destroy_retro_ctx();
             event_loop.exit();
         }
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         if let Err(e) = self.ctx.redraw_request() {
-            println!("{:?}", e);
+            let _ = self.ctx.destroy_retro_ctx();
             event_loop.exit();
         }
     }
