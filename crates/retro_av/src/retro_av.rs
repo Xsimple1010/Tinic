@@ -32,6 +32,7 @@ impl RetroAv {
     ) -> Result<(), ErrorHandle> {
         self.video.init(av_info, event_loop)?;
         self.audio.init(av_info)?;
+        self.audio.play()?;
         Ok(())
     }
 
@@ -46,7 +47,6 @@ impl RetroAv {
     }
 
     pub fn redraw_request(&self) -> Result<(), ErrorHandle> {
-        self.audio.play()?;
         self.video.request_redraw()
     }
 
