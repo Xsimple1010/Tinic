@@ -33,7 +33,6 @@ pub struct CoreInfo {
     pub load_subsystem: bool,
     pub required_hw_api: String,
     pub is_experimental: bool,
-    pub needs_fullpath: bool,
 }
 
 impl CoreInfo {
@@ -72,7 +71,7 @@ impl CoreInfo {
             "supports_no_game" => self.supports_no_game = self.get_boolean_value(&value),
             "database" => self.database = value,
             "hw_render" => self.hw_render = self.get_boolean_value(&value),
-            "needs_fullpath" => self.needs_fullpath = self.get_boolean_value(&value),
+            "needs_fullpath" => self.needs_full_path = self.get_boolean_value(&value),
             "disk_control" => self.disk_control = self.get_boolean_value(&value),
             _ => {}
         }
