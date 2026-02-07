@@ -202,7 +202,7 @@ impl InputValidator {
 
     /// Validate controller port number
     pub fn validate_controller_port(port: i16) -> Result<u16, ErrorHandle> {
-        if port > INVALID_CONTROLLER_PORT {
+        if port <= INVALID_CONTROLLER_PORT {
             return Err(ErrorHandle::new("Controller port cannot be negative"));
         }
 
@@ -238,7 +238,7 @@ impl InputValidator {
     }
 
     /// Validate raw mutable pointer is not null
-    pub fn _validate_non_null_mut_ptr<T>(ptr: *mut T, name: &str) -> Result<(), ErrorHandle> {
+    pub fn validate_non_null_mut_ptr<T>(ptr: *mut T, name: &str) -> Result<(), ErrorHandle> {
         if ptr.is_null() {
             return Err(ErrorHandle::new(&format!("{} pointer is null", name)));
         }
