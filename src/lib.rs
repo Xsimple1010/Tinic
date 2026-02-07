@@ -6,6 +6,7 @@ extern crate retro_ab_gamepad;
 
 mod game_loop;
 mod retro_stack;
+mod stack_actions;
 
 use game_loop::init_game_loop;
 use retro_ab::core::{self, RetroContext, RetroEnvCallbacks};
@@ -61,19 +62,30 @@ impl Tinic {
         unsafe {
             GAMEPAD_LISTENER = listener;
         }
+
+        let controller_ctx = Arc::new(Mutex::new(GamepadContext::new(Some(
+            gamepad_state_listener,
+        ))));
+
+        match controller_ctx.clone().lock() {
+            Ok(_controller) => {
+                // let gamepads = controller.get_list();
+                init_game_loop(controller_ctx.clone(), STACK.clone());
+            }
+            Err(..) => {}
+        }
+
         Self {
             // stack: RetroStack::new(),
             //TODO:o numero máximo de portas deve ser alterado no futuro
-            controller_ctx: Arc::new(Mutex::new(GamepadContext::new(Some(
-                gamepad_state_listener,
-            )))),
+            controller_ctx,
             core_ctx: None,
         }
     }
 
     pub fn load_core(&mut self, core_path: &String, paths: Paths) -> Result<(), String> {
-        let core_ctx = core::load(
-            core_path,
+        STACK.push(StackCommand::LoadCore(
+            core_path.to_owned(),
             paths,
             RetroEnvCallbacks {
                 audio_sample_batch_callback,
@@ -83,30 +95,7 @@ impl Tinic {
                 video_refresh_callback,
                 rumble_callback,
             },
-        )?;
-
-        match core::init(&core_ctx) {
-            Ok(..) => {
-                self.core_ctx = Some(core_ctx.clone());
-
-                match self.controller_ctx.clone().lock() {
-                    Ok(controller) => {
-                        let gamepads = controller.get_list();
-
-                        init_game_loop(
-                            core_ctx,
-                            gamepads,
-                            self.controller_ctx.clone(),
-                            STACK.clone(),
-                        );
-                    }
-                    Err(..) => {}
-                }
-            }
-            Err(e) => {
-                return Err(e.message);
-            }
-        }
+        ));
 
         Ok(())
     }

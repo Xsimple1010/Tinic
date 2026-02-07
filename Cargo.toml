@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 retro_ab_gamepad = { git = "https://github.com/Xsimple1010/retro_ab_gamepad.git" }
 retro_ab = { git = "https://github.com/Xsimple1010/retro_ab_rs.git" }
-retro_ab_av = { git = "https://github.com/Xsimple1010/retro_ab_av.git" }
+retro_ab_av = { git = "https://github.com/Xsimple1010/retro_ab_av.git", branch = "remove_sdl" }
 lazy_static = "1.4.0"
 
 [[example]]

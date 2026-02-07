@@ -1,7 +1,10 @@
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug, Clone)]
+use retro_ab::{core::RetroEnvCallbacks, paths::Paths};
+
+#[derive(Clone)]
 pub enum StackCommand {
+    LoadCore(String, Paths, RetroEnvCallbacks),
     LoadGame(String),
     UnloadGame,
     SaveState,
