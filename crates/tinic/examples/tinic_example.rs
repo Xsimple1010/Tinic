@@ -1,6 +1,9 @@
+use generics::test_workdir::{
+    create_test_work_dir_path, get_core_test_path, get_rom_test_path, remove_test_work_dir_path,
+};
 use tinic::{
-    self, args_manager::RetroArgs, DeviceListener, ErrorHandle, GameState,
-    RetroGamePad, SaveStateInfo, Tinic, TinicGameInfo, WindowListener, WindowState,
+    self, DeviceListener, ErrorHandle, GameState, RetroGamePad, SaveStateInfo, Tinic,
+    TinicGameInfo, WindowListener, WindowState,
 };
 
 #[derive(Debug, Default)]
@@ -45,22 +48,22 @@ impl WindowListener for WindowEvents {
 }
 
 fn main() -> Result<(), ErrorHandle> {
-    let args = RetroArgs::new()?;
-
     let event = DeviceEventHandle::default();
     let mut tinic = Tinic::new()?;
     tinic.set_controle_listener(Box::new(event))?;
     tinic.set_window_listener(Box::new(WindowEvents));
 
-    if let Some(core) = &args.core {
-        let game_info = TinicGameInfo {
-            core: core.clone(),
-            rom: args.rom,
-            sys_dir: "/home/aderval/Downloads/RetroArch_cores".to_string(),
-        };
+    let test_dir = "tinic_example";
 
-        let game_instance = tinic.create_game_instance(game_info)?;
-        tinic.run(game_instance)?;
-    }
+    let game_info = TinicGameInfo {
+        core: get_core_test_path().display().to_string(),
+        rom: get_rom_test_path().display().to_string(),
+        sys_dir: create_test_work_dir_path(test_dir).display().to_string(),
+    };
+
+    let game_instance = tinic.create_game_instance(game_info)?;
+    tinic.run(game_instance)?;
+
+    remove_test_work_dir_path(test_dir)?;
     Ok(())
 }
