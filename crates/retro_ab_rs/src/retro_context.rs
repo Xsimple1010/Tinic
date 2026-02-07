@@ -70,11 +70,11 @@ impl RetroContext {
 
     pub fn delete(&self) -> Result<(), ErroHandle> {
         match &mut CONTEXTS.lock() {
-            Ok(ctxs) => {
-                let position = ctxs.partition_point(|ctx| ctx.id == self.id);
+            Ok(contexts) => {
+                let position = contexts.partition_point(|ctx| ctx.id == self.id);
 
-                if !ctxs.is_empty() {
-                    ctxs.remove(position - 1);
+                if !contexts.is_empty() {
+                    contexts.remove(position - 1);
                 }
                 Ok(())
             }
@@ -96,7 +96,7 @@ impl RetroContext {
     #[doc = "
         # Pegar uma instância pelo seu id
 
-        Use isso com moderação, pois pode quasar muita confusão no código.
+        Use isso com moderação, pois pode causar muita confusão no código.
     "]
     pub fn get_from_id(id: &Uuid) -> Result<RetroCtxIns, ErroHandle> {
         if let Ok(contexts) = &CONTEXTS.lock() {

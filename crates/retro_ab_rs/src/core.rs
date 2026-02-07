@@ -67,7 +67,7 @@ impl CoreWrapper {
             language: Mutex::new(retro_language::RETRO_LANGUAGE_PORTUGUESE_BRAZIL),
         });
 
-        environment::configure(Arc::clone(&core));
+        environment::configure(core.clone());
 
         unsafe {
             core.raw

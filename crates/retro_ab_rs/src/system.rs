@@ -79,40 +79,40 @@ impl System {
 
     pub fn get_subsystem(&self, raw_subsystem: [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]) {
         for raw_sys in raw_subsystem {
-            if !raw_sys.ident.is_null() {
-                let subsystem = SubSystemInfo::default();
-
-                *subsystem.id.write().unwrap() = raw_sys.id;
-                *subsystem.desc.write().unwrap() = get_str_from_ptr(raw_sys.desc);
-                *subsystem.ident.write().unwrap() = get_str_from_ptr(raw_sys.ident);
-
-                let roms = unsafe {
-                    *(raw_sys.roms as *mut [retro_subsystem_rom_info; MAX_CORE_SUBSYSTEM_ROM_INFO])
-                };
-
-                for index in 0..raw_sys.num_roms {
-                    let rom = roms[index as usize];
-
-                    let memory = unsafe { *(rom.memory as *mut retro_subsystem_memory_info) };
-
-                    subsystem.roms.write().unwrap().push(SubSystemRomInfo {
-                        desc: get_string_rwlock_from_ptr(rom.desc),
-                        valid_extensions: get_string_rwlock_from_ptr(rom.valid_extensions),
-                        need_full_path: RwLock::new(rom.need_fullpath),
-                        block_extract: RwLock::new(rom.block_extract),
-                        required: RwLock::new(rom.required),
-                        num_memory: RwLock::new(rom.num_memory),
-                        memory: MemoryInfo {
-                            extension: get_string_rwlock_from_ptr(memory.extension),
-                            type_: RwLock::new(memory.type_),
-                        },
-                    });
-                }
-
-                self.subsystem.write().unwrap().push(subsystem);
-            } else {
+            if raw_sys.ident.is_null() {
                 break;
             }
+
+            let subsystem = SubSystemInfo::default();
+
+            *subsystem.id.write().unwrap() = raw_sys.id;
+            *subsystem.desc.write().unwrap() = get_str_from_ptr(raw_sys.desc);
+            *subsystem.ident.write().unwrap() = get_str_from_ptr(raw_sys.ident);
+
+            let roms = unsafe {
+                *(raw_sys.roms as *mut [retro_subsystem_rom_info; MAX_CORE_SUBSYSTEM_ROM_INFO])
+            };
+
+            for index in 0..raw_sys.num_roms {
+                let rom = roms[index as usize];
+
+                let memory = unsafe { *(rom.memory as *mut retro_subsystem_memory_info) };
+
+                subsystem.roms.write().unwrap().push(SubSystemRomInfo {
+                    desc: get_string_rwlock_from_ptr(rom.desc),
+                    valid_extensions: get_string_rwlock_from_ptr(rom.valid_extensions),
+                    need_full_path: RwLock::new(rom.need_fullpath),
+                    block_extract: RwLock::new(rom.block_extract),
+                    required: RwLock::new(rom.required),
+                    num_memory: RwLock::new(rom.num_memory),
+                    memory: MemoryInfo {
+                        extension: get_string_rwlock_from_ptr(memory.extension),
+                        type_: RwLock::new(memory.type_),
+                    },
+                });
+            }
+
+            self.subsystem.write().unwrap().push(subsystem);
         }
     }
 }

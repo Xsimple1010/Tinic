@@ -9,7 +9,6 @@ type Slot = usize;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GameStackCommand {
-    //core, rom, paths
     LoadGame(CorePath, RomPath, RetroPaths),
     SaveState(Slot),
     LoadState(Slot),

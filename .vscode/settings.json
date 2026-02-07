@@ -4,6 +4,7 @@
         "bindgen",
         "bitmasks",
         "BITMASKS",
+        "deinit",
         "framebuffer",
         "gamepad",
         "gamepads",

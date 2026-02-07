@@ -8,14 +8,7 @@ use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::{ffi::CString, ptr::null, rc::Rc};
 
 pub struct Shader {
-    // pub program: GLuint,
-    // pub vao: GLuint,
-    // pub vbo: GLuint,
-    // pub i_pos: GLint,
-    // pub i_text_pos: GLint,
     pub id: GLuint,
-    // pub u_tex: GLint,
-    // _u_mvp: GLint,
     gl: Rc<gl::Gl>,
 }
 
