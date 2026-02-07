@@ -1,8 +1,7 @@
-use crate::core_info::model::CoreInfo;
 use crate::event::TinicSuperEventListener;
 use crate::rdb_manager::game_model::GameInfo;
-use futures_util::stream::FuturesUnordered;
 use futures_util::StreamExt;
+use futures_util::stream::FuturesUnordered;
 use generics::constants::RDB_HEADER_SIZE;
 use generics::error_handle::ErrorHandle;
 use rmp_serde::Deserializer;
@@ -57,25 +56,19 @@ pub async fn read_rdb(rdb_path: String, event: Arc<dyn TinicSuperEventListener>)
     tokio::task::spawn_blocking(move || read_rdb_blocking(&rdb_path, event));
 }
 
-pub async fn read_rdb_from_cores(
-    core_infos: Vec<CoreInfo>,
+pub async fn read_rdbs(
+    rdb_names: HashSet<String>,
     rdb_dir: String,
     event: Arc<dyn TinicSuperEventListener>,
 ) {
     let mut tasks = FuturesUnordered::new();
 
-    let rdb_names: HashSet<String> = core_infos
-        .into_iter()
-        .map(|c| c.database)
-        .flat_map(|d| d)
-        .map(|rdb_name| format!("{}/{rdb_name}.rdb", rdb_dir))
-        .collect();
-
     for rdb in rdb_names {
         let event = event.clone();
+        let path = format!("{}/{}.rdb", rdb_dir, rdb);
 
         tasks.push(async move {
-            read_rdb(rdb, event).await;
+            read_rdb(path, event).await;
         });
     }
 
