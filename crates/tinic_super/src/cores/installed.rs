@@ -1,5 +1,4 @@
 use crate::{
-    FileProgress,
     event::TinicSuperEventListener,
     tools::extract_files::{SevenZipBeforeExtractionAction, extract_7zip_file},
 };
@@ -28,21 +27,19 @@ pub async fn install_core(
             src_path.into(),
             retro_paths.cores.to_string(),
             event_listener,
-            |file_progress: FileProgress| match file_progress {
-                FileProgress::Extract(name) => {
-                    let name = remove_so_extension(name);
+            |file_name, event_listener| {
+                let name = remove_so_extension(file_name);
 
-                    if wanted.remove(&name) {
-                        return SevenZipBeforeExtractionAction::Extract;
-                    }
-
-                    if wanted.is_empty() {
-                        SevenZipBeforeExtractionAction::Stop
-                    } else {
-                        SevenZipBeforeExtractionAction::Jump
-                    }
+                if wanted.remove(&name) {
+                    event_listener.core_installed(name);
+                    return SevenZipBeforeExtractionAction::Extract;
                 }
-                FileProgress::Download(_, _) => SevenZipBeforeExtractionAction::Jump,
+
+                if wanted.is_empty() {
+                    SevenZipBeforeExtractionAction::Stop
+                } else {
+                    SevenZipBeforeExtractionAction::Jump
+                }
             },
         );
     };

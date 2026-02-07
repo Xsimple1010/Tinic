@@ -1,4 +1,3 @@
-use crate::FileProgress;
 use crate::event::TinicSuperEventListener;
 use sevenz_rust::Error;
 use std::collections::HashMap;
@@ -65,7 +64,7 @@ pub fn extract_7zip_file<CP>(
     event_listener: Arc<dyn TinicSuperEventListener>,
     mut before_extraction: CP,
 ) where
-    CP: FnMut(FileProgress) -> SevenZipBeforeExtractionAction,
+    CP: FnMut(String, &Arc<dyn TinicSuperEventListener>) -> SevenZipBeforeExtractionAction,
 {
     let dest_path = PathBuf::from(dest);
     let mut used_names = HashMap::<String, usize>::new();
@@ -94,7 +93,7 @@ pub fn extract_7zip_file<CP>(
             };
             *count += 1;
 
-            let action = before_extraction(FileProgress::Extract(final_name.clone()));
+            let action = before_extraction(final_name.clone(), &event_listener);
 
             match action {
                 SevenZipBeforeExtractionAction::Jump => {

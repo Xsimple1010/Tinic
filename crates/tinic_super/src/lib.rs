@@ -11,13 +11,13 @@ mod tools;
 
 pub use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
 pub use rdb_manager::game_identifier::GameIdentifier;
-pub use tools::download::FileProgress;
+pub use tools::download::DownloadProgress;
 
 #[cfg(test)]
 mod test {
     use crate::{
         event::TinicSuperEventListener, infos::model::CoreInfo, rdb_manager::game_model::GameInfo,
-        tinic_super::TinicSuper,
+        tinic_super::TinicSuper, tools::download::DownloadProgress,
     };
     use generics::retro_paths::RetroPaths;
     use std::{collections::HashSet, path::PathBuf, sync::Arc};
@@ -25,20 +25,26 @@ mod test {
     struct TinicSuperListener;
 
     impl TinicSuperEventListener for TinicSuperListener {
-        fn downloading(&self, file_name: String, percent: f32) {
-            println!("{file_name}: {percent}%")
+        fn downloading(&self, progress: DownloadProgress) {
+            match progress {
+                DownloadProgress::Started(file_name) => println!("{file_name}: started"),
+                DownloadProgress::Progress(file_name, percent) => {
+                    println!("{file_name}: {percent}%")
+                }
+                DownloadProgress::Completed(file_name) => println!("{file_name}: completed"),
+            }
         }
 
         fn extract_file(&self, file_name: String) {
             println!("extracting: {file_name}")
         }
 
-        fn download_completed(&self, file_name: String) {
-            println!("{file_name} downloaded")
-        }
-
         fn rdb_read(&self, game_info: Vec<GameInfo>) {
             println!("{game_info:?}")
+        }
+
+        fn core_installed(&self, core_name: String) {
+            println!("{core_name} installed")
         }
     }
 

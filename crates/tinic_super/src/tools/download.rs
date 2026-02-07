@@ -6,9 +6,10 @@ use tokio::fs;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
-pub enum FileProgress {
-    Download(String, f32),
-    Extract(String),
+pub enum DownloadProgress {
+    Started(String),
+    Progress(String, f32),
+    Completed(String),
 }
 
 pub async fn download_file(
@@ -37,7 +38,7 @@ pub async fn download_file(
     let need_update = !dest.exists();
 
     if !need_update && !force_update {
-        event_listener.download_completed(file_name.to_string());
+        event_listener.downloading(DownloadProgress::Completed(file_name.to_string()));
         return Ok(dest);
     }
 
@@ -47,6 +48,8 @@ pub async fn download_file(
     let total_size = response.content_length().unwrap_or(0);
     let mut stream = response.bytes_stream();
 
+    event_listener.downloading(DownloadProgress::Started(file_name.to_string()));
+
     while let Some(chunk) = stream.next().await {
         let chunk = chunk.map_err(|e| tokio::io::Error::new(tokio::io::ErrorKind::Other, e))?;
         file.write_all(&chunk).await?;
@@ -55,11 +58,14 @@ pub async fn download_file(
 
         if total_size > 0 {
             let progress = (downloaded as f32 / total_size as f32) * 100.0;
-            event_listener.downloading(file_name.to_string(), progress.min(100.0));
+            event_listener.downloading(DownloadProgress::Progress(
+                file_name.to_string(),
+                progress.min(100.0),
+            ));
         }
     }
 
-    event_listener.download_completed(file_name.to_string());
+    event_listener.downloading(DownloadProgress::Completed(file_name.to_string()));
 
     Ok(dest)
 }
