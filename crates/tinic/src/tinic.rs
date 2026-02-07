@@ -97,7 +97,7 @@ impl Tinic {
     }
 
     pub async fn quit(&mut self) -> bool {
-        if self.game_thread.is_running.load(Ordering::SeqCst) {
+        if self.game_thread.is_running() {
             self.core_options.take();
             CHANNEL.quit().await
         } else {

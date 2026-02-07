@@ -10,7 +10,7 @@ use std::{
 };
 
 pub struct GameThread {
-    pub is_running: Arc<AtomicBool>,
+    is_running: Arc<AtomicBool>,
     controller_ctx: Arc<Mutex<RetroController>>,
 }
 
@@ -31,6 +31,10 @@ impl GameThread {
         self.spawn_game_thread(channel_notify);
 
         Ok(())
+    }
+
+    pub fn is_running(&self) -> bool {
+        self.is_running.load(Ordering::SeqCst)
     }
 
     fn spawn_game_thread(&self, channel_notify: ChannelNotify) {
