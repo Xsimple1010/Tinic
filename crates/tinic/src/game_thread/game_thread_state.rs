@@ -97,9 +97,9 @@ impl ThreadState {
                 let mut img_path: PathBuf = saved_path.clone();
                 img_path.set_extension(SAVE_IMAGE_EXTENSION_FILE);
 
-                if let Ok(path) = retro_av.video.print_screen(&img_path, &retro_core.av_info) {
-                    img_path = path;
-                };
+                retro_av
+                    .video
+                    .print_screen(&img_path, &retro_core.av_info)?;
 
                 self.channel_notify
                     .notify_main_stack(GameStateSaved(Some((saved_path, img_path))));
@@ -180,7 +180,6 @@ impl ThreadState {
         match &self.retro_core {
             Some(retro_core) => Ok(retro_core.clone()),
             None => Err(ErroHandle {
-                 
                 message: "erro ao tentar recuperar retro_core".to_string(),
             }),
         }
@@ -190,7 +189,6 @@ impl ThreadState {
         match &self.retro_av {
             Some(retro_av) => Ok(retro_av),
             None => Err(ErroHandle {
-                 
                 message: "erro ao tentar recuperar retro_av".to_string(),
             }),
         }

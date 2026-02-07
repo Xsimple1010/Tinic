@@ -117,11 +117,7 @@ impl RetroVideo {
         Ok(())
     }
 
-    pub fn print_screen(
-        &self,
-        out_path: &Path,
-        av_info: &Arc<AvInfo>,
-    ) -> Result<PathBuf, ErroHandle> {
+    pub fn print_screen(&self, out_path: &Path, av_info: &Arc<AvInfo>) -> Result<(), ErroHandle> {
         PrintScree::take(
             &*self.texture.try_load()?,
             av_info,

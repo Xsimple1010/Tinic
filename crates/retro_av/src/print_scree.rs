@@ -16,7 +16,7 @@ impl PrintScree {
         raw_texture: &UnsafeCell<RawTextureData>,
         av_info: &Arc<AvInfo>,
         out_path: &mut PathBuf,
-    ) -> Result<PathBuf, ErroHandle> {
+    ) -> Result<(), ErroHandle> {
         match &*av_info.video.pixel_format.read().unwrap() {
             retro_pixel_format::RETRO_PIXEL_FORMAT_XRGB8888 => {
                 PrintScree::_from_xrgb8888(raw_texture, out_path)
@@ -32,7 +32,7 @@ impl PrintScree {
     fn _from_xrgb8888(
         raw_texture: &UnsafeCell<RawTextureData>,
         out_path: &mut PathBuf,
-    ) -> Result<PathBuf, ErroHandle> {
+    ) -> Result<(), ErroHandle> {
         let raw_texture = unsafe { raw_texture.get().read() };
 
         let buffer: &[u8] = unsafe {
@@ -65,6 +65,6 @@ impl PrintScree {
             .map_err(|e| e.to_string())
             .unwrap();
 
-        Ok(out_path.clone())
+        Ok(())
     }
 }
