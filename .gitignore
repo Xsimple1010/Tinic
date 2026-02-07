@@ -1,6 +1,4 @@
 /target
 /test_workspace
-*.so
-*.dll
 *.sqlite
 *.db
