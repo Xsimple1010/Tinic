@@ -19,26 +19,20 @@ async fn main() {
         }
         FileProgress::Extract(file_name) => println!("extracting: {file_name}"),
     };
+    let on_progress = Arc::new(on_progress);
 
     tinic_super
-        .install_cores(&core_infos, false, Arc::new(on_progress))
+        .install_cores(&core_infos, false, on_progress.clone())
         .await
         .unwrap();
 
     let (game_info, rdb) = tinic_super.identifier_rom_file(rom, &core_infos).unwrap();
 
-    let on_img_progress = |progress| match progress {
-        FileProgress::Download(file_name, percent) => {
-            println!("{file_name}: {percent}%")
-        }
-        FileProgress::Extract(file_name) => println!("extracting: {file_name}"),
-    };
-
     tinic_super
         .download_all_thumbnail_from_game(
             &rdb.name.replace(".rdb", ""),
             &game_info.name.unwrap(),
-            Arc::new(on_img_progress),
+            on_progress,
         )
         .await;
 }
