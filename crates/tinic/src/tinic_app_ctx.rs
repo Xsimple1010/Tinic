@@ -1,4 +1,4 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{path::Path, sync::Arc};
 
 use generics::{
     constants::SAVE_IMAGE_EXTENSION_FILE, erro_handle::ErroHandle, retro_paths::RetroPaths,
@@ -111,7 +111,7 @@ impl TinicAppCtx {
         Ok(())
     }
 
-    pub fn print_screen(&self, out_path: &PathBuf) -> Result<(), ErroHandle> {
+    pub fn print_screen(&self, out_path: &Path) -> Result<(), ErroHandle> {
         self.retro_av.print_screen(out_path)
     }
 

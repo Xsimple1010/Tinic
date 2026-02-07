@@ -33,20 +33,13 @@ impl Tinic {
 
     pub fn build(
         &mut self,
-        core_path: &String,
-        rom_path: &String,
+        core_path: String,
+        rom_path: String,
         retro_paths: RetroPaths,
     ) -> Result<TinicApp, ErroHandle> {
-        let ctx = TinicAppCtx::new(
-            retro_paths,
-            core_path.clone(),
-            rom_path.clone(),
-            self.controller.clone(),
-        )?;
+        let ctx = TinicAppCtx::new(retro_paths, core_path, rom_path, self.controller.clone())?;
 
-        let app = TinicApp::new(ctx);
-
-        Ok(app)
+        Ok(TinicApp::new(ctx))
     }
 
     pub fn run(&mut self, mut tinic_app: TinicApp) -> Result<(), ErroHandle> {

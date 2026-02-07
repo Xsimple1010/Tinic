@@ -47,7 +47,7 @@ impl RetroAv {
     }
 
     pub fn redraw_request(&self) -> Result<(), ErroHandle> {
-        Ok(self.video.request_redraw()?)
+        self.video.request_redraw()
     }
 
     pub fn get_new_frame(&mut self) -> Result<(), ErroHandle> {

@@ -80,7 +80,7 @@ impl Render {
             self.gl.Viewport(0, 0, win_width, win_height);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
-            self._texture.push(&texture);
+            self._texture.push(texture);
             self._program.use_program();
             self._texture.active();
 

@@ -31,8 +31,8 @@ impl Texture2D {
         }
     }
 
-    pub fn push(&self, raw_data: &RawTextureData) {
-        let param = raw_data.pitch as i32 / self.pixel.bpm;
+    pub fn push(&self, texture: &RawTextureData) {
+        let param = texture.pitch as i32 / self.pixel.bpm;
 
         unsafe {
             self.gl.BindTexture(gl::TEXTURE0, self.id);
@@ -42,11 +42,11 @@ impl Texture2D {
                 0,
                 0,
                 0,
-                raw_data.width as i32,
-                raw_data.height as i32,
+                texture.width as i32,
+                texture.height as i32,
                 self.pixel.typ,
                 self.pixel.format,
-                raw_data.data.get().read(),
+                texture.data.get().read(),
             );
             self.gl.BindTexture(gl::TEXTURE0, 0);
         }

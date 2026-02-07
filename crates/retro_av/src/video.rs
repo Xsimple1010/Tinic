@@ -42,12 +42,6 @@ pub trait RetroVideoAPi {
 
     fn draw_new_frame(&self, texture: &RawTextureData, geo: &Geometry);
 
-    #[doc = "define um novo tamanho para a janela.
-        ```
-        resize((width, height))
-        ```
-    "]
-
     fn get_proc_address(&self, proc_name: &str) -> *const ();
 
     fn set_full_screen(&mut self, mode: Fullscreen);
