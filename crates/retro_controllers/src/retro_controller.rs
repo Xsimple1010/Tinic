@@ -8,7 +8,6 @@ use retro_core::RetroControllerEnvCallbacks;
 use std::sync::Arc;
 use winit::keyboard::PhysicalKey;
 
-#[derive(Debug)]
 pub struct RetroController {
     event_thread: EventThread,
     manager: Arc<DevicesManager>,
