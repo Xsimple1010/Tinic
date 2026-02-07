@@ -1,113 +1,116 @@
+
 # 🗂️ Tinic Super
 
-O **Tinic Super** é o módulo responsável por gerenciar todos os **recursos externos e metadados** usados pelo Tinic.
+**Tinic Super** is the module responsible for managing all **external resources and metadata** used by Tinic.
 
-Ele não executa cores Libretro diretamente — em vez disso, atua como a **camada de gerenciamento de dados**, organizando, baixando e mantendo tudo que o Tinic precisa para funcionar.
-
----
-
-## 🎯 Responsabilidade Principal
-
-O Tinic Super cuida de **arquivos essenciais do ecossistema Tinic**, incluindo:
-
-- 🎮 Cores Libretro  
-- 🖼 Thumbnails (capas, screenshots, títulos)  
-- 🗄️ Bancos de dados de jogos (RDB)  
-- ℹ️ Arquivos de informação de cores (`.info`)  
-- 💾 (Futuro) Save states e dados persistentes  
-
-Ele garante que esses recursos estejam:  
-✔ Organizados  
-✔ Atualizados  
-✔ Disponíveis localmente  
-✔ Prontos para uso pelo Tinic  
+It does not run Libretro cores directly — instead, it acts as the **data management layer**, organizing, downloading, and maintaining everything Tinic needs to function.
 
 ---
 
-## 🧩 O Que Ele Gerencia
+## 🎯 Main Responsibility
 
-### 🧠 Cores Libretro
-- Download de cores compatíveis
-- Organização por sistema/plataforma
-- Base para controle de versões e atualizações futuras
+Tinic Super handles **essential files from the Tinic ecosystem**, including:
+
+- 🎮 Libretro cores  
+- 🖼 Thumbnails (box art, screenshots, title images)  
+- 🗄️ Game databases (RDB)  
+- ℹ️ Core information files (`.info`)  
+- 💾 (Future) Save states and persistent data  
+
+It ensures these resources are:  
+✔ Organized  
+✔ Up to date  
+✔ Available locally  
+✔ Ready for use by Tinic  
+
+---
+
+## 🧩 What It Manages
+
+### 🧠 Libretro Cores
+- Downloading compatible cores  
+- Organizing them by system/platform  
+- Laying the groundwork for version control and future updates  
 
 ### 🖼 Thumbnails
-- Capas de jogos
-- Títulos estilizados
-- Screenshots
+- Game box art  
+- Stylized title images  
+- Screenshots  
 
 ### 🗄️ RDB (Retro Database)
-Bancos de dados com metadados de jogos, como:
-- Nome oficial
-- Desenvolvedor
-- Ano de lançamento
-- Gênero
-- Região
-- CRC para identificação automática
+Databases containing game metadata such as:
+- Official name  
+- Developer  
+- Release year  
+- Genre  
+- Region  
+- CRC for automatic identification  
 
-### ℹ️ Arquivos `.info` de Cores
-Arquivos que descrevem os cores, contendo:
-- Nome do sistema
-- Extensões suportadas
-- Necessidade de BIOS
-- Suporte a save states
-- Outras capacidades do core
+### ℹ️ Core `.info` Files
+Files that describe cores, including:
+- System name  
+- Supported extensions  
+- BIOS requirements  
+- Save state support  
+- Other core capabilities  
 
-O Tinic Super usa esses dados para que o Tinic saiba **como tratar cada core corretamente**.
-
----
-
-## 🌐 Sistema de Downloads
-
-O Tinic Super pode buscar recursos online, como:
-
-- 📦 Cores Libretro  
-- 🗄️ Arquivos RDB  
-- 🖼 Pacotes de thumbnails  
-- ℹ️ Arquivos `.info`  
+Tinic Super uses this data so Tinic knows **how to properly handle each core**.
 
 ---
 
-## 🧱 Estrutura de Diretórios
+## 🌐 Download System
 
-O Tinic Super define e gerencia a estrutura padrão de pastas usada pelo Tinic:
+Tinic Super can fetch resources online, such as:
+
+- 📦 Libretro cores  
+- 🗄️ RDB files  
+- 🖼 Thumbnail packs  
+- ℹ️ `.info` files  
+
+---
+
+## 🧱 Directory Structure
+
+Tinic Super defines and manages the standard folder structure used by Tinic:
 
 ```
+
 tinic/
- ├── cores/
- ├── rdb/
- ├── thumbnails/
- ├── info/
- ├── system/        (BIOS e firmwares)
- └── saves/         (futuro)
+├── cores/
+├── rdb/
+├── thumbnails/
+├── info/
+├── system/        (BIOS and firmware)
+└── saves/         (future)
+
 ```
 
-Isso garante organização consistente em qualquer plataforma.
+This ensures consistent organization across any platform.
 
 ---
 
-## 🔄 Integração com o Tinic
+## 🔄 Integration with Tinic
 
-O Tinic Super fornece ao Tinic:
+Tinic Super provides Tinic with:
 
-| Recurso | Uso no Tinic |
-|--------|---------------|
-| Core | Executar jogos |
-| RDB | Identificar e mostrar metadados |
-| Thumbnails | Interface visual da biblioteca |
-| Info | Saber como configurar o core |
-| (Futuro) Save states | Continuidade do jogo |
+| Resource | Usage in Tinic |
+|----------|----------------|
+| Core | Run games |
+| RDB | Identify and display metadata |
+| Thumbnails | Visual library interface |
+| Info | Know how to configure the core |
+| (Future) Save states | Game continuity |
 
-Ele atua como a **camada de dados e suporte**, enquanto o Tinic foca na execução, interface e experiência do usuário.
+It acts as the **data and support layer**, while Tinic focuses on execution, interface, and user experience.
 
 ---
 
-## 💡 Filosofia
+## 💡 Philosophy
 
-O Tinic Super existe para que o Tinic:
+Tinic Super exists so that Tinic:
 
-- Não precise se preocupar com arquivos espalhados  
-- Tenha tudo organizado automaticamente  
-- Seja escalável para muitos sistemas e jogos  
+- Doesn’t have to worry about scattered files  
+- Keeps everything automatically organized  
+- Remains scalable for many systems and games  
 
-Ele é a **infraestrutura silenciosa** que mantém o ecossistema Tinic funcionando redondo. ⚙️✨
+It is the **silent infrastructure** that keeps the Tinic ecosystem running smoothly. ⚙️✨
