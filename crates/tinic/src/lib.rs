@@ -17,3 +17,4 @@ pub use retro_controllers::{
 };
 pub use retro_core::{args_manager, test_tools};
 pub use tinic::Tinic;
+pub use tinic_app::GameInstance;
