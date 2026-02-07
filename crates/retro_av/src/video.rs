@@ -1,7 +1,9 @@
 use crate::{print_scree::PrintScree, retro_gl::window::GlWindow};
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::{
-    retro_hw_context_type::{RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL_CORE},
+    retro_hw_context_type::{
+        RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
+    },
     retro_log_level,
 };
 use retro_core::core::AvInfo;
@@ -56,7 +58,7 @@ pub trait RetroVideoAPi {
 
     fn draw_new_frame(&self, texture: &RawTextureData);
 
-    #[doc = "define um novo tamanho para a janela. 
+    #[doc = "define um novo tamanho para a janela.
         ```
         resize((width, height))
         ```
@@ -87,7 +89,7 @@ impl RetroVideo {
     //noinspection RsPlaceExpression
     pub fn new(sdl: &Sdl, av_info: &Arc<AvInfo>) -> Result<Self, ErroHandle> {
         match &av_info.video.graphic_api.context_type {
-            RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_NONE => {
+            RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_OPENGL | RETRO_HW_CONTEXT_NONE => {
                 unsafe { WINDOW_CTX = Some(Box::new(GlWindow::new(sdl, av_info)?)) }
 
                 Ok(Self {
@@ -147,7 +149,7 @@ impl RetroVideo {
         }
     }
 
-    pub fn full_screen(&self) {
+    pub fn enable_full_screen(&self) {
         unsafe {
             if let Some(window) = &mut *addr_of_mut!(WINDOW_CTX) {
                 window.enable_full_screen()

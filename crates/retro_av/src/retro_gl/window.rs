@@ -1,9 +1,14 @@
 use super::{gl::gl, render::Render};
 use crate::video::RetroVideoAPi;
 use generics::erro_handle::ErroHandle;
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
+use libretro_sys::binding_libretro::{
+    retro_hw_context_type::{
+        RETRO_HW_CONTEXT_NONE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGL_CORE,
+    },
+    retro_log_level::RETRO_LOG_ERROR,
+};
 use retro_core::core::AvInfo;
-use sdl2::video::FullscreenType;
+use sdl2::video::FullScreenType;
 use sdl2::{
     video::{GLContext, GLProfile, Window},
     Sdl, VideoSubsystem,
@@ -64,11 +69,11 @@ impl RetroVideoAPi for GlWindow {
     }
 
     fn enable_full_screen(&mut self) {
-        self.window.set_fullscreen(FullscreenType::True).unwrap()
+        self.window.set_fullscreen(FullScreenType::True).unwrap()
     }
 
     fn disable_full_screen(&mut self) {
-        self.window.set_fullscreen(FullscreenType::Off).unwrap()
+        self.window.set_fullscreen(FullScreenType::Off).unwrap()
     }
 }
 
@@ -84,9 +89,33 @@ impl GlWindow {
             }
         };
 
+        let graphic_api = &av_info.video.graphic_api;
         let gl_attr = video.gl_attr();
-        gl_attr.set_context_profile(GLProfile::Core);
-        gl_attr.set_context_version(3, 2);
+
+        match graphic_api.context_type {
+            RETRO_HW_CONTEXT_OPENGL_CORE | RETRO_HW_CONTEXT_NONE => {
+                gl_attr.set_context_profile(GLProfile::Core);
+            }
+            RETRO_HW_CONTEXT_OPENGL => {
+                gl_attr.set_context_profile(GLProfile::Compatibility);
+            }
+            _ => {
+                return Err(ErroHandle {
+                    level: RETRO_LOG_ERROR,
+                    message: "api selecionado nao e compativel".to_string(),
+                })
+            }
+        }
+
+        let mut major = graphic_api.major.load(Ordering::SeqCst) as u8;
+        let mut minor = graphic_api.minor.load(Ordering::SeqCst) as u8;
+
+        if major == 0 {
+            major = 3;
+            minor = 2;
+        }
+
+        gl_attr.set_context_version(major, minor);
 
         let geo = &av_info.video.geometry;
 
@@ -112,8 +141,8 @@ impl GlWindow {
                 let _ = video.gl_set_swap_interval(1);
 
                 let result = window.set_minimum_size(
-                    av_info.video.geometry.base_width.load(Ordering::SeqCst),
-                    av_info.video.geometry.base_height.load(Ordering::SeqCst),
+                    geo.base_width.load(Ordering::SeqCst),
+                    geo.base_height.load(Ordering::SeqCst),
                 );
 
                 if let Err(e) = result {
