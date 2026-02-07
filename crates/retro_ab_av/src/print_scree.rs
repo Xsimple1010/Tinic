@@ -1,4 +1,5 @@
 use crate::video::RawTextureData;
+use generics::constants::SAVE_IMAGE_EXTENSION_FILE;
 use generics::erro_handle::ErroHandle;
 use image::{ImageBuffer, RgbImage};
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
@@ -59,7 +60,7 @@ impl PrintScree {
         let img: RgbImage =
             ImageBuffer::from_raw(raw_texture.width, raw_texture.height, img_buffer).unwrap();
 
-        out_path.push(file_name.to_owned() + "png");
+        out_path.push(file_name.to_owned() + SAVE_IMAGE_EXTENSION_FILE);
 
         img.save(Path::new(out_path))
             .map_err(|e| e.to_string())
