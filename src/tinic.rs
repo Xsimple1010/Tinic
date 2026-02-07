@@ -1,3 +1,4 @@
+use retro_ab::erro_handle::ErroHandle;
 use retro_ab::paths::Paths;
 use retro_ab_gamepad::context::GamepadContext;
 use retro_ab_gamepad::retro_gamepad::RetroGamePad;
@@ -60,7 +61,7 @@ impl Tinic {
         core_path: String,
         rom_path: String,
         paths: Paths,
-    ) -> Result<(), String> {
+    ) -> Result<(), ErroHandle> {
         self.game_thread.start(core_path, rom_path, paths)
     }
 

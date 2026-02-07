@@ -2,10 +2,9 @@ use crate::retro_stack::{
     RetroStack,
     StackCommand::{GamepadConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState},
 };
-use retro_ab::core::RetroEnvCallbacks;
-use retro_ab::retro_context::RetroContext;
+use retro_ab::{core::RetroEnvCallbacks, retro_ab::RetroAB, retro_sys::retro_hw_context_type};
 use retro_ab_av::{
-    audio_sample_batch_callback, audio_sample_callback, context::RetroAvCtx,
+    audio_sample_batch_callback, audio_sample_callback, get_proc_address, retro_av::RetroAvCtx,
     video_refresh_callback, EventPump,
 };
 use retro_ab_gamepad::context::{
@@ -13,9 +12,11 @@ use retro_ab_gamepad::context::{
 };
 use std::sync::{Arc, Mutex};
 
+fn teste() {}
+
 pub fn stack_commands_handle(
     stack: &Arc<RetroStack>,
-    core_ctx: &mut Option<Arc<RetroContext>>,
+    core_ctx: &mut Option<RetroAB>,
     controller_ctx: &Arc<Mutex<GamepadContext>>,
     av_ctx: &mut Option<(RetroAvCtx, EventPump)>,
     pause_request_new_frames: &mut bool,
@@ -40,20 +41,28 @@ pub fn stack_commands_handle(
                     input_state_callback,
                     video_refresh_callback,
                     rumble_callback,
+                    get_proc_address,
+                    context_destroy: teste,
+                    context_reset: teste,
                 };
 
-                let ctx = RetroContext::new(&core_path, paths, callbacks);
+                let ctx = RetroAB::new(
+                    &core_path,
+                    paths,
+                    callbacks,
+                    retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE,
+                );
 
                 //TODO: criar uma macro para fazer isso parecer um pouco melhor
                 match ctx {
-                    Ok(ctx) => match ctx.core.load_game(&rom_path) {
+                    Ok(ctx) => match ctx.core().load_game(&rom_path) {
                         Ok(loaded) => {
                             if loaded {
                                 if let Ok(mut controller) = controller_ctx.lock() {
                                     controller.stop_thread_events();
                                 }
 
-                                match RetroAvCtx::new(ctx.core.av_info.clone()) {
+                                match RetroAvCtx::new(ctx.core().av_info.clone()) {
                                     Ok(ctx) => {
                                         av_ctx.replace(ctx);
                                     }
@@ -96,9 +105,9 @@ pub fn stack_commands_handle(
             }
             Reset => {
                 if let Some(ctx) = &core_ctx {
-                    if let Err(e) = ctx.core.reset() {
+                    if let Err(e) = ctx.core().reset() {
                         println!("{:?}", e);
-                        if let Err(e) = ctx.core.de_init() {
+                        if let Err(e) = ctx.core().de_init() {
                             println!("{:?}", e)
                         };
 
@@ -109,7 +118,7 @@ pub fn stack_commands_handle(
             GamepadConnected(gamepad) => {
                 if let Some(ctx) = core_ctx {
                     let _ = ctx
-                        .core
+                        .core()
                         .connect_controller(gamepad.retro_port as u32, gamepad.retro_type);
                 }
             }

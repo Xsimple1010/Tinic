@@ -1,28 +1,19 @@
-use std::{env, io};
-use tinic::{self, args_manager, test_tools, GamePadState, RetroGamePad, Tinic};
+use retro_ab::erro_handle::ErroHandle;
+use std::io;
+use tinic::{
+    self, args_manager::RetroArgs, test_tools::paths::get_paths, GamePadState, RetroGamePad, Tinic,
+};
 
 fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
     println!("{:?} - {:?}", _gamepad.name, state);
 }
 
-fn main() -> Result<(), String> {
-    let args = args_manager::get_values(env::args().collect());
-
-    let (_, core_path) = args
-        .get_key_value("core")
-        .expect("O caminho para o core nao foi fornecido tente --core=caminho_pra_core_aqui!");
-
-    let (_, rom_path) = args
-        .get_key_value("rom")
-        .expect("O caminho para o rom nao foi fornecido tente --rom=caminho_pra_rom_aqui!");
+fn main() -> Result<(), ErroHandle> {
+    let args = RetroArgs::new()?;
 
     let mut tinic = Tinic::new(Some(gamepad_state_listener));
 
-    tinic.load_core(
-        core_path.clone(),
-        rom_path.clone(),
-        test_tools::paths::get_paths(),
-    )?;
+    tinic.load_core(args.core, args.rom, get_paths()?)?;
 
     'running: loop {
         println!("Para interagir digite o numero de um dos comandos disponíveis!");
@@ -33,7 +24,6 @@ fn main() -> Result<(), String> {
         println!("4: resume");
         println!("5: reset");
         println!("6: stop rom");
-        println!("7: load rom");
 
         let mut command = String::new();
 
@@ -54,14 +44,6 @@ fn main() -> Result<(), String> {
                     tinic.reset();
                 } else if command.starts_with("6") {
                     tinic.quit();
-                } else if command.starts_with("7") {
-                    if let Err(e) = tinic.load_core(
-                        core_path.clone(),
-                        rom_path.clone(),
-                        test_tools::paths::get_paths(),
-                    ) {
-                        println!("{:?}", e);
-                    }
                 }
 
                 println!();

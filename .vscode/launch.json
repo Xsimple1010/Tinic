@@ -11,16 +11,16 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--example=example",
+                    "--example=tinic_example",
                 ],
                 "filter": {
-                    "name": "example",
+                    "name": "tinic_example",
                     "kind": "example"
                 }
                 
             },
             "args": [
-                "--core=cores/snes9x_libretro.dll",
+                "--core=cores/test.dll",
                 "--rom=roms/Mega Man X (E).smc"
             ],
             "cwd": "${workspaceFolder}"
