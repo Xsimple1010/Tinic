@@ -1,5 +1,6 @@
 use super::ffi_tools::make_c_string;
 use crate::system::SysInfo;
+use generics::constants::SAVE_EXTENSION_FILE;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use libretro_sys::binding_libretro::{retro_game_info, LibretroRaw};
@@ -56,7 +57,7 @@ fn get_save_path(
         fs::create_dir_all(&path).unwrap();
     }
 
-    let file_name = format!("{}.save", slot);
+    let file_name = format!("{}.{}", slot, SAVE_EXTENSION_FILE);
     path.push(file_name);
 
     Ok(path)

@@ -11,6 +11,7 @@ pub const CORE_OPTION_EXTENSION_FILE: &str = "opt";
 pub const DEFAULT_MAX_PORT: usize = 2;
 pub const INVALID_CONTROLLER_PORT: i16 = -1;
 pub const SAVE_IMAGE_EXTENSION_FILE: &str = "png";
+pub const SAVE_EXTENSION_FILE: &str = "save";
 
 //URLS
 pub const CORE_INFOS_URL: &str = "https://buildbot.libretro.com/assets/frontend/info.zip";
