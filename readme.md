@@ -141,7 +141,7 @@ https://github.com/Xsimple1010/retronic/tree/master/native
 
 # 🔨 Ferramentas auxiliares
 
-Assim como o **retroarch**, tinic também preciso de lidar com arquivos externos como 
+Assim como o **retroarch**, tinic também precisa de arquivos externos como 
 **RDB (banco de dados com coleções de ROMs), Thumbnails, arquivos de informações dos cores e claro os savestates**.
 
 ### 🗂️ Tinic Super
