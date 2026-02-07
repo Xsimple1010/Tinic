@@ -95,14 +95,16 @@ fn spawn_game_thread(
             ) {
                 break;
             } else if !pause_request_new_frames {
-                if let Some(core_ctx) = &core_ctx {
-                    if let Err(e) = core::run(core_ctx) {
-                        println!("{:?}", e);
-                        break;
-                    };
+                if let Some((av, _)) = &mut av_ctx {
+                    if av.sync() {
+                        if let Some(core_ctx) = &core_ctx {
+                            if let Err(e) = core::run(core_ctx) {
+                                println!("{:?}", e);
+                                break;
+                            };
+                        }
 
-                    if let Some((av, _)) = &mut av_ctx {
-                        av.get_new_frame();
+                        av.get_new_frame().unwrap();
                     }
                 }
             }
@@ -114,7 +116,7 @@ fn spawn_game_thread(
 
         //TODO: preciso adiciona Drop ao RetroContext
         if let Some(core_ctx) = core_ctx.take() {
-            let _ = retro_ab::core::de_init(core_ctx);
+            let _ = core::de_init(core_ctx);
         };
 
         //TODO: isso pode fica na stack_handle

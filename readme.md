@@ -20,7 +20,7 @@ Gerencia os controles conectados.
 
 ## Exemplo
 
-Primeiro instale o sdl_rs (se tiver dúvidas pode seguir o passo a passo fornecido pelos desenvolvedores do projeto [aqui!](https://github.com/Rust-SDL2/rust-sdl2?tab=readme-ov-file#windows-msvc)). em seguida crie essa estrutura de pastas no diretório raiz do projeto.
+Primeiro instale o sdl_rs (se tiver dúvidas pode seguir o passo a passo fornecido pelos desenvolvedores do projeto [aqui!](https://github.com/Rust-SDL2/rust-sdl2?tab=readme-ov-file#windows-msvc)). Em seguida crie essa estrutura de pastas no diretório raiz do projeto.
 
 ```
 // isso tem que está no diretório raiz do projeto!

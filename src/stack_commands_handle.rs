@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use retro_ab::core::{self, RetroContext, RetroEnvCallbacks};
 use retro_ab_av::{
     audio_sample_batch_callback, audio_sample_callback, context::RetroAvCtx,
@@ -8,6 +6,7 @@ use retro_ab_av::{
 use retro_ab_gamepad::context::{
     input_poll_callback, input_state_callback, rumble_callback, GamepadContext,
 };
+use std::sync::{Arc, Mutex};
 
 use crate::retro_stack::{
     RetroStack,
@@ -95,7 +94,7 @@ pub fn stack_commands_handle(
                 }
             }
             Resume => {
-                //como a rom estará em execução é necessário interromper a thread de eventos
+                //como a Rom estará em execução é necessário interromper a thread de eventos
                 if let Ok(mut controller) = controller_ctx.lock() {
                     controller.stop_thread_events();
                     *pause_request_new_frames = false
