@@ -71,7 +71,7 @@ impl AvInfo {
         }
     }
 
-    pub fn try_set_new_geometry(&self, raw_geometry_ptr: *const retro_game_geometry) {
+    pub unsafe fn try_set_new_geometry(&self, raw_geometry_ptr: *const retro_game_geometry) {
         if raw_geometry_ptr.is_null() {
             return;
         }
@@ -124,9 +124,8 @@ impl AvInfo {
 
         unsafe {
             core_raw.retro_get_system_av_info(&mut raw_av_info);
+            self.try_set_new_geometry(&raw_av_info.geometry);
+            self._set_timing(&raw_av_info.timing);
         }
-
-        self.try_set_new_geometry(&raw_av_info.geometry);
-        self._set_timing(&raw_av_info.timing);
     }
 }
