@@ -20,4 +20,4 @@ pub use sdl2::EventPump;
 pub use retro_av::RetroAv;
 
 pub use audios::{audio_sample_batch_callback, audio_sample_callback};
-pub use video::{get_proc_address, video_refresh_callback};
+pub use video::{context_destroy, context_reset, get_proc_address, video_refresh_callback};

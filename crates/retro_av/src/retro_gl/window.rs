@@ -68,6 +68,14 @@ impl RetroVideoAPi for GlWindow {
         self.video.gl_get_proc_address(proc_name)
     }
 
+    fn context_destroy(&mut self) {
+        println!("context_destroy");
+    }
+
+    fn context_reset(&mut self) {
+        println!("context_reset");
+    }
+
     fn enable_full_screen(&mut self) {
         self.window.set_fullscreen(FullScreenType::True).unwrap()
     }

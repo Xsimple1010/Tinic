@@ -33,6 +33,7 @@ static mut RAW_TEX_POINTER: RawTextureData = RawTextureData {
 
 //noinspection RsPlaceExpression
 pub fn video_refresh_callback(data: *const c_void, width: c_uint, height: c_uint, pitch: usize) {
+    println!("video_refresh_callback");
     unsafe {
         RAW_TEX_POINTER = RawTextureData {
             data,
@@ -49,6 +50,22 @@ pub fn get_proc_address(proc_name: &str) -> *const () {
             window.get_proc_address(proc_name)
         } else {
             null()
+        }
+    }
+}
+
+pub fn context_destroy() {
+    unsafe {
+        if let Some(window) = &mut *addr_of_mut!(WINDOW_CTX) {
+            window.context_destroy();
+        }
+    }
+}
+
+pub fn context_reset() {
+    unsafe {
+        if let Some(window) = &mut *addr_of_mut!(WINDOW_CTX) {
+            window.context_reset();
         }
     }
 }
@@ -70,6 +87,10 @@ pub trait RetroVideoAPi {
     fn enable_full_screen(&mut self);
 
     fn disable_full_screen(&mut self);
+
+    fn context_destroy(&mut self);
+
+    fn context_reset(&mut self);
 }
 
 pub struct RetroVideo {
