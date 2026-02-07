@@ -1,11 +1,11 @@
 use retro_ab::erro_handle::ErroHandle;
 use std::io;
 use tinic::{
-    self, args_manager::RetroArgs, test_tools::paths::get_paths, GamePadState, RetroGamePad, Tinic,
+    self, args_manager::RetroArgs, test_tools::paths::get_paths, Device, DeviceState, Tinic,
 };
 
-fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
-    println!("{:?} - {:?}", _gamepad.name, state);
+fn gamepad_state_listener(state: DeviceState, device: Device) {
+    println!("{:?} - {:?}", device.name, state);
 }
 
 fn main() -> Result<(), ErroHandle> {

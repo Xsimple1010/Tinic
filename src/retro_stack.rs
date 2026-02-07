@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use retro_ab::paths::Paths;
-use retro_ab_gamepad::retro_gamepad::RetroGamePad;
+use retro_ab_gamepad::devices_manager::Device;
 
 //facilita o reconhecimento dos atributos usando a intellisense da ide
 type CorePath = String;
@@ -15,7 +15,7 @@ pub enum StackCommand {
     LoadState,
     Pause,
     Resume,
-    GamepadConnected(RetroGamePad),
+    GamepadConnected(Device),
     Quit,
     Reset,
 }

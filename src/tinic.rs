@@ -1,35 +1,33 @@
+use crate::game_thread::GameThread;
+use crate::retro_stack::{RetroStack, StackCommand};
 use retro_ab::erro_handle::ErroHandle;
 use retro_ab::paths::Paths;
-use retro_ab_gamepad::context::GamepadContext;
-use retro_ab_gamepad::retro_gamepad::RetroGamePad;
-use retro_ab_gamepad::{GamePadState, GamepadStateListener};
+use retro_ab_gamepad::devices_manager::{Device, DeviceState, DeviceStateListener};
+use retro_ab_gamepad::RetroAbController;
 use std::ptr::addr_of;
 use std::sync::{Arc, Mutex};
 
-use crate::game_thread::GameThread;
-use crate::retro_stack::{RetroStack, StackCommand};
-
-static mut GAMEPAD_LISTENER: Option<GamepadStateListener> = None;
+static mut CONTROLLER_STATE_LISTENER: Option<DeviceStateListener> = None;
 lazy_static! {
     static ref STACK: Arc<RetroStack> = RetroStack::new();
 }
 
-fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
+fn device_state_listener(state: DeviceState, device: Device) {
     unsafe {
-        if let Some(listener) = &*addr_of!(GAMEPAD_LISTENER) {
+        if let Some(listener) = &*addr_of!(CONTROLLER_STATE_LISTENER) {
             match &state {
-                GamePadState::Connected | GamePadState::Disconnected => {
-                    STACK.push(StackCommand::GamepadConnected(_gamepad.clone()));
+                DeviceState::Connected | DeviceState::Disconnected => {
+                    STACK.push(StackCommand::GamepadConnected(device.clone()));
                 }
                 _ => {}
             }
-            listener(state, _gamepad);
+            listener(state, device);
         };
     }
 }
 
 pub struct Tinic {
-    pub controller_ctx: Arc<Mutex<GamepadContext>>,
+    pub retro_ab_controller: Arc<Mutex<RetroAbController>>,
     game_thread: GameThread,
 }
 
@@ -40,19 +38,19 @@ impl Drop for Tinic {
 }
 
 impl Tinic {
-    pub fn new(listener: Option<GamepadStateListener>) -> Tinic {
+    pub fn new(listener: Option<DeviceStateListener>) -> Tinic {
         unsafe {
-            GAMEPAD_LISTENER = listener;
+            CONTROLLER_STATE_LISTENER = listener;
         }
 
-        let controller_ctx = Arc::new(Mutex::new(GamepadContext::new(Some(
-            gamepad_state_listener,
-        ))));
+        let retro_ab_controller = Arc::new(Mutex::new(
+            RetroAbController::new(Some(device_state_listener)).unwrap(),
+        ));
 
         Self {
             //TODO:o numero máximo de portas deve ser alterado no futuro
-            game_thread: GameThread::new(controller_ctx.clone(), STACK.clone()),
-            controller_ctx,
+            game_thread: GameThread::new(retro_ab_controller.clone(), STACK.clone()),
+            retro_ab_controller,
         }
     }
 
@@ -79,6 +77,10 @@ impl Tinic {
 
     pub fn load_state(&self) {
         STACK.push(StackCommand::LoadState);
+    }
+
+    pub fn connect_gamepad(device: Device) {
+        STACK.push(StackCommand::GamepadConnected(device));
     }
 
     pub fn reset(&self) {

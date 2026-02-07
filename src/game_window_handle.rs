@@ -5,7 +5,7 @@ use std::sync::Arc;
 pub fn game_window_handle(
     event_pump: &mut EventPump,
     stack: &Arc<RetroStack>,
-    pause_request_new_frames: &mut bool,
+    pause_request_new_frames: bool,
 ) {
     for event in event_pump.poll_iter() {
         match event {
@@ -26,7 +26,7 @@ pub fn game_window_handle(
                 keycode: Some(Keycode::F3),
                 ..
             } => {
-                if *pause_request_new_frames {
+                if pause_request_new_frames {
                     stack.push(StackCommand::Resume);
                 } else {
                     stack.push(StackCommand::Pause);

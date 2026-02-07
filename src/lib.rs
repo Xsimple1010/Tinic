@@ -5,14 +5,15 @@ extern crate retro_ab_av;
 extern crate retro_ab_gamepad;
 
 mod game_thread;
-mod game_thread_handle;
 mod game_window_handle;
 mod retro_stack;
 mod stack_commands_handle;
 mod tinic;
 
 pub use retro_ab::{args_manager, paths::Paths, test_tools};
+
 pub use retro_ab_gamepad::{
-    key_map::KeyMap, retro_gamepad::RetroGamePad, GamePadState, GamepadStateListener,
+    devices_manager::{Device, DeviceState, DeviceStateListener},
+    RetroAbController,
 };
 pub use tinic::Tinic;
