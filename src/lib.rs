@@ -10,9 +10,8 @@ mod retro_stack;
 mod stack_commands_handle;
 mod tinic;
 
-pub use retro_ab::args_manager;
-pub use retro_ab::paths::Paths;
-pub use retro_ab::test_tools;
-pub use retro_ab_gamepad::retro_gamepad::RetroGamePad;
-pub use retro_ab_gamepad::{GamePadState, GamepadStateListener};
+pub use retro_ab::{args_manager, paths::Paths, test_tools};
+pub use retro_ab_gamepad::{
+    key_map::KeyMap, retro_gamepad::RetroGamePad, GamePadState, GamepadStateListener,
+};
 pub use tinic::Tinic;
