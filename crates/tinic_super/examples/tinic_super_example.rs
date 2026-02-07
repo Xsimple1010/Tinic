@@ -1,7 +1,7 @@
 use generics::retro_paths::RetroPaths;
-use std::collections::HashSet;
 use std::ops::Not;
 use std::sync::Arc;
+use tinic_super::core_info::model::CoreInfo;
 use tinic_super::event::TinicSuperEventListener;
 use tinic_super::rdb_manager::game::GameInfo;
 use tinic_super::tinic_super::TinicSuper;
@@ -47,25 +47,13 @@ async fn main() {
         .get_compatibility_core_infos(&rom.into())
         .await;
 
-    let ccore_names: Vec<String> = core_infos
-        .clone()
-        .into_iter()
-        .map(|c| c.file_name)
-        .collect();
-    print!("{ccore_names:?}");
-    tinic_super.core_info_helper.install_core(ccore_names).await;
+    let core_names = CoreInfo::get_file_name(&core_infos);
+    tinic_super.core_info_helper.install_core(core_names).await;
 
-    let rdb_names: HashSet<String> = core_infos
-        .clone()
-        .into_iter()
-        .map(|c| c.database)
-        .flat_map(|d| d)
-        .collect();
-
-    let rdb_name = rdb_names.clone().into_iter().collect();
+    let rdb_names = CoreInfo::get_rdb_names(&core_infos);
     tinic_super
         .rdb_helper
-        .download(&rdb_name, false)
+        .download(&rdb_names, false)
         .await
         .unwrap();
 

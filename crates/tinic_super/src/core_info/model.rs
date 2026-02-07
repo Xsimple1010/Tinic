@@ -84,7 +84,7 @@ impl CoreInfo {
 }
 
 impl CoreInfo {
-    pub fn get_rdb_names(&self, core_infos: Vec<CoreInfo>) -> Vec<String> {
+    pub fn get_rdb_names(core_infos: &Vec<CoreInfo>) -> Vec<String> {
         let mut out = Vec::new();
 
         for core_info in core_infos {
@@ -93,6 +93,14 @@ impl CoreInfo {
         }
 
         out
+    }
+
+    pub fn get_file_name(core_infos: &Vec<CoreInfo>) -> Vec<String> {
+        core_infos
+            .clone()
+            .into_iter()
+            .map(|c| c.file_name)
+            .collect()
     }
 
     pub fn get_rdb_name(&self) -> Vec<String> {
