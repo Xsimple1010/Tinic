@@ -2,13 +2,15 @@
 name = "retro_controllers"
 version = "0.1.0"
 edition = "2024"
+license = "GPL-3"
+description = "retro_controllers"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 gilrs.workspace = true
 uuid.workspace = true
-generics.workspace = true
+tinic_generics.workspace = true
 libretro_sys.workspace = true
 retro_core.workspace = true
 winit.workspace = true

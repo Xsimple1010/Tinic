@@ -1,7 +1,9 @@
 [package]
-name = "generics"
+name = "tinic_generics"
 version = "0.1.0"
 edition = "2024"
+license = "GPL-3"
+description = "tinic_generics"
 
 [dependencies]
 libretro_sys.workspace = true

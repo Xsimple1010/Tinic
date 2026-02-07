@@ -2,6 +2,8 @@
 name = "retro_video"
 version = "0.1.1"
 edition = "2024"
+license = "GPL-3"
+description = "retro_video"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -9,7 +11,7 @@ edition = "2024"
 retro_core.workspace = true
 image.workspace = true
 libretro_sys.workspace = true
-generics.workspace = true
+tinic_generics.workspace = true
 winit.workspace = true
 glutin.workspace = true
 raw-window-handle.workspace = true

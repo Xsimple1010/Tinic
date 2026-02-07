@@ -2,7 +2,8 @@
 name = "libretro_sys"
 version = "0.1.0"
 edition = "2021"
-
+license = "GPL-3"
+description = "libretro_sys"
 
 [dependencies]
 libloading.workspace = true

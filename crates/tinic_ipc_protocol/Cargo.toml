@@ -2,6 +2,8 @@
 name = "tinic_ipc_protocol"
 version = "0.1.4"
 edition = "2024"
+license = "GPL-3"
+description = "tinic_ipc_protocol"
 
 [dependencies]
 tinic.workspace = true

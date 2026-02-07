@@ -5,7 +5,7 @@ members = [
     'crates/retro_core',
     "crates/retro_video",
     "crates/tinic",
-    "crates/generics",
+    "crates/tinic_generics",
     "crates/libretro_sys",
     "crates/tinic_super",
     "crates/retro_audio",
@@ -23,7 +23,7 @@ retro_controllers = { path = "crates/retro_controllers" }
 retro_video = { path = "crates/retro_video" }
 retro_audio = { path = "crates/retro_audio" }
 libretro_sys = { path = "crates/libretro_sys" }
-generics = { path = "crates/generics" }
+tinic_generics = { path = "crates/tinic_generics" }
 tinic_super = { path = "crates/tinic_super" }
 tinic_ipc_protocol = { path = "crates/tinic_ipc_protocol" }
 tinic = { path = "crates/tinic" }

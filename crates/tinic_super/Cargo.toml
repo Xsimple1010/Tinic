@@ -2,9 +2,11 @@
 name = "tinic_super"
 version = "0.1.4"
 edition = "2024"
+license = "GPL-3"
+description = "tinic_super"
 
 [dependencies]
-generics.workspace = true
+tinic_generics.workspace = true
 reqwest.workspace = true
 zip.workspace = true
 sevenz-rust.workspace = true

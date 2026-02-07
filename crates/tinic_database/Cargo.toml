@@ -2,7 +2,9 @@
 name = "tinic_database"
 version = "0.1.0"
 edition = "2024"
+license = "GPL-3"
+description = "tinic_database"
 
 [dependencies]
 sqlite.workspace = true
-generics.workspace = true
+tinic_generics.workspace = true
