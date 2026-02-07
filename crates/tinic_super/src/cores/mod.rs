@@ -1,8 +1,9 @@
 use crate::cores::download::download_core;
-use crate::cores::installed::install_core;
+use crate::cores::installed::{has_installed, install_core};
 use crate::event::TinicSuperEventListener;
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 pub mod download;
@@ -52,5 +53,9 @@ impl CoreHelper {
             self.event_listener.clone(),
         )
         .await
+    }
+
+    pub fn has_installed(&self) -> Result<bool, ErrorHandle> {
+        has_installed(PathBuf::from(self.retro_paths.cores.to_string()))
     }
 }
