@@ -91,7 +91,7 @@ where
                     let file_path = dest_path.join(file_name);
                     let file = File::create(&file_path)?;
                     let mut writer = BufWriter::new(file);
-                    std::io::copy(reader, &mut writer).map_err(Error::io)?;
+                    let _ = std::io::copy(reader, &mut writer);
                     Ok(true)
                 }
             }

@@ -83,13 +83,14 @@ impl CoreInfoHelper {
         Ok(info)
     }
 
-    pub fn install_core(retro_paths: &RetroPaths, core_info: &CoreInfo) {
+    pub fn install_core(retro_paths: &RetroPaths, core_file_name: &Vec<String>) {
         extract_7zip_file(
             format!("{}/cores.7z", &retro_paths.temps).into(),
             retro_paths.cores.to_string(),
             |file_progress: FileProgress| match file_progress {
                 FileProgress::Extract(name) => {
-                    if name.contains(&core_info.file_name) {
+                    let name = name.replace(".so", "").replace(".dll", "");
+                    if core_file_name.contains(&name) {
                         return SevenZipBeforeExtractionAction::Extract;
                     }
                     SevenZipBeforeExtractionAction::Jump

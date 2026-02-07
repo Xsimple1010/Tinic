@@ -22,24 +22,27 @@ impl TinicSuper {
         CoreInfoHelper::try_update_core_infos(&self.retro_paths, force_update, on_progress).await
     }
 
-    pub async fn install_core<CP>(
+    pub async fn install_cores<CP>(
         &self,
-        core_info: &CoreInfo,
+        core_info: &Vec<CoreInfo>,
         force_update: bool,
         on_progress: CP,
     ) -> Result<(), ErrorHandle>
     where
         CP: Fn(FileProgress) + Copy,
     {
-        CoreInfoHelper::install_core(&self.retro_paths, core_info);
+        let core_names: Vec<String> = core_info.iter().map(|c| c.file_name.clone()).collect();
+        CoreInfoHelper::install_core(&self.retro_paths, &core_names);
 
-        let _ = DatabaseHelper::download_db(
-            &self.retro_paths,
-            &core_info.database,
-            force_update,
-            on_progress,
-        )
-        .await;
+        for core in core_info {
+            let _ = DatabaseHelper::download_db(
+                &self.retro_paths,
+                &core.database,
+                force_update,
+                on_progress,
+            )
+            .await;
+        }
 
         Ok(())
     }
