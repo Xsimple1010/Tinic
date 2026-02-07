@@ -105,7 +105,7 @@ aberta para isso! Então você pode criar o **game_dispatchers** uma unica vez e
         let _ = dispatch.disable_keyboard();
         let _ = dispatch.enable_keyboard();
     
-        // pegar uma lista de dispositivos(gamepads) conectados
+        // pega uma lista de dispositivos(gamepads) conectados
         let devices = tinic.retro_controle.unwrap().get_list()?;
         
         // conecta um gamepad
