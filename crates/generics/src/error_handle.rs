@@ -15,6 +15,12 @@ impl ErrorHandle {
     }
 }
 
+impl From<String> for ErrorHandle {
+    fn from(value: String) -> Self {
+        ErrorHandle::new(&value)
+    }
+}
+
 impl<T> From<PoisonError<MutexGuard<'_, T>>> for ErrorHandle {
     fn from(op: PoisonError<MutexGuard<'_, T>>) -> Self {
         ErrorHandle {

@@ -1,9 +1,9 @@
 use crate::core_info::model::CoreInfo;
-use crate::download::download_file;
 use crate::download::FileProgress;
+use crate::download::download_file;
 use crate::event::TinicSuperEventListener;
-use crate::extract_files::{extract_7zip_file, extract_zip_file, SevenZipBeforeExtractionAction};
-use generics::constants::{cores_url, CORE_INFOS_URL};
+use crate::extract_files::{SevenZipBeforeExtractionAction, extract_7zip_file, extract_zip_file};
+use generics::constants::{CORE_INFOS_URL, cores_url};
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
 use rayon::prelude::*;
@@ -94,6 +94,19 @@ impl CoreInfoHelper {
                 FileProgress::Download(_, _) => SevenZipBeforeExtractionAction::Jump,
             },
         );
+    }
+
+    pub fn has_core_installed(retro_paths: &RetroPaths) -> bool {
+        match std::fs::read_dir(&retro_paths.cores.to_string()) {
+            Ok(rd) => {
+                if rd.count() > 0 {
+                    true
+                } else {
+                    false
+                }
+            }
+            Err(_) => false,
+        }
     }
 
     pub fn get_core_infos(dir: &String) -> Vec<CoreInfo> {

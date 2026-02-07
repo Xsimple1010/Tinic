@@ -47,7 +47,9 @@ impl TinicSuper {
         Ok(())
     }
 
-    pub async fn get_all_game_infos(rdb_file: String) -> Result<Vec<GameInfo>, ErrorHandle> {
+    pub async fn get_all_game_infos_from_rdb(
+        rdb_file: String,
+    ) -> Result<Vec<GameInfo>, ErrorHandle> {
         RdbManager { rdb_file }.get_all_games()
     }
 
@@ -55,11 +57,13 @@ impl TinicSuper {
         CoreInfoHelper::get_compatibility_core_infos(&rom_file.into(), &self.retro_paths)
     }
 
-    pub fn identifier_rom_file(
-        &self,
-        rom_file: &str,
-        cores: &Vec<CoreInfo>,
-    ) -> Option<(GameInfo, RDBDatabase)> {
+    pub fn has_core_installed(&self) -> bool {
+        CoreInfoHelper::has_core_installed(&self.retro_paths)
+    }
+
+    pub fn identifier_rom_file(&self, rom_file: &str) -> Option<(GameInfo, RDBDatabase)> {
+        let cores = self.get_compatibility_core_infos(rom_file);
+
         cores.par_iter().find_map_any(|core| {
             RdbManager::identifier_rom_file_with_any_rdb(
                 rom_file,
@@ -70,10 +74,10 @@ impl TinicSuper {
         })
     }
 
-    pub async fn download_all_thumbnail_from_game(&self, sys_name: &str, name: &str) {
+    pub async fn download_all_thumbnail_from_game(&self, sys_name: &str, rom_name: &str) {
         download_all_thumbnail_from_game(
             sys_name,
-            name,
+            rom_name,
             &self.retro_paths.arts,
             self.event_listener.clone(),
         )
