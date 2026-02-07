@@ -29,7 +29,7 @@ async fn main() {
         event_listener: Arc::new(TinicSuperListener),
     };
 
-    let rom = "/home/aderval/Downloads/RetroArch_cores/FFVii.iso";
+    let rom = "/home/aderval/Downloads/RetroArch_cores/Super Mario World (USA) s.sfc";
     let core_infos = { tinic_super.get_compatibility_core_infos(rom) };
 
     tinic_super.install_cores(&core_infos, false).await.unwrap();

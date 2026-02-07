@@ -1,6 +1,7 @@
 use crate::event::TinicSuperEventListener;
 use crate::FileProgress;
 use sevenz_rust::Error;
+use std::collections::HashMap;
 use std::io::BufWriter;
 use std::sync::Arc;
 use std::{
@@ -62,6 +63,7 @@ where
     CP: Fn(FileProgress) -> SevenZipBeforeExtractionAction + Copy,
 {
     let dest_path = PathBuf::from(dest);
+    let mut used_names = HashMap::<String, usize>::new();
 
     let _e = sevenz_rust::decompress_file_with_extract_fn(
         src_path,
@@ -71,27 +73,40 @@ where
                 return Ok(true);
             }
 
-            // Sei que usar o BadTerminatedSubStreamsInfo é errado,
-            // mas estou com pressa então isso pode ficar para depois
-            let file_name = PathBuf::from(entry.name())
+            // pega apenas o nome do arquivo (achata)
+            let base_name = PathBuf::from(entry.name())
                 .file_name()
-                .ok_or(Error::BadTerminatedSubStreamsInfo)?
-                .to_str()
+                .and_then(|n| n.to_str())
                 .ok_or(Error::BadTerminatedSubStreamsInfo)?
                 .to_string();
 
-            let action = before_extraction(FileProgress::Extract(file_name.clone()));
+            // evita sobrescrever arquivos com mesmo nome
+            let count = used_names.entry(base_name.clone()).or_insert(0);
+            let final_name = if *count == 0 {
+                base_name.clone()
+            } else {
+                format!("{}_{}", count, base_name)
+            };
+            *count += 1;
+
+            let action = before_extraction(FileProgress::Extract(final_name.clone()));
 
             match action {
-                SevenZipBeforeExtractionAction::Jump => Ok(true),
+                SevenZipBeforeExtractionAction::Jump => {
+                    // DRENA o stream
+                    std::io::copy(reader, &mut std::io::sink())?;
+                    Ok(true)
+                }
                 SevenZipBeforeExtractionAction::Extract => {
-                    let file_path = dest_path.join(file_name);
+                    let file_path = dest_path.join(final_name);
                     let file = File::create(&file_path)?;
                     let mut writer = BufWriter::new(file);
-                    let _ = std::io::copy(reader, &mut writer);
+                    std::io::copy(reader, &mut writer)?;
                     Ok(true)
                 }
             }
         },
     );
+
+    println!("{_e:?}")
 }
