@@ -256,7 +256,7 @@ impl CoreWrapper {
             });
         }
 
-        Ok(RomTools::create_save_state(self, slot)?)
+        RomTools::create_save_state(self, slot)
     }
 
     pub fn load_state(&self, slot: usize) -> Result<(), ErroHandle> {

@@ -56,7 +56,7 @@ pub fn connect_handle(
     listener: &Option<Arc<Mutex<DeviceStateListener>>>,
 ) {
     if let Some(gamepad) = gilrs.connected_gamepad(gamepad_id) {
-        let port = get_available_port(&max_ports, &connected_gamepads);
+        let port = get_available_port(max_ports, connected_gamepads);
 
         let gamepad = RetroGamePad::new(
             gamepad_id,
@@ -80,7 +80,7 @@ pub fn disconnect_handle(
     connected_gamepads: &Arc<Mutex<Vec<RetroGamePad>>>,
     listener: &Option<Arc<Mutex<DeviceStateListener>>>,
 ) {
-    if let Ok(gamepad) = remove(id, &connected_gamepads) {
+    if let Ok(gamepad) = remove(id, connected_gamepads) {
         if let Some(listener) = listener {
             let listener = listener.lock().unwrap();
             listener(DeviceState::Disconnected, Device::from_gamepad(&gamepad));
@@ -104,9 +104,9 @@ pub fn pressed_button_handle(
 
             listener(
                 DeviceState::ButtonPressed(
-                    GamepadKeyMap::get_key_name_from_native_button(&button).to_owned(),
+                    GamepadKeyMap::get_key_name_from_native_button(button).to_owned(),
                 ),
-                Device::from_gamepad(&gamepad),
+                Device::from_gamepad(gamepad),
             );
         }
     }

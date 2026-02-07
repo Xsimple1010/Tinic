@@ -128,7 +128,7 @@ pub fn stack_commands_handle(
                 if let Some(ctx) = core_ctx {
                     match ctx.core().save_state(slot) {
                         Ok(saved_path) => {
-                            if let Some((av, _)) = av_ctx {
+                            if let Some((_av, _)) = av_ctx {
                                 // let d = av.video.print_screen();
                             }
 

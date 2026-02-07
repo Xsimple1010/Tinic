@@ -43,7 +43,7 @@ impl PartialEq for Device {
 impl Device {
     pub fn from_gamepad(gamepad: &RetroGamePad) -> Self {
         Self {
-            id: gamepad.id.clone(),
+            id: gamepad.id,
             device_type: DeviceType::Gamepad,
             name: gamepad.name.clone(),
             retro_port: gamepad.retro_port,
@@ -78,7 +78,7 @@ impl DevicesManager {
 
     pub fn update_state(&mut self) {
         RetroGamePad::update(
-            &mut self.gilrs_instance,
+            &self.gilrs_instance,
             &self.connected_gamepads,
             &self.max_ports,
             &self.listener,

@@ -37,16 +37,16 @@ fn get_key_and_value(arg: &str) -> (String, String) {
 pub fn get_value(args: &Vec<String>, key: &str) -> Result<String, ErroHandle> {
     for arg in args {
         if arg.contains(key) {
-            let (key, value) = get_key_and_value(&arg);
+            let (key, value) = get_key_and_value(arg);
 
-            if !key.is_empty() {
-                return Ok(value);
+            return if !key.is_empty() {
+                Ok(value)
             } else {
-                return Err(ErroHandle {
+                Err(ErroHandle {
                     level: RETRO_LOG_ERROR,
                     message: "Valor não encontrado:".to_owned() + &key,
-                });
-            }
+                })
+            };
         }
     }
 

@@ -14,7 +14,7 @@ pub struct RetroPaths {
 
 impl PartialEq for RetroPaths {
     fn eq(&self, other: &Self) -> bool {
-        other.assets == self.assets && other.system == self.system && other.system == self.system
+        other.assets == self.assets && other.system == self.system
     }
 }
 

@@ -123,11 +123,8 @@ pub unsafe extern "C" fn video_refresh_callback(
     height: raw::c_uint,
     pitch: usize,
 ) {
-    match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => {
-            (core_ctx.callbacks.video_refresh_callback)(data, width, height, pitch);
-        }
-        None => {}
+    if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
+        (core_ctx.callbacks.video_refresh_callback)(data, width, height, pitch);
     }
 }
 
@@ -156,8 +153,7 @@ unsafe extern "C" fn get_current_frame_buffer() -> usize {
             .fbo
             .read()
             .unwrap()
-            .unwrap()
-            .clone(),
+            .unwrap(),
         None => 0,
     }
 }

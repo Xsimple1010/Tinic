@@ -77,7 +77,8 @@ pub struct RetroVideo {
 impl Drop for RetroVideo {
     fn drop(&mut self) {
         unsafe {
-            WINDOW_CTX.take();
+            let window_ctx = &raw mut WINDOW_CTX;
+            window_ctx.replace(None);
         }
     }
 }

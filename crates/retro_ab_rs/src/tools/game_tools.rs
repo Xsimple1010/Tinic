@@ -65,7 +65,7 @@ impl RomTools {
 
         let mut buf = Vec::new();
         let meta = CString::new("").unwrap();
-        let path = make_c_string(&f_path.to_str().unwrap())?;
+        let path = make_c_string(f_path.to_str().unwrap())?;
         let mut size = 0;
 
         let need_full_path = *ctx.system.info.need_full_path.read().unwrap();
@@ -96,7 +96,7 @@ impl RomTools {
         Ok(state)
     }
 
-    pub fn get_rom_name(path: &PathBuf) -> Result<String, ErroHandle> {
+    pub fn get_rom_name(path: &Path) -> Result<String, ErroHandle> {
         let extension = path.extension().unwrap();
         let name = path
             .file_name()
