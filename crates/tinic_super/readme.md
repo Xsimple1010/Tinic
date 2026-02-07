@@ -59,14 +59,12 @@ O Tinic Super usa esses dados para que o Tinic saiba **como tratar cada core cor
 
 ## 🌐 Sistema de Downloads
 
-O Tinic Super pode buscar automaticamente recursos online, como:
+O Tinic Super pode buscar recursos online, como:
 
 - 📦 Cores Libretro  
 - 🗄️ Arquivos RDB  
 - 🖼 Pacotes de thumbnails  
 - ℹ️ Arquivos `.info`  
-
-Isso permite que o Tinic funcione como um sistema **auto-configurável**, reduzindo a necessidade de configuração manual pelo usuário.
 
 ---
 
