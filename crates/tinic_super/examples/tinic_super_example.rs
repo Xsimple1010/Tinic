@@ -1,6 +1,7 @@
 use generics::retro_paths::RetroPaths;
-use tinic_super::core_info::helper::CoreInfoHelper;
-use tinic_super::FileProgress;
+use tinic_super::{
+    FileProgress, core_info::helper::CoreInfoHelper, database::helper::DatabaseHelper,
+};
 
 #[tokio::main]
 async fn main() {
@@ -13,4 +14,24 @@ async fn main() {
     })
     .await
     .unwrap();
+
+    DatabaseHelper::download_db(
+        &paths,
+        "Nintendo - GameCube|Nintendo - Wii|Nintendo - Wii (Digital)",
+        false,
+        |progress| match progress {
+            FileProgress::Download(file, progress) => {
+                println!("Download {}: {:.2}%", file, progress)
+            }
+            FileProgress::Extract(file) => println!("Extract {}", file),
+        },
+    )
+    .await
+    .unwrap();
+
+    let rdbs = DatabaseHelper::get_instaled_rdb(&paths).unwrap();
+
+    for rdb in rdbs {
+        println!("{rdb:?}")
+    }
 }
