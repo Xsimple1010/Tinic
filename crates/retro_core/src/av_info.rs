@@ -1,7 +1,8 @@
 use crate::core::retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN};
 use crate::graphic_api::GraphicApi;
+use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::{
-    retro_game_geometry, retro_system_av_info, retro_system_timing, LibretroRaw,
+    retro_game_geometry, retro_log_level, retro_system_av_info, retro_system_timing, LibretroRaw,
 };
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, RwLock};
@@ -75,27 +76,46 @@ impl AvInfo {
     /// # Safety
     ///
     /// Garanta que o ponteiro *raw geometry ptr* é valido antes de envia para essa função.
-    pub unsafe fn try_set_new_geometry(&self, raw_geometry_ptr: *const retro_game_geometry) {
+    pub unsafe fn try_set_new_geometry(
+        &self,
+        raw_geometry_ptr: *const retro_game_geometry,
+    ) -> Result<(), ErroHandle> {
         if raw_geometry_ptr.is_null() {
-            return;
+            return Err(ErroHandle {
+                level: retro_log_level::RETRO_LOG_ERROR,
+                message: "nao foi possível atualiza a geometria da textura".to_string(),
+            });
         }
 
         let raw_geometry = unsafe { *raw_geometry_ptr };
-        let geometry_ctx = &self.video.geometry;
+        let geometry = &self.video.geometry;
 
-        *geometry_ctx.aspect_ratio.write().unwrap() = raw_geometry.aspect_ratio;
-        geometry_ctx
+        match geometry.aspect_ratio.write() {
+            Ok(mut aspect_ratio) => {
+                *aspect_ratio = raw_geometry.aspect_ratio;
+            }
+            Err(_) => {
+                return Err(ErroHandle {
+                    level: retro_log_level::RETRO_LOG_ERROR,
+                    message: "nao foi possível atualiza a geometria da textura".to_string(),
+                })
+            }
+        }
+
+        geometry
             .base_height
             .store(raw_geometry.base_height, Ordering::SeqCst);
-        geometry_ctx
+        geometry
             .base_width
             .store(raw_geometry.base_width, Ordering::SeqCst);
-        geometry_ctx
+        geometry
             .max_height
             .store(raw_geometry.max_height, Ordering::SeqCst);
-        geometry_ctx
+        geometry
             .max_width
             .store(raw_geometry.max_width, Ordering::SeqCst);
+
+        Ok(())
     }
 
     fn _set_timing(&self, raw_system_timing: *const retro_system_timing) {
@@ -119,7 +139,7 @@ impl AvInfo {
             timing.sample_rate;
     }
 
-    pub fn update_av_info(&self, core_raw: &Arc<LibretroRaw>) {
+    pub fn update_av_info(&self, core_raw: &Arc<LibretroRaw>) -> Result<(), ErroHandle> {
         let mut raw_av_info = retro_system_av_info {
             geometry: retro_game_geometry {
                 aspect_ratio: 0.0,
@@ -136,8 +156,11 @@ impl AvInfo {
 
         unsafe {
             core_raw.retro_get_system_av_info(&mut raw_av_info);
-            self.try_set_new_geometry(&raw_av_info.geometry);
-            self._set_timing(&raw_av_info.timing);
+            self.try_set_new_geometry(&raw_av_info.geometry)?;
         }
+
+        self._set_timing(&raw_av_info.timing);
+
+        Ok(())
     }
 }
