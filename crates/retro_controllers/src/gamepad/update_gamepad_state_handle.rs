@@ -1,17 +1,17 @@
-use crate::RetroGamePad;
 use crate::devices_manager::{DeviceKeyMap, DeviceStateListener};
 use crate::gamepad::retro_gamepad_key_map::GamePadKeyMap;
+use crate::RetroGamePad;
 use generics::{constants::INVALID_CONTROLLER_PORT, error_handle::ErrorHandle, types::ArcTMutex};
 use gilrs::{Button, GamepadId, Gilrs};
 use libretro_sys::binding_libretro::RETRO_DEVICE_JOYPAD;
 use std::sync::{
-    Arc,
     atomic::{AtomicUsize, Ordering},
+    Arc,
 };
 
 //Se o valor retornado for −1(INVALID_CONTROLLER_PORT)! significa que todas as
-//portas suportas pelo Core ja estão sendo usadas.
-fn get_available_port(
+//portas suportas pelo Core já estão sendo usadas.
+pub fn get_available_port(
     max_ports: &Arc<AtomicUsize>,
     connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
 ) -> i16 {
