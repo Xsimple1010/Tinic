@@ -1,4 +1,4 @@
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct CoreInfo {
     pub file_name: String,
     // Informações de Software

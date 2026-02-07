@@ -38,10 +38,9 @@ impl RdbManager {
 
     pub async fn download(
         &self,
-        paths: &RetroPaths,
         rdbs: &Vec<String>,
         force_update: bool,
     ) -> Result<(), ErrorHandle> {
-        download_rdb(paths, rdbs, force_update, self.event_listener.clone()).await
+        download_rdb(&self.retro_path, rdbs, force_update, self.event_listener.clone()).await
     }
 }

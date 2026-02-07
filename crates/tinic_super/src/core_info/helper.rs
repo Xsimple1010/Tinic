@@ -1,4 +1,3 @@
-use crate::core_info::download_core::download_core;
 use crate::core_info::get_all_core_infos::get_all_core_infos;
 use crate::core_info::get_compatibility_core_infos::get_compatibility_core_infos;
 use crate::core_info::has_core_installed::has_core_installed;
