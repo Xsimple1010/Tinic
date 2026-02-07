@@ -5,16 +5,17 @@ use std::sync::{Arc, Mutex, MutexGuard};
 //facilita o reconhecimento dos atributos usando a intellisense da ide
 type CorePath = String;
 type RomPath = String;
+type Slot = usize;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum StackCommand {
     //core, rom, paths
     LoadGame(CorePath, RomPath, Paths),
-    SaveState,
-    LoadState,
+    SaveState(Slot),
+    LoadState(Slot),
     Pause,
     Resume,
-    GamepadConnected(Device),
+    DeviceConnected(Device),
     Quit,
     Reset,
 }

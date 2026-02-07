@@ -17,7 +17,7 @@ fn device_state_listener(state: DeviceState, device: Device) {
         if let Some(listener) = &*addr_of!(CONTROLLER_STATE_LISTENER) {
             match &state {
                 DeviceState::Connected | DeviceState::Disconnected => {
-                    STACK.push(StackCommand::GamepadConnected(device.clone()));
+                    STACK.push(StackCommand::DeviceConnected(device.clone()));
                 }
                 _ => {}
             }
@@ -55,8 +55,8 @@ impl Tinic {
 
     pub fn load_core(
         &mut self,
-        core_path: String,
-        rom_path: String,
+        core_path: &str,
+        rom_path: &str,
         paths: Paths,
     ) -> Result<(), ErroHandle> {
         self.game_thread.start(core_path, rom_path, paths)
@@ -70,16 +70,16 @@ impl Tinic {
         STACK.push(StackCommand::Resume);
     }
 
-    pub fn save_state(&self) {
-        STACK.push(StackCommand::SaveState);
+    pub fn save_state(&self, slot: usize) {
+        STACK.push(StackCommand::SaveState(slot));
     }
 
-    pub fn load_state(&self) {
-        STACK.push(StackCommand::LoadState);
+    pub fn load_state(&self, slot: usize) {
+        STACK.push(StackCommand::LoadState(slot));
     }
 
-    pub fn connect_gamepad(device: Device) {
-        STACK.push(StackCommand::GamepadConnected(device));
+    pub fn connect_device(device: Device) {
+        STACK.push(StackCommand::DeviceConnected(device));
     }
 
     pub fn reset(&self) {

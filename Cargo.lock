@@ -85,9 +85,9 @@ checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 
 [[package]]
 name = "bytemuck"
-version = "1.19.0"
+version = "1.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8334215b81e418a0a7bdb8ef0849474f40bb10c8b71f1c4ed315cff49f32494d"
+checksum = "8b37c88a63ffd85d15b406896cc343916d7cf57838a847b3a6f2ca5d39a5695a"
 
 [[package]]
 name = "byteorder"
@@ -103,9 +103,9 @@ checksum = "9ac0150caa2ae65ca5bd83f25c7de183dea78d4d366469f148435e2acfbad0da"
 
 [[package]]
 name = "cc"
-version = "1.2.0"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1aeb932158bd710538c73702db6945cb68a8fb08c519e6e12706b94263b36db8"
+checksum = "fd9de9f2205d5ef3fd67e685b0df337994ddd4495e2a28d185500d0e1edfea47"
 dependencies = [
  "jobserver",
  "libc",
@@ -452,9 +452,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.162"
+version = "0.2.164"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18d287de67fe55fd7e1581fe933d965a5a9477b38e949cfa9f8574ef01506398"
+checksum = "433bfe06b8c75da9b2e3fbea6e5329ff87748f0b144ef75306e674c3f6f7c13f"
 
 [[package]]
 name = "libloading"
@@ -714,7 +714,7 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 [[package]]
 name = "retro_ab"
 version = "0.1.0"
-source = "git+https://github.com/Xsimple1010/retro_ab_rs.git#a0736b9dd42806ed76c39732d5e5a7ffa5f2f04f"
+source = "git+https://github.com/Xsimple1010/retro_ab_rs.git#75b4f98f1ce82ca3493ad6219ed797d5d58acad9"
 dependencies = [
  "bindgen",
  "cc",
@@ -738,7 +738,6 @@ dependencies = [
 [[package]]
 name = "retro_ab_gamepad"
 version = "0.1.0"
-source = "git+https://github.com/Xsimple1010/retro_ab_gamepad.git#bcd71be2be2d6dd0846e46cdbd79d371fddb83fb"
 dependencies = [
  "gilrs",
  "lazy_static",

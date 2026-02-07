@@ -17,13 +17,13 @@ pub fn game_window_handle(
             Event::KeyDown {
                 keycode: Some(Keycode::F1),
                 ..
-            } => stack.push(StackCommand::SaveState),
+            } => stack.push(StackCommand::SaveState(1)),
             Event::KeyDown {
                 keycode: Some(Keycode::F2),
                 ..
-            } => stack.push(StackCommand::LoadState),
+            } => stack.push(StackCommand::LoadState(1)),
             Event::KeyDown {
-                keycode: Some(Keycode::F3),
+                keycode: Some(Keycode::F8),
                 ..
             } => {
                 if pause_request_new_frames {

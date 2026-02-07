@@ -1,6 +1,6 @@
 use crate::retro_stack::{
     RetroStack,
-    StackCommand::{GamepadConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState},
+    StackCommand::{DeviceConnected, LoadGame, LoadState, Pause, Quit, Reset, Resume, SaveState},
 };
 use retro_ab::{
     core::RetroEnvCallbacks,
@@ -80,6 +80,20 @@ pub fn stack_commands_handle(
                     Ok((retro_ab, av)) => {
                         if let Ok(mut ctr) = controller_ctx.lock() {
                             ctr.stop_thread_events();
+
+                            //Pode ser que essa não seja a primeira vez que um game está sendo
+                            //executada. Então por garantia o ideal é conectar todos os devices
+                            //que ja existem agora! E depois os próximos conforme forem chegando.
+                            for device in ctr.get_list() {
+                                //-1 é uma porta invalida
+                                if device.retro_port > -1 {
+                                    println!("device is {}", device.name);
+                                    let _ = retro_ab.core().connect_controller(
+                                        device.retro_port as u32,
+                                        device.retro_type,
+                                    );
+                                }
+                            }
                         }
 
                         core_ctx.replace(retro_ab);
@@ -92,8 +106,16 @@ pub fn stack_commands_handle(
                     }
                 }
             }
-            LoadState => {} //ainda e preciso adicionar isso em retro_ab
-            SaveState => {} //ainda e preciso adicionar isso em retro_ab
+            LoadState(slot) => {
+                if let Some(ctx) = core_ctx {
+                    let _ = ctx.core().load_state(slot);
+                }
+            }
+            SaveState(slot) => {
+                if let Some(ctx) = core_ctx {
+                    let _ = ctx.core().save_state(slot);
+                }
+            }
             Pause => {
                 //habilita a thread de eventos novamente
                 if let Ok(mut controller) = controller_ctx.lock() {
@@ -117,11 +139,11 @@ pub fn stack_commands_handle(
                     };
                 };
             }
-            GamepadConnected(gamepad) => {
+            DeviceConnected(device) => {
                 if let Some(ctx) = core_ctx {
                     let _ = ctx
                         .core()
-                        .connect_controller(gamepad.retro_port as u32, gamepad.retro_type);
+                        .connect_controller(device.retro_port as u32, device.retro_type);
                 }
             }
         }

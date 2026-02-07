@@ -39,8 +39,8 @@ impl GameThread {
 
     pub fn start(
         &mut self,
-        core_path: String,
-        rom_path: String,
+        core_path: &str,
+        rom_path: &str,
         paths: Paths,
     ) -> Result<(), ErroHandle> {
         match self.is_running.lock() {
@@ -55,8 +55,7 @@ impl GameThread {
                 }
             }
             Err(op) => {
-                let mut is_running = op.into_inner();
-                *is_running = false;
+                *op.into_inner() = false;
 
                 return Err(ErroHandle {
                     level: retro_log_level::RETRO_LOG_ERROR,
@@ -65,9 +64,10 @@ impl GameThread {
             }
         }
 
+        self.stack.clear();
         self.stack.push(StackCommand::LoadGame(
-            core_path.to_owned(),
-            rom_path.to_owned(),
+            core_path.to_string(),
+            rom_path.to_string(),
             paths,
         ));
 
@@ -104,7 +104,7 @@ impl GameThread {
 
                 if let Some((av, event_pump)) = &mut av_ctx {
                     if let Some(retro_ab) = &retro_ab {
-                        if let Err(e) = try_render_frame(&retro_ab, av, pause_request_new_frames) {
+                        if let Err(e) = try_render_frame(retro_ab, av, pause_request_new_frames) {
                             println!("{:?}", e);
                             stack.push(StackCommand::Quit);
                             continue;
@@ -117,8 +117,8 @@ impl GameThread {
 
             stack.clear();
 
-            //gracas ao mutex is_running pode ser que algo externo atrapalhe a leitura do comandos da stack,
-            //então so para garanti que essa thread sera fechada dando a posse da leitura dos inputs para a
+            //Gracas ao mutex is_running pode ser que algo externo atrapalhe a leitura dos comandos da stack,
+            //então so para garantir que essa thread será fechada dando a posse da leitura dos inputs para a
             //thread de inputs novamente, o bom é fazer isso aqui mesmo!
             if let Ok(ctr) = &mut controller_ctx.lock() {
                 let _ = ctr.resume_thread_events();
@@ -129,8 +129,7 @@ impl GameThread {
                     *is_running = false;
                 }
                 Err(op) => {
-                    let mut is_running = op.into_inner();
-                    *is_running = false;
+                    *op.into_inner() = false;
                 }
             }
         });

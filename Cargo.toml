@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-retro_ab_gamepad = { git = "https://github.com/Xsimple1010/retro_ab_gamepad.git" }
+retro_ab_gamepad = { path = "../retro_ab_gamepad" }
 retro_ab = { git = "https://github.com/Xsimple1010/retro_ab_rs.git" }
 retro_ab_av = { git = "https://github.com/Xsimple1010/retro_ab_av.git" }
 lazy_static = "1.4.0"
