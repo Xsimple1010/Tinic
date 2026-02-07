@@ -14,7 +14,7 @@ default-members = ["crates/tinic"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-retro_core = { path = "crates/retro_core" }
+retro_core = { path = "crates/retro_core", features = ["hw", "core_logs"] }
 retro_controllers = { path = "crates/retro_controllers" }
 retro_av = { path = "crates/retro_av" }
 libretro_sys = { path = "crates/libretro_sys" }

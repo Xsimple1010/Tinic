@@ -26,13 +26,16 @@ use super::environment::CORE_CONTEXT;
 
 pub unsafe extern "C" fn audio_sample_callback(left: i16, right: i16) {
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        (core_ctx.callbacks.audio_sample_callback)(left, right)
+        core_ctx.callbacks.audio.audio_sample_callback(left, right);
     }
 }
 
 pub unsafe extern "C" fn audio_sample_batch_callback(data: *const i16, frames: usize) -> usize {
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        (core_ctx.callbacks.audio_sample_batch_callback)(data, frames)
+        core_ctx
+            .callbacks
+            .audio
+            .audio_sample_batch_callback(data, frames)
     } else {
         0
     }
@@ -45,7 +48,10 @@ pub unsafe extern "C" fn video_refresh_callback(
     pitch: usize,
 ) {
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        (core_ctx.callbacks.video_refresh_callback)(data, width, height, pitch);
+        core_ctx
+            .callbacks
+            .video
+            .video_refresh_callback(data, width, height, pitch);
     }
 }
 
@@ -75,7 +81,7 @@ unsafe extern "C" fn get_proc_address(sym: *const c_char) -> retro_proc_address_
         Some(core_ctx) => {
             let fc_name = get_str_from_ptr(sym);
 
-            let proc_address = (core_ctx.callbacks.get_proc_address)(&fc_name);
+            let proc_address = core_ctx.callbacks.video.get_proc_address(&fc_name);
 
             if proc_address.is_null() {
                 return None;
@@ -93,7 +99,7 @@ unsafe extern "C" fn get_proc_address(sym: *const c_char) -> retro_proc_address_
 unsafe extern "C" fn context_reset() {
     println!("context_reset");
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        (core_ctx.callbacks.context_reset)()
+        core_ctx.callbacks.video.context_reset();
     }
 }
 
@@ -102,7 +108,7 @@ unsafe extern "C" fn context_destroy() {
     println!("context_destroy");
 
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        (core_ctx.callbacks.context_destroy)()
+        core_ctx.callbacks.video.context_destroy();
     }
 }
 

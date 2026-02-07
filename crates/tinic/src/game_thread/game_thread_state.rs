@@ -9,10 +9,7 @@ use libretro_sys::{
     binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE,
     binding_libretro::retro_log_level,
 };
-use retro_av::{
-    audio_sample_batch_callback, audio_sample_callback, context_destroy, context_reset,
-    get_proc_address, video_refresh_callback, EventPump, RetroAv,
-};
+use retro_av::{EventPump, RetroAv};
 use retro_controllers::{
     devices_manager::Device, input_poll_callback, input_state_callback, rumble_callback,
     RetroController,
@@ -108,7 +105,7 @@ impl ThreadState {
                 let mut img_path: PathBuf = saved_path.clone();
                 img_path.set_extension(SAVE_IMAGE_EXTENSION_FILE);
 
-                if let Ok(path) = retro_av.video.print_screen(&img_path) {
+                if let Ok(path) = retro_av.video.print_screen(&img_path, &retro_core.av_info) {
                     img_path = path;
                 };
 
@@ -225,16 +222,15 @@ impl ThreadState {
         rom_path: String,
         paths: RetroPaths,
     ) -> Result<Arc<OptionManager>, ErroHandle> {
+        let mut retro_av = RetroAv::new()?;
+        let (video_cb, audio_cb) = retro_av.get_core_cb();
+
         let callbacks = RetroEnvCallbacks {
             input_poll_callback,
             input_state_callback,
             rumble_callback,
-            audio_sample_batch_callback,
-            audio_sample_callback,
-            video_refresh_callback,
-            get_proc_address,
-            context_destroy,
-            context_reset,
+            video: Box::new(video_cb),
+            audio: Box::new(audio_cb),
         };
 
         let retro_core = RetroCore::new(
@@ -243,13 +239,14 @@ impl ThreadState {
             callbacks,
             GraphicApi::with(RETRO_HW_CONTEXT_OPENGL_CORE),
         )?;
+
         let av_info = retro_core.load_game(&rom_path)?;
-        let (retro_av, pump) = RetroAv::new(av_info)?;
+        let pump_event = retro_av.build_window(&av_info)?;
 
         let op_manager = retro_core.options.clone();
 
         self.retro_core.replace(retro_core);
-        self.event_pump.replace(pump);
+        self.event_pump.replace(pump_event);
         self.retro_av.replace(retro_av);
 
         Ok(op_manager)

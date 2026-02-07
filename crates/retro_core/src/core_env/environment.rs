@@ -28,21 +28,27 @@ use std::{
 };
 use std::{os::raw::c_void, ptr::addr_of, sync::Arc};
 
-#[derive(Clone, Copy, Debug)]
-
 pub struct RetroEnvCallbacks {
-    pub video_refresh_callback: fn(data: *const c_void, width: u32, height: u32, pitch: usize),
-    pub audio_sample_callback: fn(left: i16, right: i16),
-    pub audio_sample_batch_callback: fn(data: *const i16, frames: usize) -> usize,
+    pub video: Box<dyn RetroVideoEnvCallbacks>,
+    pub audio: Box<dyn RetroAudioEnvCallbacks>,
     pub input_poll_callback: fn(),
     pub input_state_callback: fn(port: i16, device: i16, index: i16, id: i16) -> i16,
     pub rumble_callback: fn(port: c_uint, effect: retro_rumble_effect, strength: u16) -> bool,
+}
+
+pub trait RetroVideoEnvCallbacks {
+    fn video_refresh_callback(&self, data: *const c_void, width: u32, height: u32, pitch: usize);
     #[doc = " Called when a context has been created or when it has been reset.\n An OpenGL context is only valid after context_reset() has been called.\n\n When context_reset is called, OpenGL resources in the libretro\n implementation are guaranteed to be invalid.\n\n It is possible that context_reset is called multiple times during an\n application lifecycle.\n If context_reset is called without any notification (context_destroy),\n the OpenGL context was lost and resources should just be recreated\n without any attempt to \"free\" old resources."]
-    pub context_reset: fn(),
+    fn context_reset(&self);
     #[doc = " Set by frontend.\n Can return all relevant functions, including glClear on Windows."]
-    pub get_proc_address: fn(proc_name: &str) -> *const (),
+    fn get_proc_address(&self, proc_name: &str) -> *const ();
     #[doc = " A callback to be called before the context is destroyed in a\n controlled way by the frontend."]
-    pub context_destroy: fn(),
+    fn context_destroy(&self);
+}
+
+pub trait RetroAudioEnvCallbacks {
+    fn audio_sample_callback(&self, left: i16, right: i16);
+    fn audio_sample_batch_callback(&self, data: *const i16, frames: usize) -> usize;
 }
 
 #[doc = "pelo amor de deus MANTENHA isso dentro desse diretório"]
