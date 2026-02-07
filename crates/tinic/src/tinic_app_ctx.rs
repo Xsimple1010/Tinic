@@ -9,7 +9,7 @@ use retro_controllers::{devices_manager::Device, RetroController};
 use retro_core::{graphic_api::GraphicApi, RetroCore, RetroCoreIns, RetroEnvCallbacks};
 use winit::{event_loop::ActiveEventLoop, window::Fullscreen};
 
-pub struct TinicAppCtx {
+pub struct TinicGameCtx {
     retro_av: RetroAv,
     retro_core: RetroCoreIns,
     current_full_screen_mode: Fullscreen,
@@ -17,7 +17,7 @@ pub struct TinicAppCtx {
     controller: Arc<RetroController>,
 }
 
-impl TinicAppCtx {
+impl TinicGameCtx {
     pub fn new(
         retro_paths: RetroPaths,
         core_path: String,
@@ -122,12 +122,20 @@ impl TinicAppCtx {
 
     pub fn toggle_can_request_new_frames(&mut self) {
         if self.can_request_new_frames {
-            self.controller.resume_thread_events();
-            self.can_request_new_frames = false;
+            self.pause();
         } else {
-            self.controller.stop_thread_events();
-            self.can_request_new_frames = true;
+            self.resume();
         }
+    }
+
+    pub fn pause(&mut self) {
+        self.controller.resume_thread_events();
+        self.can_request_new_frames = false;
+    }
+
+    pub fn resume(&mut self) {
+        self.controller.stop_thread_events();
+        self.can_request_new_frames = true;
     }
 
     pub fn connect_controller(&self, device: Device) -> Result<(), ErroHandle> {
