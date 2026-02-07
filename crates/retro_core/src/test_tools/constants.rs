@@ -1,1 +1,1 @@
-pub const CORE_TEST_RELATIVE_PATH: &str = "cores/test.dll";
+pub const CORE_TEST_RELATIVE_PATH: &str = "C:/projetos/tinic/cores/test.dll";

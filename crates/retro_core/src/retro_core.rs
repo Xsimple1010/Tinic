@@ -1,7 +1,8 @@
 use crate::{
-    core::{CoreWrapperIns, RetroEnvCallbacks},
+    core::CoreWrapperIns,
     graphic_api::GraphicApi,
     retro_context::{RetroContext, RetroCtxIns},
+    RetroEnvCallbacks,
 };
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;

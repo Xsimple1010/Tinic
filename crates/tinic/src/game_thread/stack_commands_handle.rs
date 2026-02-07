@@ -20,7 +20,7 @@ use retro_av::{
 use retro_controllers::{
     input_poll_callback, input_state_callback, rumble_callback, RetroController,
 };
-use retro_core::{core::RetroEnvCallbacks, RetroCore};
+use retro_core::{RetroCore, RetroEnvCallbacks};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 

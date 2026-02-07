@@ -1,6 +1,7 @@
+use crate::core::CoreWrapper;
 use crate::core::CoreWrapperIns;
 use crate::graphic_api::GraphicApi;
-use crate::{core::CoreWrapper, environment::RetroEnvCallbacks};
+use crate::RetroEnvCallbacks;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;

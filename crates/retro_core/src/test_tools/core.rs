@@ -1,5 +1,5 @@
 use crate::core::CoreWrapper;
-use crate::environment::RetroEnvCallbacks;
+use crate::core_env::RetroEnvCallbacks;
 use crate::graphic_api::GraphicApi;
 use crate::test_tools::constants::CORE_TEST_RELATIVE_PATH;
 use crate::test_tools::paths::get_paths;

@@ -1,8 +1,9 @@
 pub use crate::av_info::{AvInfo, Geometry, Timing, Video};
-pub use crate::environment::RetroEnvCallbacks;
+use crate::core_env::{self, RetroEnvCallbacks};
 use crate::graphic_api::GraphicApi;
+use crate::retro_context::RetroContext;
 use crate::tools::game_tools::RomTools;
-use crate::{environment, managers::option_manager::OptionManager, system::System};
+use crate::{managers::option_manager::OptionManager, system::System};
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 pub use libretro_sys::binding_libretro::retro_language;
@@ -68,26 +69,26 @@ impl CoreWrapper {
             language: Mutex::new(retro_language::RETRO_LANGUAGE_PORTUGUESE_BRAZIL),
         });
 
-        environment::configure(core.clone());
+        core_env::configure(core.clone());
 
         unsafe {
             core.raw
-                .retro_set_environment(Some(environment::core_environment));
+                .retro_set_environment(Some(core_env::core_environment));
 
             core.raw
-                .retro_set_audio_sample(Some(environment::audio_sample_callback));
+                .retro_set_audio_sample(Some(core_env::audio_sample_callback));
 
             core.raw
-                .retro_set_audio_sample_batch(Some(environment::audio_sample_batch_callback));
+                .retro_set_audio_sample_batch(Some(core_env::audio_sample_batch_callback));
 
             core.raw
-                .retro_set_video_refresh(Some(environment::video_refresh_callback));
+                .retro_set_video_refresh(Some(core_env::video_refresh_callback));
 
             core.raw
-                .retro_set_input_poll(Some(environment::input_poll_callback));
+                .retro_set_input_poll(Some(core_env::input_poll_callback));
 
             core.raw
-                .retro_set_input_state(Some(environment::input_state_callback));
+                .retro_set_input_state(Some(core_env::input_state_callback));
         }
 
         Ok(core)
@@ -187,7 +188,7 @@ impl CoreWrapper {
                         self.raw.retro_deinit();
                     }
                     self.initialized.store(false, Ordering::SeqCst);
-                    environment::delete_local_core_ctx();
+                    core_env::delete_local_core_ctx();
 
                     return Err(e);
                 }
@@ -198,7 +199,7 @@ impl CoreWrapper {
             self.raw.retro_deinit();
         }
         self.initialized.store(false, Ordering::SeqCst);
-        environment::delete_local_core_ctx();
+        core_env::delete_local_core_ctx();
 
         Ok(())
     }
@@ -278,6 +279,14 @@ impl CoreWrapper {
         RomTools::load_save_state(self, slot)?;
 
         Ok(())
+    }
+
+    pub fn force_stop(&self) {
+        let retro_ctx = RetroContext::get_from_id(&self.retro_ctx_associated)
+            .expect("não foi possível forca o fechamento");
+
+        retro_ctx.delete().unwrap();
+        core_env::delete_local_core_ctx();
     }
 }
 
