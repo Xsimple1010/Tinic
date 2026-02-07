@@ -167,7 +167,6 @@ impl Tinic {
         * **Warning:** Like the `run` function, after calling this function you will no longer be
         able to create a new `GameInstance`.
         However, **unlike `run`, this function does not block the main thread**.
-
     "]
     pub fn pop_event(&mut self, game_instance: &mut GameInstance) -> TinicGameInstanceStatus {
         let event_loop = match self.event_loop.as_mut() {
@@ -181,7 +180,7 @@ impl Tinic {
         }
     }
 
-    #[doc = "\
+    #[doc = "
         # Run On Demand
 
         This function allows you to create multiple `GameInstance`s.
