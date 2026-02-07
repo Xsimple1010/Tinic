@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
-pub use tinic::{GameState, SaveImgPreview, SaveInfo, SavePath, WindowState};
+pub use tinic::{GameState, SaveImgPreview, SavePath, WindowState};
+use tinic::SaveStateInfo;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
@@ -24,7 +25,7 @@ pub enum ProtocolOut {
         state: GameState,
     },
     SaveStateResult {
-        info: SaveInfo,
+        info: SaveStateInfo,
     },
     LoadStateResult {
         success: bool,

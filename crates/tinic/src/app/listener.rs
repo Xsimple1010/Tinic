@@ -18,14 +18,21 @@ pub enum GameState {
 pub type SavePath = String;
 pub type SaveImgPreview = String;
 
-pub type SaveInfo = Option<(SavePath, SaveImgPreview)>;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SaveStateInfo {
+    Susses {
+        save_path: String,
+        save_img_preview: String,
+    },
+    Failed,
+}
 
 pub trait WindowListener {
     fn window_state_change(&self, state: WindowState);
 
     fn game_state_change(&self, state: GameState);
 
-    fn save_state_result(&self, info: SaveInfo);
+    fn save_state_result(&self, state: SaveStateInfo);
 
     fn load_state_result(&self, suss: bool);
 

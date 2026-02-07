@@ -1,5 +1,5 @@
 use crate::app::listener::{GameState, WindowState};
-use crate::{TinicGameInfo, WindowListener};
+use crate::{SaveStateInfo, TinicGameInfo, WindowListener};
 use generics::retro_paths::RetroPaths;
 use generics::{constants::SAVE_IMAGE_EXTENSION_FILE, error_handle::ErrorHandle};
 use libretro_sys::binding_libretro::retro_hw_context_type;
@@ -180,7 +180,8 @@ impl TinicGameCtx {
     pub fn save_state(&self, slot: usize) -> Result<(), ErrorHandle> {
         // Erros handles
         let err_handle = |e: ErrorHandle| {
-            self.window_listener.save_state_result(None);
+            self.window_listener
+                .save_state_result(SaveStateInfo::Failed);
             e
         };
 
@@ -202,14 +203,19 @@ impl TinicGameCtx {
         img_path.set_extension(SAVE_IMAGE_EXTENSION_FILE);
 
         if self.print_screen(&img_path).is_err() {
-            self.window_listener.save_state_result(None);
+            self.window_listener
+                .save_state_result(SaveStateInfo::Failed);
             return Ok(());
         }
 
-        let img = file_err_handle(img_path)?;
-        let file = file_err_handle(save_path)?;
+        let save_path = file_err_handle(save_path)?;
+        let save_img_preview = file_err_handle(img_path)?;
 
-        self.window_listener.save_state_result(Some((file, img)));
+        self.window_listener
+            .save_state_result(SaveStateInfo::Susses {
+                save_path,
+                save_img_preview,
+            });
 
         Ok(())
     }

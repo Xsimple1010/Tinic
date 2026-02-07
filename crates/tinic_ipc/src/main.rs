@@ -10,7 +10,7 @@ use crate::game_loop::game_loop;
 use crate::io::stdin_reader::StdinReader;
 use crate::io::stdout_writer::StdoutWriter;
 use std::sync::atomic::Ordering;
-use tinic::{ErrorHandle, GameState, SaveInfo, Tinic, WindowListener, WindowState};
+use tinic::{ErrorHandle, GameState, SaveStateInfo, Tinic, WindowListener, WindowState};
 
 struct WindowEvents {
     app_state: AppStateHandle,
@@ -35,7 +35,7 @@ impl WindowListener for WindowEvents {
         let _ = StdoutWriter::game_state_change(state);
     }
 
-    fn save_state_result(&self, info: SaveInfo) {
+    fn save_state_result(&self, info: SaveStateInfo) {
         let _ = StdoutWriter::save_state_result(info);
     }
 

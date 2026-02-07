@@ -1,6 +1,6 @@
 use std::io;
 use std::io::Write;
-use tinic::{ErrorHandle, SaveInfo};
+use tinic::{ErrorHandle, SaveStateInfo};
 use tinic_ipc_protocol::out::ProtocolOut;
 
 pub(crate) fn emit_protocol_event(event: &ProtocolOut) -> Result<(), ErrorHandle> {
@@ -29,7 +29,7 @@ impl StdoutWriter {
         emit_protocol_event(&ProtocolOut::GameStateChange { state })
     }
 
-    pub fn save_state_result(info: SaveInfo) -> Result<(), ErrorHandle> {
+    pub fn save_state_result(info: SaveStateInfo) -> Result<(), ErrorHandle> {
         emit_protocol_event(&ProtocolOut::SaveStateResult { info })
     }
 

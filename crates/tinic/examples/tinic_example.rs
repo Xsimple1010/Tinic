@@ -1,6 +1,6 @@
 use tinic::{
-    self, args_manager::RetroArgs, DeviceListener, ErrorHandle, GameState, RetroGamePad, SaveImgPreview, SavePath,
-    Tinic, TinicGameInfo, WindowListener, WindowState,
+    self, args_manager::RetroArgs, DeviceListener, ErrorHandle, GameState,
+    RetroGamePad, SaveStateInfo, Tinic, TinicGameInfo, WindowListener, WindowState,
 };
 
 #[derive(Debug, Default)]
@@ -31,7 +31,7 @@ impl WindowListener for WindowEvents {
         println!("GameState: {state:?}");
     }
 
-    fn save_state_result(&self, info: Option<(SavePath, SaveImgPreview)>) {
+    fn save_state_result(&self, info: SaveStateInfo) {
         println!("save_state_result: {info:?}");
     }
 
