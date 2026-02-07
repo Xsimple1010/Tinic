@@ -15,18 +15,35 @@ unsafe extern "C" fn rumble_callback(
     effect: retro_rumble_effect,
     strength: u16,
 ) -> bool {
-    match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => core_ctx
-            .callbacks
-            .controller
-            .rumble_callback(port, effect, strength),
-        None => false,
+    let retro_core = match &*addr_of!(CORE_CONTEXT) {
+        Some(core_ctx) => core_ctx,
+        None => return false,
+    };
+
+    let res = retro_core
+        .callbacks
+        .controller
+        .rumble_callback(port, effect, strength);
+
+    match res {
+        Ok(v) => v,
+        Err(e) => {
+            println!("{:?}", e);
+            let _ = retro_core.de_init();
+            false
+        }
     }
 }
 
 pub unsafe extern "C" fn input_poll_callback() {
-    if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        core_ctx.callbacks.controller.input_poll_callback()
+    let retro_core = match &*addr_of!(CORE_CONTEXT) {
+        Some(core_ctx) => core_ctx,
+        None => return,
+    };
+
+    if let Err(e) = retro_core.callbacks.controller.input_poll_callback() {
+        println!("{:?}", e);
+        let _ = retro_core.de_init();
     }
 }
 
@@ -36,14 +53,25 @@ pub unsafe extern "C" fn input_state_callback(
     index: c_uint,
     id: c_uint,
 ) -> i16 {
-    match &*addr_of!(CORE_CONTEXT) {
-        Some(core_ctx) => core_ctx.callbacks.controller.input_state_callback(
-            port as i16,
-            device as i16,
-            index as i16,
-            id as i16,
-        ),
-        None => 0,
+    let retro_core = match &*addr_of!(CORE_CONTEXT) {
+        Some(core_ctx) => core_ctx,
+        None => return 0,
+    };
+
+    let res = retro_core.callbacks.controller.input_state_callback(
+        port as i16,
+        device as i16,
+        index as i16,
+        id as i16,
+    );
+
+    match res {
+        Ok(v) => v,
+        Err(e) => {
+            println!("{:?}", e);
+            let _ = retro_core.de_init();
+            0
+        }
     }
 }
 

@@ -167,49 +167,51 @@ pub struct RetroVideoCb {
 }
 
 impl RetroVideoEnvCallbacks for RetroVideoCb {
-    fn video_refresh_callback(&self, data: *const c_void, width: u32, height: u32, pitch: usize) {
-        if let Ok(mut tex_guard) = self.texture.try_load() {
-            let texture = tex_guard.get_mut();
+    fn video_refresh_callback(
+        &self,
+        data: *const c_void,
+        width: u32,
+        height: u32,
+        pitch: usize,
+    ) -> Result<(), ErroHandle> {
+        let mut tex_guard = self.texture.try_load()?;
+        let texture = tex_guard.get_mut();
 
-            texture.data = data;
-            texture.width = width;
-            texture.height = height;
-            texture.pitch = pitch;
-        }
+        texture.data = data;
+        texture.width = width;
+        texture.height = height;
+        texture.pitch = pitch;
+
+        Ok(())
     }
 
-    fn get_proc_address(&self, proc_name: &str) -> *const () {
-        let win_guard = match self.window_ctx.try_load() {
-            Ok(win_guard) => win_guard,
-            Err(_) => return null(),
-        };
+    fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErroHandle> {
+        let win_guard = self.window_ctx.try_load()?;
 
         if let Some(window) = &*win_guard {
-            window.get_proc_address(proc_name)
+            Ok(window.get_proc_address(proc_name))
         } else {
-            null()
+            Ok(null())
         }
     }
 
-    fn context_destroy(&self) {
-        let mut win_guard = match self.window_ctx.try_load() {
-            Ok(win_guard) => win_guard,
-            Err(_) => return,
-        };
+    fn context_destroy(&self) -> Result<(), ErroHandle> {
+        let mut win_guard = self.window_ctx.try_load()?;
 
         if let Some(ref mut window) = &mut *win_guard {
             window.context_destroy();
         }
+
+        Ok(())
     }
 
-    fn context_reset(&self) {
-        let mut win_guard = match self.window_ctx.try_load() {
-            Ok(win_guard) => win_guard,
-            Err(_) => return,
-        };
+    fn context_reset(&self) -> Result<(), ErroHandle> {
+        let mut win_guard = self.window_ctx.try_load()?;
 
         if let Some(ref mut window) = &mut *win_guard {
             window.context_reset();
         }
+
+        Ok(())
     }
 }

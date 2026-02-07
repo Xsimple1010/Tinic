@@ -67,18 +67,21 @@ pub struct RetroControllerCb {
 }
 
 impl RetroControllerEnvCallbacks for RetroControllerCb {
-    fn input_poll_callback(&self) {
-        if let Ok(mut manager) = self.manager.try_load() {
-            let _ = manager.update_state();
-        }
+    fn input_poll_callback(&self) -> Result<(), ErroHandle> {
+        let mut manager = self.manager.try_load()?;
+        manager.update_state()?;
+        Ok(())
     }
 
-    fn input_state_callback(&self, port: i16, _device: i16, _index: i16, id: i16) -> i16 {
-        if let Ok(manager) = self.manager.try_load() {
-            manager.get_input_state(port, id)
-        } else {
-            0
-        }
+    fn input_state_callback(
+        &self,
+        port: i16,
+        _device: i16,
+        _index: i16,
+        id: i16,
+    ) -> Result<i16, ErroHandle> {
+        let manager = self.manager.try_load()?;
+        Ok(manager.get_input_state(port, id))
     }
 
     fn rumble_callback(
@@ -86,15 +89,13 @@ impl RetroControllerEnvCallbacks for RetroControllerCb {
         port: std::os::raw::c_uint,
         effect: retro_rumble_effect,
         strength: u16,
-    ) -> bool {
-        if let Ok(manager) = self.manager.try_load() {
-            manager.apply_rumble(DeviceRubble {
-                port: port as usize,
-                effect,
-                strength,
-            })
-        } else {
-            false
-        }
+    ) -> Result<bool, ErroHandle> {
+        let manager = self.manager.try_load()?;
+
+        Ok(manager.apply_rumble(DeviceRubble {
+            port: port as usize,
+            effect,
+            strength,
+        }))
     }
 }

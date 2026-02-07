@@ -86,33 +86,33 @@ impl RetroAudio {
 }
 
 pub struct RetroAudioCb {
-    pub buffer: ArcTMuxte<UnsafeCell<AudioNewFrame>>,
+    buffer: ArcTMuxte<UnsafeCell<AudioNewFrame>>,
 }
 
 impl RetroAudioEnvCallbacks for RetroAudioCb {
-    fn audio_sample_batch_callback(&self, data: *const i16, frames: usize) -> usize {
-        let mut buffer = match self.buffer.try_load() {
-            Ok(buf) => buf,
-            Err(_) => return frames,
-        };
+    fn audio_sample_batch_callback(
+        &self,
+        data: *const i16,
+        frames: usize,
+    ) -> Result<usize, ErroHandle> {
+        let mut buffer = self.buffer.try_load()?;
         let buffer = buffer.get_mut();
 
         buffer.data = data;
         buffer.frames = frames;
         buffer.channel = 2;
 
-        frames
+        Ok(frames)
     }
 
-    fn audio_sample_callback(&self, left: i16, right: i16) {
-        println!("audio_sample_callback");
-        let mut buffer = match self.buffer.try_load() {
-            Ok(buf) => unsafe { buf.get().read() },
-            Err(_) => return,
-        };
+    fn audio_sample_callback(&self, left: i16, right: i16) -> Result<(), ErroHandle> {
+        let mut buffer = self.buffer.try_load()?;
+        let buffer = buffer.get_mut();
 
         buffer.data = [left, right].as_ptr();
         buffer.frames = 1;
         buffer.channel = 2;
+
+        Ok(())
     }
 }

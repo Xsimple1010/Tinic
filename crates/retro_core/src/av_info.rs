@@ -98,7 +98,7 @@ impl AvInfo {
             Err(_) => {
                 return Err(ErroHandle {
                     level: retro_log_level::RETRO_LOG_ERROR,
-                    message: "nao foi possível atualiza a geometria da textura".to_string(),
+                    message: "nao foi possível atualiza o aspect_ratio da textura".to_string(),
                 })
             }
         }

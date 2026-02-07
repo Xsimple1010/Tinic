@@ -25,16 +25,28 @@ use super::environment::CORE_CONTEXT;
 
 pub unsafe extern "C" fn audio_sample_callback(left: i16, right: i16) {
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        core_ctx.callbacks.audio.audio_sample_callback(left, right);
+        if let Err(e) = core_ctx.callbacks.audio.audio_sample_callback(left, right) {
+            println!("{:?}", e);
+            let _ = core_ctx.de_init();
+        }
     }
 }
 
 pub unsafe extern "C" fn audio_sample_batch_callback(data: *const i16, frames: usize) -> usize {
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        core_ctx
+        let res = core_ctx
             .callbacks
             .audio
-            .audio_sample_batch_callback(data, frames)
+            .audio_sample_batch_callback(data, frames);
+
+        match res {
+            Ok(frames) => frames,
+            Err(e) => {
+                println!("{:?}", e);
+                let _ = core_ctx.de_init();
+                0
+            }
+        }
     } else {
         0
     }
@@ -47,10 +59,14 @@ pub unsafe extern "C" fn video_refresh_callback(
     pitch: usize,
 ) {
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        core_ctx
+        if let Err(e) = core_ctx
             .callbacks
             .video
-            .video_refresh_callback(data, width, height, pitch);
+            .video_refresh_callback(data, width, height, pitch)
+        {
+            println!("{:?}", e);
+            let _ = core_ctx.de_init();
+        }
     }
 }
 
@@ -80,15 +96,24 @@ unsafe extern "C" fn get_proc_address(sym: *const c_char) -> retro_proc_address_
         Some(core_ctx) => {
             let fc_name = get_str_from_ptr(sym);
 
-            let proc_address = core_ctx.callbacks.video.get_proc_address(&fc_name);
+            let res = core_ctx.callbacks.video.get_proc_address(&fc_name);
 
-            if proc_address.is_null() {
-                return None;
+            match res {
+                Ok(proc_address) => {
+                    if proc_address.is_null() {
+                        return None;
+                    }
+
+                    let function: unsafe extern "C" fn() = unsafe { mem::transmute(proc_address) };
+
+                    Some(function)
+                }
+                Err(e) => {
+                    println!("{:?}", e);
+                    let _ = core_ctx.de_init();
+                    None
+                }
             }
-
-            let function: unsafe extern "C" fn() = unsafe { mem::transmute(proc_address) };
-
-            Some(function)
         }
         None => None,
     }
@@ -98,7 +123,10 @@ unsafe extern "C" fn get_proc_address(sym: *const c_char) -> retro_proc_address_
 unsafe extern "C" fn context_reset() {
     println!("context_reset");
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        core_ctx.callbacks.video.context_reset();
+        if let Err(e) = core_ctx.callbacks.video.context_reset() {
+            println!("{:?}", e);
+            let _ = core_ctx.de_init();
+        }
     }
 }
 
@@ -107,7 +135,10 @@ unsafe extern "C" fn context_destroy() {
     println!("context_destroy");
 
     if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-        core_ctx.callbacks.video.context_destroy();
+        if let Err(e) = core_ctx.callbacks.video.context_destroy() {
+            println!("{:?}", e);
+            let _ = core_ctx.de_init();
+        }
     }
 }
 

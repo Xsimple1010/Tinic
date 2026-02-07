@@ -4,6 +4,7 @@ use crate::retro_core::RetroCore;
 use crate::test_tools::constants::CORE_TEST_RELATIVE_PATH;
 use crate::test_tools::paths::get_paths;
 use crate::{RetroAudioEnvCallbacks, RetroCoreIns, RetroVideoEnvCallbacks};
+use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use std::ptr;
 
@@ -24,44 +25,62 @@ impl RetroVideoEnvCallbacks for Video {
         _width: u32,
         _height: u32,
         _pitch: usize,
-    ) {
-        println!("video_refresh_callback -> width:{_width} height:{_height} pitch:{_pitch}")
+    ) -> Result<(), ErroHandle> {
+        println!("video_refresh_callback -> width:{_width} height:{_height} pitch:{_pitch}");
+        Ok(())
     }
 
-    fn context_destroy(&self) {
+    fn context_destroy(&self) -> Result<(), ErroHandle> {
         println!("context_destroy");
+
+        Ok(())
     }
 
-    fn context_reset(&self) {
+    fn context_reset(&self) -> Result<(), ErroHandle> {
         println!("context_reset");
+        Ok(())
     }
 
-    fn get_proc_address(&self, name: &str) -> *const () {
+    fn get_proc_address(&self, name: &str) -> Result<*const (), ErroHandle> {
         println!("video api request: {:?}", name);
 
-        ptr::null()
+        Ok(ptr::null())
     }
 }
 
 struct Audio;
 
 impl RetroAudioEnvCallbacks for Audio {
-    fn audio_sample_callback(&self, _left: i16, _right: i16) {}
+    fn audio_sample_callback(&self, _left: i16, _right: i16) -> Result<(), ErroHandle> {
+        Ok(())
+    }
 
-    fn audio_sample_batch_callback(&self, _data: *const i16, _frames: usize) -> usize {
+    fn audio_sample_batch_callback(
+        &self,
+        _data: *const i16,
+        _frames: usize,
+    ) -> Result<usize, ErroHandle> {
         println!("audio_sample_batch_callback -> {_frames}");
-        0
+        Ok(0)
     }
 }
 
 struct Controller;
 
 impl RetroControllerEnvCallbacks for Controller {
-    fn input_poll_callback(&self) {}
+    fn input_poll_callback(&self) -> Result<(), ErroHandle> {
+        Ok(())
+    }
 
-    fn input_state_callback(&self, _port: i16, _device: i16, _index: i16, _id: i16) -> i16 {
+    fn input_state_callback(
+        &self,
+        _port: i16,
+        _device: i16,
+        _index: i16,
+        _id: i16,
+    ) -> Result<i16, ErroHandle> {
         println!("input_state_callback -> _port:{_port} device:{_device} index:{_index} id:{_id}");
-        0
+        Ok(0)
     }
 
     fn rumble_callback(
@@ -69,13 +88,13 @@ impl RetroControllerEnvCallbacks for Controller {
         port: std::os::raw::c_uint,
         effect: retro_rumble_effect,
         strength: u16,
-    ) -> bool {
+    ) -> Result<bool, ErroHandle> {
         println!(
             "rumble_callback -> port:{:?} effect:{:?} strength:{:?}",
             port, effect, strength
         );
 
-        true
+        Ok(true)
     }
 }
 
