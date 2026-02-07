@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
-pub use tinic::{GameState, SaveImgPreview, SavePath, WindowState};
-use tinic::SaveStateInfo;
+pub use tinic::{GameState, SaveStateInfo, WindowState};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
