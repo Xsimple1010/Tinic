@@ -13,6 +13,7 @@ fn remove_so_extension(name: String) -> String {
 pub async fn install_core(
     retro_paths: RetroPaths,
     core_file_name: Vec<String>,
+    blocking: bool,
     event_listener: Arc<dyn TinicSuperEventListener>,
 ) {
     let src_path = format!("{}/cores.7z", &retro_paths.temps);
@@ -22,7 +23,7 @@ pub async fn install_core(
         .map(remove_so_extension)
         .collect();
 
-    tokio::task::spawn_blocking(move || {
+    let install_fn = move || {
         extract_7zip_file(
             src_path.into(),
             retro_paths.cores.to_string(),
@@ -44,7 +45,13 @@ pub async fn install_core(
                 FileProgress::Download(_, _) => SevenZipBeforeExtractionAction::Jump,
             },
         );
-    });
+    };
+
+    if blocking {
+        install_fn();
+    } else {
+        tokio::task::spawn_blocking(install_fn);
+    }
 }
 
 pub fn this_core_is_installed(
