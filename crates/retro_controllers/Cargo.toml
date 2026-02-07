@@ -5,14 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-#[lints]
-#workspace = true
-
 [dependencies]
 lazy_static.workspace = true
 pc-keyboard.workspace = true
 gilrs.workspace = true
-retro_core.workspace = true
 uuid.workspace = true
 generics.workspace = true
 libretro_sys.workspace = true

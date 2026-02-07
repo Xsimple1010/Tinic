@@ -38,12 +38,14 @@ fn core_bindings() {
         .allowlist_type("(retro|RETRO)_.*")
         .allowlist_function("(retro|RETRO)_.*")
         .allowlist_var("(retro|RETRO)_.*")
-        .prepend_enum_name(false)
+        .rustified_enum(".*")
+        // .generate_inline_functions(true) // Gera funções inline
+        // .prepend_enum_name(false)
         .impl_debug(true)
         .clang_arg("-fparse-all-comments")
         .enable_function_attribute_detection()
         .default_enum_style(bindgen::EnumVariation::Rust {
-            non_exhaustive: true,
+            non_exhaustive: false,
         })
         .dynamic_link_require_all(true)
         .dynamic_library_name("LibretroRaw")
