@@ -55,7 +55,7 @@ impl CoreHelper {
         .await
     }
 
-    pub fn has_installed(dir: PathBuf) -> Result<bool, ErrorHandle> {
-        has_installed(dir)
+    pub fn has_installed(&self) -> Result<bool, ErrorHandle> {
+        has_installed(PathBuf::from(self.retro_paths.cores.to_string()))
     }
 }
