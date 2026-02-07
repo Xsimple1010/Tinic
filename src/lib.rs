@@ -7,6 +7,7 @@ extern crate retro_ab_gamepad;
 mod game_loop;
 mod game_window_handle;
 mod retro_stack;
+mod stack_handle;
 
 use game_loop::init_game_loop;
 use retro_ab::core::{RetroContext, RetroEnvCallbacks};
