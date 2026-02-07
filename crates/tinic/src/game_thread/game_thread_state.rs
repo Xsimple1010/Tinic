@@ -3,29 +3,32 @@ use crate::thread_stack::game_stack::GameStackCommand::DeviceConnected;
 use crate::thread_stack::main_stack::MainStackCommand::{
     GameLoaded, GameStateSaved, SaveStateLoaded,
 };
-use generics::constants::THREAD_SLEEP_TIME;
-use generics::erro_handle::ErroHandle;
-use generics::retro_paths::RetroPaths;
-use libretro_sys::binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE;
-use libretro_sys::binding_libretro::retro_log_level;
+use generics::{constants::THREAD_SLEEP_TIME, erro_handle::ErroHandle, retro_paths::RetroPaths};
+use libretro_sys::{
+    binding_libretro::retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE,
+    binding_libretro::retro_log_level,
+};
 use retro_av::{
     audio_sample_batch_callback, audio_sample_callback, context_destroy, context_reset,
     get_proc_address, video_refresh_callback, EventPump, RetroAv,
 };
-use retro_controllers::devices_manager::Device;
-use retro_controllers::RetroController;
-use retro_controllers::{input_poll_callback, input_state_callback, rumble_callback};
-use retro_core::graphic_api::GraphicApi;
-use retro_core::option_manager::OptionManager;
-use retro_core::RetroCore;
-use retro_core::RetroCoreIns;
-use retro_core::RetroEnvCallbacks;
-use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Mutex;
-use std::sync::{Arc, MutexGuard};
-use std::thread;
-use std::time::Duration;
+use retro_controllers::{
+    devices_manager::Device, input_poll_callback, input_state_callback, rumble_callback,
+    RetroController,
+};
+use retro_core::{
+    graphic_api::GraphicApi, option_manager::OptionManager, RetroCore, RetroCoreIns,
+    RetroEnvCallbacks,
+};
+use std::{
+    path::PathBuf,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex, MutexGuard,
+    },
+    thread,
+    time::Duration,
+};
 
 pub struct ThreadState {
     pub channel_notify: ChannelNotify,
@@ -150,6 +153,7 @@ impl ThreadState {
         let retro_av = self.try_get_retro_av_ctx()?;
 
         retro_av.video.enable_full_screen();
+        self.use_full_screen_mode = true;
 
         Ok(())
     }
@@ -158,6 +162,7 @@ impl ThreadState {
         let retro_av = self.try_get_retro_av_ctx()?;
 
         retro_av.video.disable_full_screen();
+        self.use_full_screen_mode = false;
 
         Ok(())
     }
