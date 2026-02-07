@@ -23,7 +23,7 @@ pub struct CoreWrapper {
     ///
     /// Adicionei isso com o proposito de chamar futuras callbacks que serão adicionadas
     /// [RetroContext] dentro das callbacks fornecidas por [environment],
-    pub retro_ctx_associated: Uuid,
+    retro_ctx_associated: Uuid,
     pub rom_name: RwLock<String>,
     pub initialized: AtomicBool,
     pub game_loaded: AtomicBool,
@@ -302,12 +302,9 @@ impl CoreWrapper {
         Ok(())
     }
 
-    pub fn force_stop(&self) {
-        let retro_ctx = RetroContext::get_from_id(&self.retro_ctx_associated)
-            .expect("não foi possível forca o fechamento");
-
-        retro_ctx.delete().unwrap();
-        core_env::delete_local_core_ctx();
+    pub fn force_stop(&self) -> Result<(), ErroHandle> {
+        println!("force");
+        RetroContext::get_from_id(&self.retro_ctx_associated)?.delete()
     }
 }
 
