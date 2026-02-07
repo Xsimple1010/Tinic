@@ -5,7 +5,7 @@ use crate::thread_stack::game_stack::{GameStack, GameStackCommand};
 use crate::thread_stack::main_stack::MainStackCommand::{
     GameLoaded, GameStateSaved, SaveStateLoaded,
 };
-use crate::thread_stack::main_stack::{MainStack, MainStackCommand};
+use crate::thread_stack::main_stack::{MainStack, MainStackCommand, SaveImg, SavePath};
 use crate::thread_stack::model_stack::RetroStackFn;
 use generics::constants::MAX_TIME_TO_AWAIT_THREAD_RESPONSE;
 use generics::retro_paths::RetroPaths;
@@ -87,10 +87,10 @@ impl ThreadChannel {
     }
 
     // ################### OUTAS AÇÕES MAIS GENÉRICAS DO CORE FICAM AQUI! ###########################
-    pub async fn save_state(&self, slot: usize) -> Option<(String, String)> {
+    pub async fn save_state(&self, slot: usize) -> Option<(SavePath, SaveImg)> {
         self.game_stack.push(SaveState(slot));
 
-        let mut save: Option<(String, String)> = None;
+        let mut save: Option<(SavePath, SaveImg)> = None;
 
         wait_response(&self.main_stack, |command| match command {
             GameStateSaved(s) => {

@@ -2,13 +2,13 @@ use crate::thread_stack::model_stack::{ModelStackManager, RetroStackFn};
 use retro_ab::option_manager::OptionManager;
 use std::sync::Arc;
 
-type GameSavePath = String;
-type GameSaveImg = String;
+pub type SavePath = String;
+pub type SaveImg = String;
 
 #[derive(Clone, Debug)]
 pub enum MainStackCommand {
     GameLoaded(Option<Arc<OptionManager>>),
-    GameStateSaved(Option<(GameSavePath, GameSaveImg)>),
+    GameStateSaved(Option<(SavePath, SaveImg)>),
     SaveStateLoaded(bool),
 }
 

@@ -1,5 +1,6 @@
 use crate::channel::ThreadChannel;
 use crate::game_thread::game_thread_handle::GameThread;
+use crate::thread_stack::main_stack::{SaveImg, SavePath};
 use async_std::task;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
@@ -78,7 +79,7 @@ impl Tinic {
         CHANNEL.resume_game();
     }
 
-    pub fn save_state(&self, slot: usize) -> Option<(String, String)> {
+    pub fn save_state(&self, slot: usize) -> Option<(SavePath, SaveImg)> {
         task::block_on(CHANNEL.save_state(slot))
     }
 
