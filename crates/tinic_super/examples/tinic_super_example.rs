@@ -1,6 +1,5 @@
 use generics::retro_paths::RetroPaths;
 use std::sync::Arc;
-use tinic_super::art::ThumbnailType;
 use tinic_super::tinic_super::TinicSuper;
 use tinic_super::FileProgress;
 
@@ -26,19 +25,20 @@ async fn main() {
         .await
         .unwrap();
 
-    // let core_infos = core_infos
-    //     .into_iter()
-    //     .filter(|c| c.file_name.eq("ppsspp_libretro"))
-    //     .collect();
-
     let (game_info, rdb) = tinic_super.identifier_rom_file(rom, &core_infos).unwrap();
-    println!("{game_info:?}");
-    println!("{rdb:?}");
 
-    let d = tinic_super.get_thumbnail(
-        ThumbnailType::Box,
-        &rdb.name.replace(".rdb", ""),
-        &game_info.name.unwrap(),
-    );
-    println!("{d}");
+    let on_img_progress = |progress| match progress {
+        FileProgress::Download(file_name, percent) => {
+            println!("{file_name}: {percent}%")
+        }
+        FileProgress::Extract(file_name) => println!("extracting: {file_name}"),
+    };
+
+    tinic_super
+        .download_all_thumbnail_from_game(
+            &rdb.name.replace(".rdb", ""),
+            &game_info.name.unwrap(),
+            Arc::new(on_img_progress),
+        )
+        .await;
 }

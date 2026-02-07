@@ -1,7 +1,9 @@
 use futures_util::StreamExt;
-use reqwest::Error;
+use std::path::PathBuf;
 use std::sync::Arc;
-use std::{fs::File, io::Write, path::PathBuf};
+use tokio::fs;
+use tokio::fs::File;
+use tokio::io::AsyncWriteExt;
 
 pub enum FileProgress {
     Download(String, f32),
@@ -11,15 +13,29 @@ pub enum FileProgress {
 pub async fn download_file<CA>(
     url: &str,
     file_name: &str,
-    out_dir: &str,
+    mut dest: PathBuf,
     force_update: bool,
     on_progress: Arc<dyn Fn(FileProgress) + Send + Sync>,
     on_downloaded: CA,
-) -> Result<(), Error>
+) -> Result<(), tokio::io::Error>
 where
     CA: Fn(PathBuf),
 {
-    let mut dest = PathBuf::from(out_dir);
+    if !dest.exists() {
+        fs::create_dir_all(&dest).await?;
+    }
+
+    let response = reqwest::get(url)
+        .await
+        .map_err(|e| tokio::io::Error::new(tokio::io::ErrorKind::Other, e))?;
+
+    if response.status() != reqwest::StatusCode::OK {
+        return Err(tokio::io::Error::new(
+            tokio::io::ErrorKind::Other,
+            "invalid status code",
+        ));
+    }
+
     dest.push(file_name);
     let need_update = !dest.exists();
 
@@ -29,18 +45,15 @@ where
         return Ok(());
     }
 
-    let response = reqwest::get(url).await?;
-
-    let total_size = response.content_length().unwrap_or(0);
-
-    let mut file = File::create(&dest).unwrap();
+    let mut file = File::create(&dest).await?;
 
     let mut downloaded: u64 = 0;
+    let total_size = response.content_length().unwrap_or(0);
     let mut stream = response.bytes_stream();
 
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk?;
-        file.write_all(&chunk).unwrap();
+        let chunk = chunk.map_err(|e| tokio::io::Error::new(tokio::io::ErrorKind::Other, e))?;
+        file.write_all(&chunk).await?;
 
         downloaded += chunk.len() as u64;
 

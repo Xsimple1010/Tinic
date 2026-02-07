@@ -107,9 +107,9 @@ impl DatabaseHelper {
             false
         });
 
-        match out_game { 
-            Some(game) => Some((game, rdb.clone())), 
-            None => None
+        match out_game {
+            Some(game) => Some((game, rdb.clone())),
+            None => None,
         }
     }
 
@@ -179,10 +179,11 @@ impl DatabaseHelper {
             }
 
             let url = format!("{RDB_BASE_URL}/{rdb_name}");
+            let temps_dir = PathBuf::from(paths.temps.to_string());
             download_file(
                 &url,
                 &rdb_name,
-                &paths.temps,
+                temps_dir,
                 force_update,
                 on_progress.clone(),
                 |temp_path| {

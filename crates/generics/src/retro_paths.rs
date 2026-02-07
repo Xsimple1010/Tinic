@@ -14,6 +14,7 @@ pub struct RetroPaths {
     pub cores: Arc<String>,
     pub infos: Arc<String>,
     pub databases: Arc<String>,
+    pub arts: Arc<String>,
 }
 
 impl PartialEq for RetroPaths {
@@ -32,6 +33,7 @@ impl RetroPaths {
         cores: String,
         infos: String,
         databases: String,
+        arts: String,
     ) -> Result<Self, ErrorHandle> {
         if Path::new(&system).exists().not() && fs::create_dir_all(&system).is_err() {
             return Err(ErrorHandle {
@@ -81,6 +83,12 @@ impl RetroPaths {
             });
         }
 
+        if Path::new(&arts).exists().not() && fs::create_dir_all(&arts).is_err() {
+            return Err(ErrorHandle {
+                message: "Não foi possível criar a pasta arts".to_owned(),
+            });
+        }
+
         Ok(Self {
             system: Arc::new(system),
             opt: Arc::new(opt),
@@ -90,6 +98,7 @@ impl RetroPaths {
             cores: Arc::new(cores),
             infos: Arc::new(infos),
             databases: Arc::new(databases),
+            arts: Arc::new(arts),
         })
     }
 
@@ -102,7 +111,8 @@ impl RetroPaths {
         let cores = format!("{}/cores", base);
         let infos = format!("{}/infos", base);
         let databases = format!("{}/databases", base);
+        let arts = format!("{}/arts", base);
 
-        Self::new(sys, save, opt, assets, temps, cores, infos, databases)
+        Self::new(sys, save, opt, assets, temps, cores, infos, databases, arts)
     }
 }
