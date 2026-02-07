@@ -1,6 +1,6 @@
 use crate::{
     generics::error_handle::ErrorHandle,
-    retro_controllers::{devices_manager::DeviceListener, RetroController},
+    retro_controllers::{RetroController, devices_manager::DeviceListener},
     tinic_app::{GameInstance, GameInstanceActions},
     tinic_app_ctx::TinicGameCtx,
 };
@@ -8,7 +8,7 @@ use generics::{
     retro_paths::RetroPaths,
     types::{ArcTMutex, TMutex},
 };
-use retro_controllers::devices_manager::Device;
+use retro_controllers::RetroGamePad;
 use std::{path::PathBuf, sync::Arc};
 use tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper};
 use winit::{
@@ -105,7 +105,7 @@ struct DeviceHandle {
 }
 
 impl DeviceListener for DeviceHandle {
-    fn connected(&self, device: Device) {
+    fn connected(&self, device: RetroGamePad) {
         let mut invalid_proxy = false;
 
         if let Some(proxy) = self.proxy.load_or(None).as_ref() {
@@ -124,11 +124,11 @@ impl DeviceListener for DeviceHandle {
         self.listener.connected(device);
     }
 
-    fn disconnected(&self, device: Device) {
+    fn disconnected(&self, device: RetroGamePad) {
         self.listener.disconnected(device);
     }
 
-    fn button_pressed(&self, button: String, device: Device) {
+    fn button_pressed(&self, button: String, device: RetroGamePad) {
         self.listener.button_pressed(button, device);
     }
 }

@@ -1,14 +1,15 @@
-use super::{gamepad_key_map::GamepadKeyMap, retro_gamepad::RetroGamePad};
-use crate::devices_manager::{Device, DeviceStateListener};
+use crate::RetroGamePad;
+use crate::devices_manager::{DeviceKeyMap, DeviceStateListener};
+use crate::gamepad::retro_gamepad_key_map::GamePadKeyMap;
 use generics::{constants::INVALID_CONTROLLER_PORT, error_handle::ErrorHandle, types::ArcTMutex};
 use gilrs::{Button, GamepadId, Gilrs};
 use libretro_sys::binding_libretro::RETRO_DEVICE_JOYPAD;
 use std::sync::{
-    atomic::{AtomicUsize, Ordering},
     Arc,
+    atomic::{AtomicUsize, Ordering},
 };
 
-//Se o valor retornado for -1(INVALID_CONTROLLER_PORT) significa que todas as
+//Se o valor retornado for −1(INVALID_CONTROLLER_PORT)! significa que todas as
 //portas suportas pelo Core ja estão sendo usadas.
 fn get_available_port(
     max_ports: &Arc<AtomicUsize>,
@@ -102,8 +103,8 @@ pub fn pressed_button_handle(
         }
 
         listener.try_load()?.button_pressed(
-            GamepadKeyMap::get_key_name_from_native_button(button).to_owned(),
-            Device::from_gamepad(gamepad),
+            GamePadKeyMap::get_key_name_from_native_button(button).to_owned(),
+            gamepad.clone(),
         );
     }
 

@@ -1,6 +1,6 @@
 use crate::tinic_app_ctx::TinicGameCtx;
 use generics::error_handle::ErrorHandle;
-use retro_controllers::devices_manager::Device;
+use retro_controllers::RetroGamePad;
 use winit::event_loop::EventLoopClosed;
 use winit::{
     application::ApplicationHandler,
@@ -11,7 +11,7 @@ use winit::{
 };
 
 pub enum GameInstanceActions {
-    ConnectDevice(Device),
+    ConnectDevice(RetroGamePad),
     ChangeDefaultSlot(usize),
     Pause,
     Resume,
@@ -60,7 +60,7 @@ impl GameInstanceDispatchers {
 
     pub fn connect_device(
         &self,
-        device: Device,
+        device: RetroGamePad,
     ) -> Result<(), EventLoopClosed<GameInstanceActions>> {
         self.proxy
             .send_event(GameInstanceActions::ConnectDevice(device))

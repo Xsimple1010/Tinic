@@ -13,8 +13,8 @@ pub use tokio;
 
 pub use generics::retro_paths::RetroPaths;
 pub use retro_controllers::{
-    devices_manager::{Device, DeviceListener, DeviceStateListener},
-    GamepadKeyMap, RetroController,
+    RetroController, RetroGamePad,
+    devices_manager::{DeviceListener, DeviceStateListener},
 };
 pub use retro_core::{args_manager, test_tools};
 pub use tinic::Tinic;

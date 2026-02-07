@@ -5,54 +5,21 @@ use generics::{
     types::{ArcTMutex, TMutex},
 };
 use gilrs::Gilrs;
-use libretro_sys::binding_libretro::{retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK};
+use libretro_sys::binding_libretro;
+use libretro_sys::binding_libretro::{RETRO_DEVICE_ID_JOYPAD_MASK, retro_rumble_effect};
 use std::{
     fmt::Debug,
     sync::{
-        atomic::{AtomicUsize, Ordering},
         Arc,
+        atomic::{AtomicUsize, Ordering},
     },
 };
-use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DeviceRubble {
     pub port: usize,
     pub effect: retro_rumble_effect,
     pub strength: u16,
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum DeviceType {
-    Gamepad,
-    Keyboard,
-}
-
-#[derive(Debug, Clone, Eq)]
-pub struct Device {
-    pub id: Uuid,
-    pub name: String,
-    pub retro_port: i16,
-    pub retro_type: u32,
-    pub device_type: DeviceType,
-}
-
-impl PartialEq for Device {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
-}
-
-impl Device {
-    pub fn from_gamepad(gamepad: &RetroGamePad) -> Self {
-        Self {
-            id: gamepad.id,
-            device_type: DeviceType::Gamepad,
-            name: gamepad.name.clone(),
-            retro_port: gamepad.retro_port,
-            retro_type: gamepad.retro_type,
-        }
-    }
 }
 
 pub type DeviceStateListener = ArcTMutex<Box<dyn DeviceListener>>;
@@ -66,9 +33,46 @@ pub struct DevicesManager {
 }
 
 pub trait DeviceListener: Debug + Send {
-    fn connected(&self, device: Device);
-    fn disconnected(&self, device: Device);
-    fn button_pressed(&self, button: String, device: Device);
+    fn connected(&self, device: RetroGamePad);
+    fn disconnected(&self, device: RetroGamePad);
+    fn button_pressed(&self, button: String, device: RetroGamePad);
+}
+
+pub trait DeviceKeyMap<K, B> {
+    fn get_key_name_from_retro_button<'a>(retro: u32) -> &'a str {
+        match retro {
+            //DPads
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_DOWN => "Retro DPad-down",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_UP => "Retro DPad-up",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_LEFT => "Retro DPad-left",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_RIGHT => "Retro DPad-right",
+
+            //buttons
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_B => "Retro B",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_A => "Retro A",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_X => "Retro X",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_Y => "Retro Y",
+
+            //Trigger
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_L => "Retro L",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_R => "Retro R",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_L2 => "Retro L2",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_R2 => "Retro R2",
+
+            //Thumb
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_L3 => "Retro L3",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_R3 => "Retro R3",
+
+            //Menu
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_START => "Retro Start",
+            binding_libretro::RETRO_DEVICE_ID_JOYPAD_SELECT => "Retro Select",
+            _ => "Chave desconhecida",
+        }
+    }
+
+    fn get_key_name_from_native_button<'a>(native: &B) -> &'a str;
+
+    fn get_default_key_maps() -> Vec<K>;
 }
 
 impl DevicesManager {
@@ -78,7 +82,7 @@ impl DevicesManager {
             Err(e) => {
                 return Err(ErrorHandle {
                     message: e.to_string(),
-                })
+                });
             }
         };
         Ok(Self {
@@ -96,6 +100,10 @@ impl DevicesManager {
             &self.max_ports,
             &self.listener,
         )
+    }
+
+    pub fn create_virtual_device(&self) -> Result<(), ErrorHandle> {
+        todo!()
     }
 
     pub fn set_max_port(&self, max_port: usize) {

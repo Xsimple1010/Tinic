@@ -5,8 +5,8 @@ use generics::{
 };
 use libretro_sys::binding_libretro::retro_hw_context_type;
 use retro_av::RetroAv;
-use retro_controllers::{devices_manager::Device, RetroController};
-use retro_core::{graphic_api::GraphicApi, RetroCore, RetroCoreIns, RetroEnvCallbacks};
+use retro_controllers::{RetroController, RetroGamePad};
+use retro_core::{RetroCore, RetroCoreIns, RetroEnvCallbacks, graphic_api::GraphicApi};
 use winit::{event_loop::ActiveEventLoop, window::Fullscreen};
 
 pub struct TinicGameCtx {
@@ -138,7 +138,7 @@ impl TinicGameCtx {
         self.can_request_new_frames = true;
     }
 
-    pub fn connect_controller(&self, device: Device) -> Result<(), ErrorHandle> {
+    pub fn connect_controller(&self, device: RetroGamePad) -> Result<(), ErrorHandle> {
         self.retro_core
             .connect_controller(device.retro_port, device.retro_type)
     }
