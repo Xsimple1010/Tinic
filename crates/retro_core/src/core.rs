@@ -4,6 +4,7 @@ use crate::graphic_api::GraphicApi;
 use crate::retro_context::RetroContext;
 use crate::tools::game_tools::RomTools;
 use crate::{managers::option_manager::OptionManager, system::System};
+use generics::constants::INVALID_CONTROLLER_PORT;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 pub use libretro_sys::binding_libretro::retro_language;
@@ -209,7 +210,7 @@ impl CoreWrapper {
         Ok(())
     }
 
-    pub fn connect_controller(&self, port: u32, controller: u32) -> Result<(), ErroHandle> {
+    pub fn connect_controller(&self, port: i16, controller: u32) -> Result<(), ErroHandle> {
         if !self.initialized.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
@@ -218,8 +219,11 @@ impl CoreWrapper {
             });
         }
 
-        unsafe {
-            self.raw.retro_set_controller_port_device(port, controller);
+        if port != INVALID_CONTROLLER_PORT {
+            unsafe {
+                self.raw
+                    .retro_set_controller_port_device(port as u32, controller);
+            }
         }
 
         Ok(())

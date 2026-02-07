@@ -14,9 +14,10 @@ use libretro_sys::binding_libretro::{
     retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE, retro_log_level::RETRO_LOG_ERROR,
 };
 use retro_av::{
-    audio_sample_batch_callback, audio_sample_callback, get_proc_address, video_refresh_callback,
-    EventPump, RetroAv,
+    audio_sample_batch_callback, audio_sample_callback, context_destroy, context_reset,
+    get_proc_address, video_refresh_callback, EventPump, RetroAv,
 };
+use retro_controllers::devices_manager::Device;
 use retro_controllers::{
     input_poll_callback, input_state_callback, rumble_callback, RetroController,
 };
@@ -24,32 +25,28 @@ use retro_core::{RetroCore, RetroEnvCallbacks};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-fn teste() {
-    println!("context reset & context destroy")
-}
-
 fn create_retro_contexts(
     core_path: String,
     rom_path: String,
     paths: RetroPaths,
 ) -> Result<(RetroCore, (RetroAv, EventPump)), ErroHandle> {
     let callbacks = RetroEnvCallbacks {
-        audio_sample_batch_callback,
-        audio_sample_callback,
         input_poll_callback,
         input_state_callback,
-        video_refresh_callback,
         rumble_callback,
+        audio_sample_batch_callback,
+        audio_sample_callback,
+        video_refresh_callback,
         get_proc_address,
-        context_destroy: teste,
-        context_reset: teste,
+        context_destroy,
+        context_reset,
     };
 
     let retro_core = RetroCore::new(&core_path, paths, callbacks, RETRO_HW_CONTEXT_OPENGL_CORE)?;
     let av_info = retro_core.core().load_game(&rom_path)?;
     let retro_av = RetroAv::new(av_info)?;
 
-    return Ok((retro_core, retro_av));
+    Ok((retro_core, retro_av))
 }
 
 pub fn stack_commands_handle(
@@ -78,13 +75,10 @@ pub fn stack_commands_handle(
                             //Pode ser que essa não seja a primeira vez que um game está sendo
                             //executada. Então por garantia o ideal é conectar todos os devices
                             //que ja existem agora! E depois os próximos conforme forem chegando.
-                            for device in ctr.get_list() {
-                                if device.retro_port != INVALID_CONTROLLER_PORT {
-                                    let _ = new_retro_core.core().connect_controller(
-                                        device.retro_port as u32,
-                                        device.retro_type,
-                                    );
-                                }
+                            for gamepad in ctr.get_list() {
+                                channel_notify.notify_game_stack(DeviceConnected(
+                                    Device::from_gamepad(&gamepad),
+                                ))
                             }
                         }
 
@@ -172,10 +166,9 @@ pub fn stack_commands_handle(
                 if let Some(ctx) = retro_core {
                     let _ = ctx
                         .core()
-                        .connect_controller(device.retro_port as u32, device.retro_type);
+                        .connect_controller(device.retro_port, device.retro_type);
                 }
             }
-
             //VIDEO
             EnableFullScreen => {
                 if let Some((retro_av, _)) = retro_av {
