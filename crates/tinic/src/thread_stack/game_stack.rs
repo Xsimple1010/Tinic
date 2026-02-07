@@ -18,7 +18,6 @@ pub enum GameStackCommand {
     EnableFullScreen,
     DisableFullScreen,
     DeviceConnected(Device),
-    Quit,
     Reset,
 }
 

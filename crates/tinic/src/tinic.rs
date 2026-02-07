@@ -33,12 +33,6 @@ pub struct Tinic {
     pub core_options: Option<Arc<OptionManager>>,
 }
 
-impl Drop for Tinic {
-    fn drop(&mut self) {
-        CHANNEL.quit();
-    }
-}
-
 impl Tinic {
     pub fn new(listener: Option<DeviceStateListener>) -> Result<Tinic, ErroHandle> {
         match DEVICE_STATE_LISTENER.write() {
@@ -102,7 +96,7 @@ impl Tinic {
 
     pub fn quit(&mut self) {
         self.core_options.take();
-        CHANNEL.quit();
+        self.game_thread.stop();
     }
 
     pub fn enable_full_screen(&self) {

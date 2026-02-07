@@ -103,12 +103,14 @@ impl GameThread {
                         }
                     }
 
-                    game_window_handle(
+                    if game_window_handle(
                         event_pump,
                         &channel_notify,
                         pause_request_new_frames,
                         use_full_screen_mode,
-                    );
+                    ) {
+                        break;
+                    }
                 }
             }
 

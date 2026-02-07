@@ -71,7 +71,7 @@ mod retro_stack_test {
     fn clear() {
         let stack = ModelStackManager::new();
 
-        stack.push(GameStackCommand::Quit);
+        stack.push(GameStackCommand::Pause);
 
         let stack_2 = stack.clone();
 
@@ -80,7 +80,7 @@ mod retro_stack_test {
             assert_eq!(commands.len(), 1);
 
             let cmd = commands.first().unwrap().clone();
-            assert_eq!(cmd, GameStackCommand::Quit)
+            assert_eq!(cmd, GameStackCommand::Pause)
         })
         .join();
 
@@ -91,10 +91,10 @@ mod retro_stack_test {
     fn push_and_read() {
         let stack = ModelStackManager::new();
 
-        stack.push(GameStackCommand::Quit);
+        stack.push(GameStackCommand::Pause);
 
         let commands = stack.read();
         assert_eq!(commands.len(), 1);
-        assert_eq!(commands.first().unwrap().clone(), GameStackCommand::Quit);
+        assert_eq!(commands.first().unwrap().clone(), GameStackCommand::Pause);
     }
 }

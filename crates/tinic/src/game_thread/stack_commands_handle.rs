@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 use crate::channel::ChannelNotify;
 use crate::thread_stack::game_stack::GameStackCommand::{
-    DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, LoadState, Pause, Quit, Reset,
+    DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, LoadState, Pause, Reset,
     Resume, SaveState,
 };
 use crate::thread_stack::main_stack::MainStackCommand::{
@@ -66,10 +66,6 @@ pub fn stack_commands_handle(
 
     for cmd in channel_notify.read_game_stack() {
         match cmd {
-            Quit => {
-                need_stop = true;
-                break;
-            }
             LoadGame(core_path, rom_path, paths) => {
                 if core_ctx.is_some() {
                     need_stop = true;

@@ -1,6 +1,5 @@
 use crate::thread_stack::game_stack::GameStackCommand::{
-    DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, Pause, Quit, Reset, Resume,
-    SaveState,
+    DeviceConnected, DisableFullScreen, EnableFullScreen, LoadGame, Pause, Reset, Resume, SaveState,
 };
 use crate::thread_stack::game_stack::{GameStack, GameStackCommand};
 use crate::thread_stack::main_stack::MainStackCommand::{
@@ -133,9 +132,6 @@ impl ThreadChannel {
         self.game_stack.push(Reset);
     }
 
-    pub fn quit(&self) {
-        self.game_stack.push(Quit);
-    }
     pub fn connect_device(&self, device: Device) {
         self.game_stack.push(DeviceConnected(device))
     }

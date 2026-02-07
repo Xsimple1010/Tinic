@@ -7,14 +7,16 @@ pub fn game_window_handle(
     channel_notify: &ChannelNotify,
     pause_request_new_frames: bool,
     use_full_screen: bool,
-) {
+) -> bool {
+    let mut need_stop = false;
+
     for event in event_pump.poll_iter() {
         match event {
             Event::Quit { .. }
             | Event::KeyDown {
                 keycode: Some(Keycode::Escape),
                 ..
-            } => channel_notify.notify_game_stack(GameStackCommand::Quit),
+            } => need_stop = true,
             Event::KeyDown {
                 keycode: Some(Keycode::F1),
                 ..
@@ -53,5 +55,5 @@ pub fn game_window_handle(
         }
     }
 
-    // need_stop
+    need_stop
 }
