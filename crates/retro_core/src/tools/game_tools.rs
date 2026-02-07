@@ -4,7 +4,6 @@ use generics::constants::SAVE_EXTENSION_FILE;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::{retro_game_info, LibretroRaw};
 use std::fs;
-use std::io::Write;
 use std::sync::Arc;
 use std::{
     ffi::CString,
@@ -47,28 +46,31 @@ fn valid_rom_extension(valid_extensions: &String, path: &Path) -> Result<(), Err
     Ok(())
 }
 
-fn get_save_path(
-    save_dir: &String,
-    sys_info: &SysInfo,
-    rom_name: &String,
-    slot: usize,
-) -> Result<PathBuf, ErroHandle> {
-    let mut path = PathBuf::from(save_dir);
+fn get_save_path(save_info: &SaveInfo) -> Result<PathBuf, ErroHandle> {
+    let mut path = PathBuf::from(save_info.save_dir);
 
-    path.push(sys_info.library_name.as_str());
-    path.push(rom_name);
+    path.push(save_info.library_name);
+    path.push(save_info.rom_name);
 
     if !path.exists() {
         fs::create_dir_all(&path)?;
     }
 
-    let file_name = format!("{}.{}", slot, SAVE_EXTENSION_FILE);
+    let file_name = format!("{}.{}", save_info.slot, SAVE_EXTENSION_FILE);
     path.push(file_name);
 
     Ok(path)
 }
 
 pub struct RomTools;
+
+pub struct SaveInfo<'a> {
+    pub save_dir: &'a str,
+    pub library_name: &'a str,
+    pub rom_name: &'a str,
+    pub slot: usize,
+    pub buffer_size: usize,
+}
 
 impl RomTools {
     pub fn try_load_game(
@@ -131,17 +133,13 @@ impl RomTools {
         Ok(name)
     }
 
-    pub fn create_save_state(
-        libretro_raw: &Arc<LibretroRaw>,
-        save_dir: &String,
-        sys_info: &SysInfo,
-        rom_name: &String,
-        slot: usize,
-    ) -> Result<PathBuf, ErroHandle> {
-        let size = unsafe { libretro_raw.retro_serialize_size() };
-        let mut data = vec![0u8; size];
+    pub fn create_save_state<CA>(save_info: SaveInfo, get_data: CA) -> Result<PathBuf, ErroHandle>
+    where
+        CA: FnOnce(&mut Vec<u8>, usize) -> bool,
+    {
+        let mut data = vec![0u8; save_info.buffer_size];
 
-        let state = unsafe { libretro_raw.retro_serialize(data.as_mut_ptr() as *mut c_void, size) };
+        let state = get_data(&mut data, save_info.buffer_size);
 
         if !state {
             return Err(ErroHandle {
@@ -149,56 +147,33 @@ impl RomTools {
             });
         }
 
-        let save_path = get_save_path(save_dir, sys_info, rom_name, slot)?;
+        let save_path = get_save_path(&save_info)?;
+        fs::write(save_path.clone(), data)?;
 
-        match File::create(&save_path) {
-            Ok(mut file) => {
-                if let Err(e) = file.write(&data) {
-                    return Err(ErroHandle {
-                        message: e.to_string(),
-                    });
-                }
-
-                Ok(save_path)
-            }
-            Err(e) => Err(ErroHandle {
-                message: e.to_string(),
-            }),
-        }
+        Ok(save_path)
     }
 
-    pub fn load_save_state(
-        libretro_raw: &Arc<LibretroRaw>,
-        save_dir: &String,
-        sys_info: &SysInfo,
-        rom_name: &String,
-        slot: usize,
-    ) -> Result<(), ErroHandle> {
-        let save_path = get_save_path(save_dir, sys_info, rom_name, slot)?;
+    pub fn load_save_state<CA>(save_info: SaveInfo, load_data: CA) -> Result<(), ErroHandle>
+    where
+        CA: FnOnce(&mut Vec<u8>, usize) -> bool,
+    {
+        let save_path = get_save_path(&save_info)?;
 
-        let mut save_file = File::open(save_path)?;
-
-        let mut buff = Vec::new();
-        save_file.read_to_end(&mut buff)?;
-
-        let core_expect_size = unsafe { libretro_raw.retro_serialize_size() };
-        let buffer_size = buff.len();
-
-        if buffer_size != core_expect_size {
-            return Err(ErroHandle {
-                message: "o state escolhido nao e correspondente ao core".to_string(),
-            });
+        if !save_path.exists() {
+            println!("O save escolhido nao existe");
+            return Ok(());
         }
 
-        unsafe {
-            let suss =
-                libretro_raw.retro_unserialize(buff.as_mut_ptr() as *mut c_void, buffer_size);
+        let mut data = fs::read(save_path)?;
+        let buffer_size = data.len();
 
-            if !suss {
-                return Err(ErroHandle {
-                    message: "o core nao pode carregar o state escolhido".to_string(),
-                });
-            }
+        if buffer_size > save_info.buffer_size {
+            println!("o state escolhido nao e correspondente ao core");
+            return Ok(());
+        }
+
+        if !load_data(&mut data, buffer_size) {
+            println!("o core nao pode carregar o state escolhido");
         }
 
         Ok(())
