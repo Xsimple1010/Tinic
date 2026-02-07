@@ -12,7 +12,7 @@ pub use libretro_sys::binding_libretro::retro_pixel_format;
 use libretro_sys::binding_libretro::LibretroRaw;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 pub type CoreWrapperIns = Arc<CoreWrapper>;
@@ -23,7 +23,7 @@ pub struct CoreWrapper {
     /// Adicionei isso com o proposito de chamar futuras callbacks que serão adicionadas
     /// [RetroContext] dentro das callbacks fornecidas por [environment],
     pub retro_ctx_associated: Uuid,
-    pub rom_name: Mutex<String>,
+    pub rom_name: RwLock<String>,
     pub initialized: AtomicBool,
     pub game_loaded: AtomicBool,
     pub support_no_game: AtomicBool,
@@ -31,7 +31,7 @@ pub struct CoreWrapper {
     pub system: System,
     pub paths: RetroPaths,
     pub options: Arc<OptionManager>,
-    pub raw: Arc<LibretroRaw>,
+    raw: Arc<LibretroRaw>,
     pub callbacks: RetroEnvCallbacks,
 }
 
@@ -58,7 +58,7 @@ impl CoreWrapper {
             game_loaded: AtomicBool::new(false),
             support_no_game: AtomicBool::new(false),
             av_info: Arc::new(AvInfo::new(graphic_api)),
-            rom_name: Mutex::new("".to_string()),
+            rom_name: RwLock::new("".to_string()),
             system,
             paths,
             options,
@@ -88,6 +88,8 @@ impl CoreWrapper {
                 .retro_set_input_state(Some(core_env::input_state_callback));
         }
 
+        println!("CORE INICIALIZADO");
+
         Ok(core)
     }
 
@@ -108,7 +110,7 @@ impl CoreWrapper {
         }
     }
 
-    pub fn load_game(&self, path: &str) -> Result<bool, ErroHandle> {
+    pub fn load_game(&self, path: &str) -> Result<Arc<AvInfo>, ErroHandle> {
         if self.game_loaded.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
@@ -123,13 +125,20 @@ impl CoreWrapper {
             });
         }
 
-        let state = RomTools::create_game_info(self, path)?;
+        let loaded = RomTools::try_load_game(&self.raw, &self.system.info, path)?;
 
-        self.game_loaded.store(true, Ordering::SeqCst);
-        *self.rom_name.lock().unwrap() = RomTools::get_rom_name(&PathBuf::from(path))?;
+        if loaded {
+            *self.rom_name.write().unwrap() = RomTools::get_rom_name(&PathBuf::from(path))?;
 
-        self.av_info.update_av_info(&self.raw);
-        Ok(state)
+            self.av_info.update_av_info(&self.raw);
+
+            Ok(self.av_info.clone())
+        } else {
+            Err(ErroHandle {
+                level: RETRO_LOG_ERROR,
+                message: "nao foi possível carregar a rom".to_string(),
+            })
+        }
     }
 
     pub fn reset(&self) -> Result<(), ErroHandle> {
@@ -168,6 +177,8 @@ impl CoreWrapper {
                 message: "Nao ha nenhuma rum carregada no momento".to_string(),
             });
         }
+
+        println!("TENTA CRIAR OS NOVOS BUFFERS AV");
 
         unsafe { self.raw.retro_run() }
 
@@ -255,7 +266,13 @@ impl CoreWrapper {
             });
         }
 
-        RomTools::create_save_state(self, slot)
+        RomTools::create_save_state(
+            &self.raw,
+            &self.paths.save,
+            &self.system.info,
+            &self.rom_name.read().unwrap(),
+            slot,
+        )
     }
 
     pub fn load_state(&self, slot: usize) -> Result<(), ErroHandle> {
@@ -273,7 +290,13 @@ impl CoreWrapper {
             });
         }
 
-        RomTools::load_save_state(self, slot)?;
+        RomTools::load_save_state(
+            &self.raw,
+            &self.paths.save,
+            &self.system.info,
+            &self.rom_name.read().unwrap(),
+            slot,
+        )?;
 
         Ok(())
     }

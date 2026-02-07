@@ -46,16 +46,10 @@ fn create_retro_contexts(
     };
 
     let retro_core = RetroCore::new(&core_path, paths, callbacks, RETRO_HW_CONTEXT_OPENGL_CORE)?;
+    let av_info = retro_core.core().load_game(&rom_path)?;
+    let retro_av = RetroAv::new(av_info)?;
 
-    if retro_core.core().load_game(&rom_path)? {
-        let retro_av = RetroAv::new(retro_core.core().av_info.clone())?;
-        return Ok((retro_core, retro_av));
-    }
-
-    Err(ErroHandle {
-        level: RETRO_LOG_ERROR,
-        message: "nao foi possível criar uma instancia retro_core".to_string(),
-    })
+    return Ok((retro_core, retro_av));
 }
 
 pub fn stack_commands_handle(

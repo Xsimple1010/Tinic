@@ -160,13 +160,13 @@ impl System {
 
 #[cfg(test)]
 mod test_system {
-    use crate::{system::System, test_tools};
+    use crate::test_tools;
 
     #[test]
     fn test_get_sys_info() {
         let core = test_tools::core::get_core_wrapper();
 
-        let sys = System::new(&core.raw);
+        let sys = &core.system;
 
         assert_eq!(*sys.info.library_name, "Snes9x".to_owned());
 
