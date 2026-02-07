@@ -3,6 +3,8 @@ use std::collections::HashSet;
 #[derive(Debug, Default, Clone)]
 pub struct CoreInfo {
     pub file_name: String,
+    pub is_installed: bool,
+
     // Informações de Software
     pub display_name: String,
     pub authors: String,

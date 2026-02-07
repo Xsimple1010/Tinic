@@ -1,3 +1,4 @@
+use crate::core_info::has_core_installed::this_core_is_installed;
 use crate::core_info::model::CoreInfo;
 use crate::core_info::read_file::read_info_file_blocking;
 use generics::retro_paths::RetroPaths;
@@ -15,6 +16,7 @@ pub async fn get_compatibility_core_infos(
     };
 
     let infos_dir = retro_paths.infos.to_string();
+    let core_dir = retro_paths.cores.clone();
 
     let res = tokio::task::spawn_blocking(move || {
         let entries = std::fs::read_dir(infos_dir).ok()?;
@@ -23,7 +25,9 @@ pub async fn get_compatibility_core_infos(
             .par_bridge()
             .filter_map(|entry| {
                 let entry = entry.ok()?;
-                let info = read_info_file_blocking(&entry.path()).ok()?;
+                let mut info = read_info_file_blocking(&entry.path()).ok()?;
+
+                this_core_is_installed(&core_dir, &mut info).ok()?;
 
                 if info.supported_extensions.contains(&extension) {
                     Some(info)
