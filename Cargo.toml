@@ -10,7 +10,7 @@ members = [
     "crates/tinic_super",
     "crates/retro_audio", "crates/tinic_ipc",
 ]
-default-members = ["crates/tinic"]
+default-members = ["crates/tinic", "crates/tinic_ipc"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
