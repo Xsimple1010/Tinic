@@ -21,9 +21,8 @@ pub const WINDOWS_CORES_URL: &str =
     "https://buildbot.libretro.com/stable/1.19.1/windows/x86_64/RetroArch_cores.7z";
 pub const LINUX_CORES_URL: &str =
     "https://buildbot.libretro.com/stable/1.19.1/linux/x86_64/RetroArch_cores.7z";
-pub const RDB_URL: &str =
-    "https://buildbot.libretro.com/assets/frontend/database-rdb.zip";
-
+pub const RDB_URL: &str = "https://buildbot.libretro.com/assets/frontend/database-rdb.zip";
+pub const ROM_FOR_TEST: &str = "https://buildbot.libretro.com/assets/cores/Nintendo%20-%20Nintendo%20Entertainment%20System/Forgotten%20In%20Time%20%28Demo%29.nes";
 // pub const THUMBNAIL_BASE_URL: &str = "https://raw.githubusercontent.com/libretro/libretro-thumbnails/master/Nintendo%20-%20Wii/Named_Boxarts/1%2C000%2C000%20Dollar%20Pyramid%20(USA).png";
 pub const THUMBNAIL_BASE_URL: &str =
     "https://raw.githubusercontent.com/libretro/libretro-thumbnails/master";
