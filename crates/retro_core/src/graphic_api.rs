@@ -1,6 +1,7 @@
 use libretro_sys::binding_libretro::{retro_hw_context_type, retro_hw_render_callback};
+use std::sync::atomic::AtomicU8;
 use std::sync::{
-    atomic::{AtomicBool, AtomicU32, Ordering},
+    atomic::{AtomicBool, Ordering},
     RwLock,
 };
 
@@ -24,10 +25,10 @@ pub struct GraphicApi {
     pub bottom_left_origin: AtomicBool,
 
     #[doc = " Major version number for core GL context or GLES 3.1+."]
-    pub major: AtomicU32,
+    pub major: AtomicU8,
 
     #[doc = " Minor version number for core GL context or GLES 3.1+."]
-    pub minor: AtomicU32,
+    pub minor: AtomicU8,
 
     #[doc = " If this is true, the frontend will go very far to avoid\n resetting context in scenarios like toggling full_screen, etc. TODO: Obsolete? Maybe frontend should just always assume this ..."]
     pub cache_context: AtomicBool,
@@ -44,8 +45,8 @@ impl Default for GraphicApi {
             depth: AtomicBool::new(false),
             stencil: AtomicBool::new(false),
             bottom_left_origin: AtomicBool::new(false),
-            major: AtomicU32::new(0),
-            minor: AtomicU32::new(0),
+            major: AtomicU8::new(0),
+            minor: AtomicU8::new(0),
             cache_context: AtomicBool::new(false),
             debug_context: AtomicBool::new(false),
         }
@@ -65,8 +66,10 @@ impl GraphicApi {
         self.stencil.store(hw_cb.stencil, Ordering::SeqCst);
         self.bottom_left_origin
             .store(hw_cb.bottom_left_origin, Ordering::SeqCst);
-        self.minor.store(hw_cb.version_minor, Ordering::SeqCst);
-        self.major.store(hw_cb.version_major, Ordering::SeqCst);
+        self.minor
+            .store(hw_cb.version_minor as u8, Ordering::SeqCst);
+        self.major
+            .store(hw_cb.version_major as u8, Ordering::SeqCst);
         self.cache_context
             .store(hw_cb.cache_context, Ordering::SeqCst);
         self.debug_context
