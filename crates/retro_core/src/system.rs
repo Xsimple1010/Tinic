@@ -96,9 +96,7 @@ impl System {
                 *(raw_sys.roms as *mut [retro_subsystem_rom_info; MAX_CORE_SUBSYSTEM_ROM_INFO])
             };
 
-            for index in 0..raw_sys.num_roms {
-                let rom = raw_roms[index as usize];
-
+            for rom in raw_roms.iter().take(raw_sys.num_roms as usize) {
                 let memory = unsafe { *(rom.memory as *mut retro_subsystem_memory_info) };
 
                 roms.push(SubSystemRomInfo {
@@ -142,19 +140,17 @@ impl System {
                     as *mut [retro_controller_description; MAX_CORE_CONTROLLER_INFO_TYPES])
             };
 
-            for index in 0..raw_ctr_info.num_types as usize {
-                let ctr_type = raw_ctr_types[index];
-
-                if !ctr_type.desc.is_null() {
-                    let controller_description = ControllerDescription {
-                        desc: Arc::new(get_str_from_ptr(ctr_type.desc)),
-                        id: Arc::new(ctr_type.id),
-                    };
-
-                    self.ports.write().unwrap().push(controller_description);
-                } else {
+            for ctr_type in raw_ctr_types.iter().take(raw_ctr_info.num_types as usize) {
+                if ctr_type.desc.is_null() {
                     return;
                 }
+
+                let controller_description = ControllerDescription {
+                    desc: Arc::new(get_str_from_ptr(ctr_type.desc)),
+                    id: Arc::new(ctr_type.id),
+                };
+
+                self.ports.write().unwrap().push(controller_description);
             }
         }
     }
