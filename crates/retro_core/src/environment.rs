@@ -386,29 +386,17 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
                     let raw_variable = *(data as *const retro_variable);
                     let key = get_str_from_ptr(raw_variable.key);
 
-                    for core_opt in &*options_manager.opts.lock().unwrap() {
-                        if !core_opt.key.clone().to_string().eq(&key) {
-                            continue;
+                    return match core_ctx.options.get_opt_value(&key) {
+                        Some((value)) => {
+                            let new_value = make_c_string(&value).unwrap();
+
+                            return binding_log_interface::set_new_value_variable(
+                                data,
+                                new_value.as_ptr(),
+                            );
                         }
-
-                        if !core_opt.need_update.load(Ordering::SeqCst) {
-                            break;
-                        }
-
-                        options_manager
-                            .updated_count
-                            .fetch_sub(1, Ordering::Acquire);
-                        core_opt.need_update.store(false, Ordering::SeqCst);
-
-                        let new_value = make_c_string(&core_opt.selected.read().unwrap()).unwrap();
-
-                        return binding_log_interface::set_new_value_variable(
-                            data,
-                            new_value.as_ptr(),
-                        );
-                    }
-
-                    false
+                        _ => false,
+                    };
                 }
                 _ => false,
             };

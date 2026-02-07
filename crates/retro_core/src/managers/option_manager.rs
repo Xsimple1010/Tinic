@@ -18,7 +18,7 @@ use std::{
 };
 
 #[derive(Default, Debug)]
-pub struct Values {
+pub struct CoreValue {
     pub value: Mutex<String>,
     pub label: Arc<String>,
 }
@@ -34,7 +34,7 @@ pub struct CoreOpt {
     pub info: Arc<String>,
     pub info_categorized: Arc<String>,
     pub category_key: Arc<String>,
-    pub values: Mutex<Vec<Values>>,
+    pub values: Mutex<Vec<CoreValue>>,
     pub default_value: Arc<String>,
 }
 
@@ -68,6 +68,30 @@ impl OptionManager {
     pub fn update_opt(&self, opt_key: &str, new_value_selected: &str) {
         self.change_value_selected(opt_key, new_value_selected);
         self.write_all_options_in_file();
+    }
+
+    pub fn get_opt_value(&self, opt_key: &str) -> Option<String> {
+        for core_opt in &*self.opts.lock().unwrap() {
+            if !core_opt.key.clone().to_string().eq(opt_key) {
+                continue;
+            }
+
+            if !core_opt.need_update.load(Ordering::SeqCst) {
+                break;
+            }
+
+            self.updated_count.fetch_sub(1, Ordering::Acquire);
+            core_opt.need_update.store(false, Ordering::SeqCst);
+
+            match core_opt.selected.read() {
+                Ok(selected_value) => {
+                    return Some(selected_value.clone());
+                }
+                _ => break,
+            }
+        }
+
+        None
     }
 
     pub fn change_visibility(&self, key: &str, visibility: bool) {
@@ -209,7 +233,7 @@ impl OptionManager {
                         let value = get_string_mutex_from_ptr(retro_value.value);
                         let label = get_arc_string_from_ptr(retro_value.label);
 
-                        values.lock().unwrap().push(Values { label, value });
+                        values.lock().unwrap().push(CoreValue { label, value });
                     }
                 }
 
