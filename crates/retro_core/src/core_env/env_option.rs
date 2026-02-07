@@ -12,11 +12,10 @@ use libretro_sys::{
 use std::{
     ffi::c_uint,
     os::raw::c_void,
-    sync::{atomic::Ordering, Arc},
+    sync::atomic::Ordering,
 };
 
 use crate::{
-    retro_core::RetroCore,
     tools::ffi_tools::{get_str_from_ptr, make_c_string},
     RetroCoreIns,
 };

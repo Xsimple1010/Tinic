@@ -1,4 +1,4 @@
-use crate::{retro_core::RetroCore, tools::ffi_tools::make_c_string, RetroCoreIns};
+use crate::{tools::ffi_tools::make_c_string, RetroCoreIns};
 use generics::constants::MAX_CORE_SUBSYSTEM_INFO;
 use libretro_sys::{
     binding_libretro::{
@@ -8,7 +8,7 @@ use libretro_sys::{
     },
     binding_log_interface,
 };
-use std::{ffi::c_uint, os::raw::c_void, sync::Arc};
+use std::{ffi::c_uint, os::raw::c_void};
 
 pub unsafe fn env_cb_directory(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_void) -> bool {
     match cmd {

@@ -6,7 +6,6 @@ use crate::test_tools::paths::get_paths;
 use crate::{RetroAudioEnvCallbacks, RetroCoreIns, RetroVideoEnvCallbacks};
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use std::ptr;
-use std::sync::Arc;
 
 fn input_poll_callback() {}
 

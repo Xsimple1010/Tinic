@@ -12,7 +12,6 @@ use crate::{
         retro_game_geometry, retro_pixel_format, RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE,
         RETRO_ENVIRONMENT_SET_GEOMETRY, RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
     },
-    retro_core::RetroCore,
     RetroCoreIns,
 };
 #[cfg(feature = "hw")]
@@ -20,7 +19,6 @@ use std::{ffi::c_char, mem};
 use std::{
     ffi::{c_uint, c_void},
     ptr::addr_of,
-    sync::Arc,
 };
 
 use super::environment::CORE_CONTEXT;

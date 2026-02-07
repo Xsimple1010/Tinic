@@ -54,6 +54,12 @@ pub struct RetroVideo {
     texture: ArcTMuxte<UnsafeCell<RawTextureData>>,
 }
 
+impl Default for RetroVideo {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RetroVideo {
     pub fn new() -> Self {
         Self {

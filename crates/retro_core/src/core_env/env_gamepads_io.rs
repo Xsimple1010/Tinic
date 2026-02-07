@@ -6,10 +6,9 @@ use crate::{
         RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE,
         RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
     },
-    retro_core::RetroCore,
     RetroCoreIns,
 };
-use std::{ffi::c_uint, os::raw::c_void, ptr::addr_of, sync::Arc};
+use std::{ffi::c_uint, os::raw::c_void, ptr::addr_of};
 
 unsafe extern "C" fn rumble_callback(
     port: c_uint,

@@ -28,7 +28,7 @@ use std::{
     rc::Rc,
     sync::atomic::Ordering,
 };
-use std::{os::raw::c_void, ptr::addr_of, sync::Arc};
+use std::{os::raw::c_void, ptr::addr_of};
 
 pub struct RetroEnvCallbacks {
     pub video: Box<dyn RetroVideoEnvCallbacks>,
