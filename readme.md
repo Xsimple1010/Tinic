@@ -137,3 +137,16 @@ mensagens.
 **Retronic (frontend usando Tinic-ipc)**\
 https://github.com/Xsimple1010/retronic/tree/master/native
 
+------------------------------------------------------------------------
+
+# 🔨 Ferramentas auxiliares
+
+Assim como o **retroarch**, tinic também preciso de lidar com arquivos externos como 
+**RDB (banco de dados com coleções de ROMs), Thumbnails, arquivos de informações dos cores e claro os savestates**.
+
+### 🗂️ Tinic Super
+O **Tinic Super** é o módulo responsável por gerenciar todos os recursos externos e metadados usados pelo **Tinic**. Veja o [Readme aqui](./crates/tinic_super/readme.md) 
+
+### 🗄️ Tinic Database
+O **Tinic Database** é um módulo criado para tornar o uso de bancos de dados de jogos muito mais simples
+para desenvolvedores de frontends. Veja o [Readme aqui](./crates/tinic_database/readme.md)
