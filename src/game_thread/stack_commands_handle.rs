@@ -7,6 +7,9 @@ use crate::thread_stack::game_stack::{
         Reset, Resume, SaveState,
     },
 };
+use crate::thread_stack::main_stack::MainStackCommand::{
+    GameLoaded, GameStateSaved, SaveStateLoaded,
+};
 use crate::thread_stack::model_stack::{ModelStackManager, RetroStackFn};
 use retro_ab::{
     core::RetroEnvCallbacks,
@@ -118,12 +121,24 @@ pub fn stack_commands_handle(
             }
             LoadState(slot) => {
                 if let Some(ctx) = core_ctx {
-                    let _ = ctx.core().load_state(slot);
+                    match ctx.core().load_state(slot) {
+                        Ok(_) => {
+                            channel_notify.notify_main_stack(SaveStateLoaded(true));
+                        }
+                        Err(e) => {
+                            println!("{:?}", e);
+                            channel_notify.notify_main_stack(SaveStateLoaded(false));
+                            need_stop = true;
+                            break;
+                        }
+                    }
                 }
             }
             SaveState(slot) => {
                 if let Some(ctx) = core_ctx {
                     let _ = ctx.core().save_state(slot);
+                    channel_notify
+                        .notify_main_stack(GameStateSaved("teste".to_owned(), "img".to_owned()));
                 }
             }
             Pause => {

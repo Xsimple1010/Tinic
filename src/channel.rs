@@ -87,17 +87,42 @@ impl ThreadChannel {
         (rom_loaded, core_options)
     }
 
-    pub fn set_game_is_loaded(&self, options: Option<Arc<OptionManager>>) {
-        self.main_stack.push(GameLoaded(options))
-    }
-
     // ################### OUTAS AÇÕES MAIS GENÉRICAS DO CORE FICAM AQUI! ###########################
     pub fn save_state(&self, slot: usize) -> Option<(String, String)> {
         self.game_stack.push(GameStackCommand::SaveState(slot));
+
+        let mut save: Option<(String, String)> = None;
+
+        wait_response(&self.main_stack, |command| {
+            return match command {
+                GameStateSaved(save_path, img) => {
+                    save.replace((save_path.clone(), img.clone()));
+                    true
+                }
+                _ => false,
+            };
+        });
+
+        save
     }
 
-    pub fn load_state(&self, slot: usize) {
+    pub fn load_state(&self, slot: usize) -> bool {
         self.game_stack.push(GameStackCommand::LoadState(slot));
+
+        let mut loaded = false;
+
+        wait_response(&self.main_stack, |command| {
+            return match command {
+                SaveStateLoaded(s_loaded) => {
+                    loaded = s_loaded.clone();
+
+                    true
+                }
+                _ => false,
+            };
+        });
+
+        loaded
     }
 
     pub fn resume_game(&self) {

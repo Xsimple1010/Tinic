@@ -84,12 +84,12 @@ impl Tinic {
         CHANNEL.resume_game();
     }
 
-    pub fn save_state(&self, slot: usize) {
-        CHANNEL.save_state(slot);
+    pub fn save_state(&self, slot: usize) -> Option<(String, String)> {
+        CHANNEL.save_state(slot)
     }
 
-    pub fn load_state(&self, slot: usize) {
-        CHANNEL.load_state(slot);
+    pub fn load_state(&self, slot: usize) -> bool {
+        CHANNEL.load_state(slot)
     }
 
     pub fn connect_device(device: Device) {
