@@ -8,9 +8,7 @@ use ringbuf::{
     traits::{Consumer, Observer, Producer, Split},
     SharedRb,
 };
-use rubato::{
-    Resampler, SincFixedIn, SincInterpolationParameters, SincInterpolationType, WindowFunction,
-};
+use rubato::{FastFixedOut, PolynomialDegree, Resampler};
 use std::thread::{self, sleep, JoinHandle};
 use std::time::Duration;
 
@@ -51,16 +49,15 @@ impl AudioResample {
         self.in_metadata.store(None);
     }
 
-    fn set_up_resampler(out_channels: u16) -> SincFixedIn<f64> {
-        let params = SincInterpolationParameters {
-            sinc_len: (520.0 * 0.10) as usize,
-            f_cutoff: 0.95,
-            interpolation: SincInterpolationType::Linear,
-            oversampling_factor: 128,
-            window: WindowFunction::BlackmanHarris2,
-        };
-
-        SincFixedIn::<f64>::new(1.5, 4.0, params, 520, out_channels as usize).unwrap()
+    fn set_up_resampler(out_channels: u16) -> FastFixedOut<f64> {
+        FastFixedOut::<f64>::new(
+            1.5, // ratio (input_rate / output_rate)
+            2.2, // max ratio drift
+            PolynomialDegree::Cubic,
+            2048, // chunk size (frames)
+            out_channels as usize,
+        )
+        .expect("Failed to create FastFixedOut")
     }
 
     pub fn add_sample(&self, data: &[i16], metadata: AudioMetadata) -> Result<(), ErrorHandle> {
@@ -120,7 +117,7 @@ impl AudioResample {
     }
 
     fn make_resample(
-        resampler: &mut SincFixedIn<f64>,
+        resampler: &mut FastFixedOut<f64>,
         back_buffer_cons: &mut BufferCons,
         back_metadata: &AudioMetadata,
         front_buffer_prod: &mut BufferProd,
