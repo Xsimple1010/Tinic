@@ -7,6 +7,7 @@ mod retro_stack;
 
 use game_loop::init_game_loop;
 use retro_ab::core::{self, RetroContext, RetroEnvCallbacks};
+use retro_ab::retro_sys::retro_rumble_effect;
 use retro_ab_av::{audio_sample_batch_callback, audio_sample_callback, video_refresh_callback};
 use retro_ab_gamepad::context::{input_poll_callback, input_state_callback, GamepadContext};
 use retro_stack::{RetroStack, StackCommand};
@@ -20,6 +21,14 @@ pub struct Tinic {
     stack: Arc<RetroStack>,
     pub controller_ctx: GamepadContext,
     pub core_ctx: Option<Arc<RetroContext>>,
+}
+
+fn rumble_callback(
+    _port: ::std::os::raw::c_uint,
+    _effect: retro_rumble_effect,
+    _strength: u16,
+) -> bool {
+    true
 }
 
 impl Tinic {
@@ -42,6 +51,7 @@ impl Tinic {
                 input_poll_callback,
                 input_state_callback,
                 video_refresh_callback,
+                rumble_callback,
             },
         )?;
 
@@ -76,6 +86,10 @@ impl Tinic {
 
     pub fn load_state(&self) {
         self.stack.push(StackCommand::LoadState);
+    }
+
+    pub fn reset(&self) {
+        self.stack.push(StackCommand::Reset);
     }
 
     pub fn quit_game(&self) {

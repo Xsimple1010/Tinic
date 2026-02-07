@@ -10,6 +10,7 @@ pub enum StackCommand {
     // UnloadGame,
     UpdateControllers,
     GameQuit,
+    Reset,
 }
 
 pub struct RetroStack {

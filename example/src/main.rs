@@ -27,6 +27,7 @@ fn main() -> Result<(), String> {
         println!("2: load state");
         println!("3: pause");
         println!("4: resume");
+        println!("5: reset");
 
         let mut command = String::new();
 
@@ -43,6 +44,8 @@ fn main() -> Result<(), String> {
                     tinic.pause();
                 } else if command.starts_with("4") {
                     tinic.resume();
+                } else if command.starts_with("5") {
+                    tinic.reset();
                 }
             }
             Err(..) => println!("erro ao ler o comando!"),

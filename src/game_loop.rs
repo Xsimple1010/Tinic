@@ -36,6 +36,11 @@ pub fn init_game_loop(
                     StackCommand::SaveState => {} //ainda e preciso adicionar isso em retro_ab
                     StackCommand::Pause => _pause = true,
                     StackCommand::Resume => _pause = false,
+                    StackCommand::Reset => {
+                        if core::reset(&core_ctx).is_err() {
+                            break 'running;
+                        }
+                    }
                     StackCommand::UpdateControllers => {
                         for gamepad in &*gamepads.lock().unwrap() {
                             if gamepad.retro_port >= 0 {
@@ -89,10 +94,14 @@ pub fn init_game_loop(
                     } => {
                         _pause = !_pause;
                     }
-                    // Event::KeyDown {
-                    //     keycode: Some(Keycode::F5),
-                    //     ..
-                    // } => update_controllers(&core_ctx, &mut gamepads),
+                    Event::KeyDown {
+                        keycode: Some(Keycode::F5),
+                        ..
+                    } => {
+                        if core::reset(&core_ctx).is_err() {
+                            break 'running;
+                        }
+                    }
                     _ => {}
                 }
             }
