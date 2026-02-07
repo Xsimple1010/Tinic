@@ -43,11 +43,11 @@ fn rumble_callback(
 fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
     unsafe {
         if let Some(listener) = &GAMEPAD_LISTENER {
-            match state {
-                GamePadState::Connected => {
+            match &state {
+                GamePadState::Connected | GamePadState::Disconnected => {
                     STACK.push(StackCommand::UpdateControllers);
                 }
-                GamePadState::Disconnected => {}
+                _ => {}
             }
             listener(state, _gamepad);
         };

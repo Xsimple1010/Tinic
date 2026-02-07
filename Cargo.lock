@@ -456,7 +456,7 @@ dependencies = [
 [[package]]
 name = "retro_ab_gamepad"
 version = "0.1.0"
-source = "git+https://github.com/Xsimple1010/retro_ab_gamepad.git#789ec93e04883d77bb5b464adf5241131ea88cbb"
+source = "git+https://github.com/Xsimple1010/retro_ab_gamepad.git#e874d6be624317953c0f6e934ae007ce6c188dcf"
 dependencies = [
  "gilrs",
  "lazy_static",
@@ -513,9 +513,9 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "syn"
-version = "2.0.55"
+version = "2.0.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "002a1b3dbf967edfafc32655d0f377ab0bb7b994aa1d32c8cc7e9b8bf3ebb8f0"
+checksum = "11a6ae1e52eb25aab8f3fb9fca13be982a373b8f1157ca14b897a825ba4a2d35"
 dependencies = [
  "proc-macro2",
  "quote",
