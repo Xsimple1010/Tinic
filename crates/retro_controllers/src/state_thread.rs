@@ -1,5 +1,5 @@
 use crate::devices_manager::DevicesManager;
-use generics::constants::EVENT_THREAD_SLEEP_TIME;
+use generics::constants::THREAD_SLEEP_TIME;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_ERROR, RETRO_LOG_WARN};
 use std::{
@@ -82,7 +82,7 @@ impl EventThread {
 
         if need_try_again {
             // A thread gamepad_listener precisará de tempo para ler o mutex novamente.
-            sleep(Duration::from_millis(EVENT_THREAD_SLEEP_TIME));
+            sleep(Duration::from_millis(THREAD_SLEEP_TIME));
             return Err(need_try_again);
         }
 
@@ -110,7 +110,7 @@ impl EventThread {
                 can_run
             }) {
                 //WITHOUT THIS, WI HAVE A HIGH CPU UTILIZATION!
-                sleep(Duration::from_millis(EVENT_THREAD_SLEEP_TIME));
+                sleep(Duration::from_millis(THREAD_SLEEP_TIME));
 
                 if let Ok(devices) = &mut devices.lock() {
                     devices.update_state();

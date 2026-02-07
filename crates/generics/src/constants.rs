@@ -1,4 +1,5 @@
-pub const EVENT_THREAD_SLEEP_TIME: u64 = 16;
+#[doc = "use para evitar o auto consumo de CPU pelas thread secundarias"]
+pub const THREAD_SLEEP_TIME: u64 = 16;
 pub const MAX_TIME_TO_AWAIT_THREAD_RESPONSE: u64 = 3;
 
 //Core
