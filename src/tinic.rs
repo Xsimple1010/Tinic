@@ -38,20 +38,19 @@ impl Drop for Tinic {
 }
 
 impl Tinic {
-    pub fn new(listener: Option<DeviceStateListener>) -> Tinic {
+    pub fn new(listener: Option<DeviceStateListener>) -> Result<Tinic, ErroHandle> {
         unsafe {
             CONTROLLER_STATE_LISTENER = listener;
         }
 
-        let retro_ab_controller = Arc::new(Mutex::new(
-            RetroAbController::new(Some(device_state_listener)).unwrap(),
-        ));
+        let retro_ab_controller = Arc::new(Mutex::new(RetroAbController::new(Some(
+            device_state_listener,
+        ))?));
 
-        Self {
-            //TODO:o numero máximo de portas deve ser alterado no futuro
+        Ok(Self {
             game_thread: GameThread::new(retro_ab_controller.clone(), STACK.clone()),
             retro_ab_controller,
-        }
+        })
     }
 
     pub fn load_core(

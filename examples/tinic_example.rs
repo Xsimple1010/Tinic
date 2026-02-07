@@ -11,7 +11,7 @@ fn gamepad_state_listener(state: DeviceState, device: Device) {
 fn main() -> Result<(), ErroHandle> {
     let args = RetroArgs::new()?;
 
-    let mut tinic = Tinic::new(Some(gamepad_state_listener));
+    let mut tinic = Tinic::new(Some(gamepad_state_listener))?;
 
     tinic.load_core(args.core, args.rom, get_paths()?)?;
 
