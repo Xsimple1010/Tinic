@@ -13,9 +13,14 @@ use std::sync::Arc;
 pub enum RdbEventType {
     Downloading(DownloadProgress),
     Extracting(ExtractProgress),
-    Reading { game_infos: Vec<GameInfo> },
-    StartRead { name: String },
-    ReadCompleted { remaining: usize, name: String },
+    Reading {
+        game_infos: Vec<GameInfo>,
+    },
+    ReadProgress {
+        total: usize,
+        remaining: usize,
+        rdb_name: String,
+    },
 }
 
 pub struct RdbManager {

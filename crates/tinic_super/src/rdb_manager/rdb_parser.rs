@@ -16,12 +16,13 @@ pub fn read_rdbs_from_dir(
     event: Arc<dyn TinicSuperEventListener>,
 ) -> Result<(), ErrorHandle> {
     let read_dir = std::fs::read_dir(&rdb_dir)?;
-    let remaining = Arc::new(AtomicUsize::new(read_dir.count()));
+    let total = read_dir.count();
+    let remaining = Arc::new(AtomicUsize::new(total));
 
     let read_dir = std::fs::read_dir(&rdb_dir)?;
     read_dir.par_bridge().for_each(|entry| {
         if let Ok(dir_entry) = entry {
-            let _ = read_rdb_blocking(&dir_entry.path(), event.clone(), remaining.clone());
+            let _ = read_rdb_blocking(&dir_entry.path(), event.clone(), total, remaining.clone());
         }
     });
 
@@ -41,12 +42,15 @@ fn get_file_name_from_path(rdb_path: &PathBuf) -> Result<String, ErrorHandle> {
 pub fn read_rdb_blocking(
     rdb_path: &PathBuf,
     event: Arc<dyn TinicSuperEventListener>,
+    total: usize,
     remaining: Arc<AtomicUsize>,
 ) -> Result<(), ErrorHandle> {
     let rdb_name = get_file_name_from_path(rdb_path)?;
 
-    event.on_rdb_event(RdbEventType::StartRead {
-        name: rdb_name.clone(),
+    event.on_rdb_event(RdbEventType::ReadProgress {
+        total,
+        remaining: remaining.load(Ordering::SeqCst),
+        rdb_name: rdb_name.clone(),
     });
 
     let buffer = std::fs::read(&rdb_path)?;
@@ -96,9 +100,10 @@ pub fn read_rdb_blocking(
 
     remaining.fetch_sub(1, Ordering::SeqCst);
 
-    event.on_rdb_event(RdbEventType::ReadCompleted {
+    event.on_rdb_event(RdbEventType::ReadProgress {
+        total,
         remaining: remaining.load(Ordering::SeqCst),
-        name: rdb_name,
+        rdb_name,
     });
     Ok(())
 }
