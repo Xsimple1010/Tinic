@@ -8,18 +8,14 @@ use gilrs::Gilrs;
 use libretro_sys::binding_libretro::{
     retro_log_level, retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK,
 };
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc,
+use std::{
+    fmt::Debug,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
 };
 use uuid::Uuid;
-
-#[derive(Debug)]
-pub enum DeviceState {
-    Connected,
-    Disconnected,
-    ButtonPressed(String),
-}
 
 #[derive(Debug, Clone, Copy)]
 pub struct DeviceRubble {
@@ -61,18 +57,24 @@ impl Device {
     }
 }
 
-pub type DeviceStateListener = fn(DeviceState, Device);
+pub type DeviceStateListener = ArcTMuxte<Box<dyn DeviceListener>>;
 
 #[derive(Debug, Clone)]
 pub struct DevicesManager {
     gilrs: ArcTMuxte<Gilrs>,
     connected_gamepads: ArcTMuxte<Vec<RetroGamePad>>,
     max_ports: Arc<AtomicUsize>,
-    listener: ArcTMuxte<DeviceStateListener>,
+    listener: DeviceStateListener,
+}
+
+pub trait DeviceListener: Debug + Send {
+    fn connected(&self, device: Device);
+    fn disconnected(&self, device: Device);
+    fn button_pressed(&self, button: String, device: Device);
 }
 
 impl DevicesManager {
-    pub fn new(listener: DeviceStateListener) -> Result<Self, ErroHandle> {
+    pub fn new(listener: Box<dyn DeviceListener>) -> Result<Self, ErroHandle> {
         let gilrs = match Gilrs::new() {
             Ok(gilrs) => gilrs,
             Err(e) => {

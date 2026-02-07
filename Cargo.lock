@@ -2181,7 +2181,6 @@ version = "0.1.0"
 dependencies = [
  "generics",
  "gilrs",
- "lazy_static",
  "libretro_sys",
  "pc-keyboard",
  "retro_core",
@@ -2763,7 +2762,6 @@ name = "tinic"
 version = "0.1.0"
 dependencies = [
  "generics",
- "lazy_static",
  "libretro_sys",
  "retro_av",
  "retro_controllers",

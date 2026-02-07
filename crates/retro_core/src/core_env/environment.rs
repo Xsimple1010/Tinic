@@ -1,5 +1,3 @@
-use generics::erro_handle::ErroHandle;
-
 #[cfg(feature = "core_logs")]
 use crate::tools::ffi_tools::get_str_from_ptr;
 use crate::{
@@ -25,6 +23,7 @@ use crate::{
     },
     RetroCoreIns,
 };
+use generics::erro_handle::ErroHandle;
 use std::{
     ffi::{c_char, c_uint},
     rc::Rc,
@@ -143,6 +142,8 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                 #[cfg(feature = "core_ev_logs")]
                 println!("RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL -> OK");
 
+                println!("{:?}", *(data as *mut u8));
+
                 core_ctx
                     .system
                     .performance_level
@@ -207,14 +208,14 @@ mod test_environment {
 
     #[test]
     fn input_bitmasks() {
-        let my_bool = true;
-        let data = &my_bool as *const bool as *mut c_void;
+        let mut my_bool = true;
+        let data = &mut my_bool as *mut bool as *mut c_void;
 
         let result = unsafe { core_environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, data) };
 
-        assert_eq!(result, true);
+        println!("{:?}", result);
 
-        assert_eq!(my_bool, true);
+        assert_eq!(result, true);
     }
 
     #[test]

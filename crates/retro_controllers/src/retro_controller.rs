@@ -1,4 +1,4 @@
-use crate::devices_manager::{DeviceRubble, DeviceStateListener, DevicesManager};
+use crate::devices_manager::{DeviceListener, DeviceRubble, DevicesManager};
 use crate::gamepad::retro_gamepad::RetroGamePad;
 use crate::state_thread::EventThread;
 use generics::erro_handle::ErroHandle;
@@ -19,7 +19,7 @@ impl Drop for RetroController {
 }
 
 impl RetroController {
-    pub fn new(listener: DeviceStateListener) -> Result<RetroController, ErroHandle> {
+    pub fn new(listener: Box<dyn DeviceListener>) -> Result<RetroController, ErroHandle> {
         let manager = TMutex::new(DevicesManager::new(listener)?);
 
         let mut event_thread = EventThread::new();

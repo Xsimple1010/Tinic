@@ -3,17 +3,14 @@ use libretro_sys::{
         retro_core_option_display, retro_core_options_v2_intl, retro_variable,
         RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, RETRO_ENVIRONMENT_GET_VARIABLE,
         RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
+        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL,
         RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK,
         RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL, RETRO_ENVIRONMENT_SET_VARIABLE,
         RETRO_ENVIRONMENT_SET_VARIABLES,
     },
     binding_log_interface,
 };
-use std::{
-    ffi::c_uint,
-    os::raw::c_void,
-    sync::atomic::Ordering,
-};
+use std::{ffi::c_uint, os::raw::c_void, sync::atomic::Ordering};
 
 use crate::{
     tools::ffi_tools::{get_str_from_ptr, make_c_string},
@@ -29,6 +26,11 @@ pub unsafe fn env_cb_option(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_v
             *(data as *mut u32) = 2;
 
             true
+        }
+        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL => {
+            println!("RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL");
+
+            false
         }
         RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL => {
             #[cfg(feature = "core_ev_logs")]
@@ -60,7 +62,10 @@ pub unsafe fn env_cb_option(core_ctx: &RetroCoreIns, cmd: c_uint, data: *mut c_v
         }
         RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE => {
             #[cfg(feature = "core_ev_logs")]
-            println!("RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE -> ok");
+            println!(
+                "RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE {:?} -> ok",
+                core_ctx.options.updated_count.load(Ordering::SeqCst) > 0
+            );
 
             *(data as *mut bool) = core_ctx.options.updated_count.load(Ordering::SeqCst) > 0;
             true

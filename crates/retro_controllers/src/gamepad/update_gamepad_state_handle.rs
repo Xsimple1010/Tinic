@@ -1,5 +1,5 @@
 use super::{gamepad_key_map::GamepadKeyMap, retro_gamepad::RetroGamePad};
-use crate::devices_manager::{Device, DeviceState, DeviceStateListener};
+use crate::devices_manager::{Device, DeviceStateListener};
 use generics::{constants::INVALID_CONTROLLER_PORT, erro_handle::ErroHandle, types::ArcTMuxte};
 use gilrs::{Button, GamepadId, Gilrs};
 use libretro_sys::binding_libretro::RETRO_DEVICE_JOYPAD;
@@ -53,8 +53,8 @@ pub fn connect_handle(
     gilrs: &mut Gilrs,
     connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
     max_ports: &Arc<AtomicUsize>,
-    listener: &ArcTMuxte<DeviceStateListener>,
-) {
+    listener: &DeviceStateListener,
+) -> Result<(), ErroHandle> {
     if let Some(gamepad) = gilrs.connected_gamepad(gamepad_id) {
         let port = get_available_port(max_ports, connected_gamepads);
 
@@ -68,19 +68,23 @@ pub fn connect_handle(
         let mut gamepads = connected_gamepads.load_or(Vec::new());
         gamepads.push(gamepad.clone());
 
-        let listener = listener.load_or(|_, _| {});
-        listener(DeviceState::Connected, Device::from_gamepad(&gamepad));
+        listener
+            .try_load()?
+            .connected(Device::from_gamepad(&gamepad));
     }
+
+    Ok(())
 }
 
 pub fn disconnect_handle(
     id: GamepadId,
     connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
-    listener: &ArcTMuxte<DeviceStateListener>,
+    listener: &DeviceStateListener,
 ) -> Result<(), ErroHandle> {
     if let Some(gamepad) = remove(id, connected_gamepads)? {
-        let listener = listener.load_or(|_, _| {});
-        listener(DeviceState::Disconnected, Device::from_gamepad(&gamepad));
+        listener
+            .try_load()?
+            .disconnected(Device::from_gamepad(&gamepad));
     }
 
     Ok(())
@@ -90,20 +94,18 @@ pub fn pressed_button_handle(
     button: &Button,
     gamepad_id: GamepadId,
     connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
-    listener: &ArcTMuxte<DeviceStateListener>,
-) {
+    listener: &DeviceStateListener,
+) -> Result<(), ErroHandle> {
     for gamepad in &mut *connected_gamepads.load_or(Vec::new()) {
         if gamepad.inner_id != gamepad_id {
-            return;
+            continue;
         }
 
-        let listener = listener.load_or(|_, _| {});
-
-        listener(
-            DeviceState::ButtonPressed(
-                GamepadKeyMap::get_key_name_from_native_button(button).to_owned(),
-            ),
+        listener.try_load()?.button_pressed(
+            GamepadKeyMap::get_key_name_from_native_button(button).to_owned(),
             Device::from_gamepad(gamepad),
         );
     }
+
+    Ok(())
 }

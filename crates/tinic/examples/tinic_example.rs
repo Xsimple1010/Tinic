@@ -1,16 +1,30 @@
 use generics::erro_handle::ErroHandle;
 use std::io;
-use tinic::{self, args_manager::RetroArgs, Device, DeviceState, Tinic};
+use tinic::{self, args_manager::RetroArgs, DeviceListener, Tinic};
 
-fn device_state_listener(state: DeviceState, device: Device) {
-    println!("{:?} - {:?}", device.name, state);
+#[derive(Debug, Default)]
+struct DeviceEventHandle;
+
+impl DeviceListener for DeviceEventHandle {
+    fn connected(&self, device: tinic::Device) {
+        println!("connected -> {}", device.name)
+    }
+
+    fn disconnected(&self, device: tinic::Device) {
+        println!("disconnected -> {}", device.name)
+    }
+
+    fn button_pressed(&self, button: String, device: tinic::Device) {
+        println!("{} pressed -> {}", device.name, button)
+    }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), ErroHandle> {
     let args = RetroArgs::new()?;
 
-    let mut tinic = Tinic::new(device_state_listener)?;
+    let event = DeviceEventHandle::default();
+    let mut tinic = Tinic::new(Box::new(event))?;
 
     if let Some(core) = &args.core {
         tinic.load_game(&core, &args.rom).await?;
@@ -32,7 +46,6 @@ async fn main() -> Result<(), ErroHandle> {
 
         match io::stdin().read_line(&mut command) {
             Ok(_) => {
-
                 // let _state = tinic.load_game(&args.core, &args.rom)?;
             }
             Err(_) => {}

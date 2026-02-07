@@ -54,18 +54,18 @@ impl RetroGamePad {
         gilrs: &mut Gilrs,
         connected_gamepads: &ArcTMuxte<Vec<RetroGamePad>>,
         max_ports: &Arc<AtomicUsize>,
-        listener: &ArcTMuxte<DeviceStateListener>,
+        listener: &DeviceStateListener,
     ) -> Result<(), ErroHandle> {
         while let Some(Event { id, event, .. }) = gilrs.next_event() {
             match event {
                 gilrs::EventType::Connected => {
-                    connect_handle(id, gilrs, connected_gamepads, max_ports, listener);
+                    connect_handle(id, gilrs, connected_gamepads, max_ports, listener)?;
                 }
                 gilrs::EventType::Disconnected => {
-                    disconnect_handle(id, connected_gamepads, listener)?
+                    disconnect_handle(id, connected_gamepads, listener)?;
                 }
                 gilrs::EventType::ButtonPressed(button, _) => {
-                    pressed_button_handle(&button, id, connected_gamepads, listener)
+                    pressed_button_handle(&button, id, connected_gamepads, listener)?;
                 }
                 _ => {}
             }

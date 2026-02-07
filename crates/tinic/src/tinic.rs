@@ -1,12 +1,10 @@
-use generics::types::TMutex;
-
 use crate::{
     channel::ThreadChannel,
     game_thread::game_thread_handle::GameThread,
-    generics::{erro_handle::ErroHandle, retro_paths::RetroPaths},
+    generics::{erro_handle::ErroHandle, retro_paths::RetroPaths, types::TMutex},
     libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR,
     retro_controllers::{
-        devices_manager::{Device, DeviceState, DeviceStateListener},
+        devices_manager::{Device, DeviceListener},
         RetroController,
     },
     retro_core::{option_manager::OptionManager, test_tools},
@@ -14,18 +12,14 @@ use crate::{
     tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper},
 };
 use std::path::PathBuf;
-use std::sync::{Arc, RwLock};
-
-lazy_static! {
-    static ref DEVICE_STATE_LISTENER: RwLock<DeviceStateListener> = RwLock::new(|_, _| {});
-    static ref CHANNEL: Arc<ThreadChannel> = Arc::new(ThreadChannel::new());
-}
+use std::sync::Arc;
 
 pub struct Tinic {
     pub controller: Arc<TMutex<RetroController>>,
     game_thread: GameThread,
     pub core_options: Option<Arc<OptionManager>>,
     retro_paths: Option<RetroPaths>,
+    channel: Arc<ThreadChannel>,
 }
 
 impl Drop for Tinic {
@@ -35,24 +29,22 @@ impl Drop for Tinic {
 }
 
 impl Tinic {
-    pub fn new(listener: DeviceStateListener) -> Result<Tinic, ErroHandle> {
-        match DEVICE_STATE_LISTENER.write() {
-            Ok(mut device_listener) => *device_listener = listener,
-            Err(e) => {
-                return Err(ErroHandle {
-                    level: RETRO_LOG_ERROR,
-                    message: e.to_string(),
-                })
-            }
-        }
+    pub fn new(listener: Box<dyn DeviceListener>) -> Result<Tinic, ErroHandle> {
+        let channel = Arc::new(ThreadChannel::new());
 
-        let controller_ctx = TMutex::new(RetroController::new(Tinic::device_state_listener)?);
+        let tinic_device_handle = TinicDeviceHandle {
+            channel: channel.clone(),
+            extern_listener: listener,
+        };
+
+        let controller_ctx = TMutex::new(RetroController::new(Box::new(tinic_device_handle))?);
 
         Ok(Self {
             game_thread: GameThread::new(controller_ctx.clone()),
             core_options: None,
             controller: controller_ctx,
             retro_paths: None,
+            channel,
         })
     }
 
@@ -61,10 +53,13 @@ impl Tinic {
     }
 
     pub async fn load_game(&mut self, core_path: &str, rom_path: &str) -> Result<bool, ErroHandle> {
-        self.game_thread.start(CHANNEL.get_notify())?;
+        let retro_path = self.try_get_retro_path()?.clone();
 
-        let core_options = CHANNEL
-            .load_game(core_path, rom_path, self.try_get_retro_path()?.clone())
+        self.game_thread.start(self.channel.get_notify())?;
+
+        let core_options = self
+            .channel
+            .load_game(core_path, rom_path, retro_path)
             .await;
 
         self.core_options = core_options;
@@ -73,44 +68,44 @@ impl Tinic {
     }
 
     pub fn pause(&self) {
-        CHANNEL.pause_game();
+        self.channel.pause_game();
     }
 
     pub fn resume(&self) {
-        CHANNEL.resume_game();
+        self.channel.resume_game();
     }
 
     pub async fn save_state(&self, slot: usize) -> Option<(SavePath, SaveImg)> {
-        CHANNEL.save_state(slot).await
+        self.channel.save_state(slot).await
     }
 
     pub async fn load_state(&self, slot: usize) -> bool {
-        CHANNEL.load_state(slot).await
+        self.channel.load_state(slot).await
     }
 
-    pub fn connect_device(device: Device) {
-        CHANNEL.connect_device(device);
+    pub fn connect_device(&self, device: Device) {
+        self.channel.connect_device(device);
     }
 
     pub fn reset(&self) {
-        CHANNEL.reset_game();
+        self.channel.reset_game();
     }
 
     pub async fn quit(&mut self) -> bool {
         if self.game_thread.is_running() {
             self.core_options.take();
-            CHANNEL.quit().await
+            self.channel.quit().await
         } else {
             true
         }
     }
 
     pub fn enable_full_screen(&self) {
-        CHANNEL.enable_full_screen();
+        self.channel.enable_full_screen();
     }
 
     pub fn disable_full_screen(&self) {
-        CHANNEL.disable_full_screen();
+        self.channel.disable_full_screen();
     }
 
     pub async fn try_update_core_infos(&mut self, force_update: bool) -> Result<(), ErroHandle> {
@@ -136,18 +131,6 @@ impl Tinic {
 }
 
 impl Tinic {
-    fn device_state_listener(state: DeviceState, device: Device) {
-        if let Ok(listener) = DEVICE_STATE_LISTENER.read() {
-            match &state {
-                DeviceState::Connected | DeviceState::Disconnected => {
-                    CHANNEL.connect_device(device.clone());
-                }
-                _ => {}
-            }
-            listener(state, device);
-        };
-    }
-
     fn try_get_retro_path(&mut self) -> Result<&RetroPaths, ErroHandle> {
         let retro_paths = &mut self.retro_paths;
 
@@ -166,5 +149,26 @@ impl Tinic {
                 message: "retro_path nao foi definido".to_string(),
             })
         }
+    }
+}
+
+#[derive(Debug)]
+struct TinicDeviceHandle {
+    channel: Arc<ThreadChannel>,
+    extern_listener: Box<dyn DeviceListener>,
+}
+
+impl DeviceListener for TinicDeviceHandle {
+    fn connected(&self, device: Device) {
+        self.channel.connect_device(device.clone());
+        self.extern_listener.connected(device);
+    }
+
+    fn disconnected(&self, device: Device) {
+        self.extern_listener.disconnected(device);
+    }
+
+    fn button_pressed(&self, button: String, device: Device) {
+        self.extern_listener.button_pressed(button, device);
     }
 }

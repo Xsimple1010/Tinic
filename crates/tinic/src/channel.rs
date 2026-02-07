@@ -12,6 +12,7 @@ use retro_controllers::devices_manager::Device;
 use retro_core::option_manager::OptionManager;
 use std::sync::Arc;
 
+#[derive(Debug)]
 pub struct ThreadChannel {
     game_stack: GameStack,
     main_stack: MainStack,
