@@ -71,7 +71,7 @@ impl Texture2D {
             gl.TexImage2D(
                 gl::TEXTURE_2D,
                 0,
-                gl::RGBA8 as i32,
+                gl::RGB8 as i32,
                 geo.max_width.load(Ordering::SeqCst) as i32,
                 geo.max_height.load(Ordering::SeqCst) as i32,
                 0,

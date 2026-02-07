@@ -124,7 +124,7 @@ impl RetroGlWindow {
         // First we start by opening a new Window
         let display_builder = DisplayBuilder::new().with_window_attributes(Some(attributes));
 
-        let template = ConfigTemplateBuilder::new();
+        let template = ConfigTemplateBuilder::new().with_transparency(false);
 
         let (window, gl_config) = display_builder
             .build(event_loop, template, |configs| {
