@@ -101,7 +101,8 @@ impl Tinic {
         CHANNEL.reset_game();
     }
 
-    pub fn quit(&self) {
+    pub fn quit(&mut self) {
+        self.core_options.take();
         CHANNEL.quit();
     }
 }
