@@ -1,5 +1,5 @@
 use super::gl::gl::{self, types::GLuint};
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::retro_pixel_format;
 use std::mem::size_of;
 

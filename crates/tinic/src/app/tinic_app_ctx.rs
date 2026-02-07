@@ -1,7 +1,7 @@
 use crate::app::listener::{GameState, WindowState};
 use crate::{SaveStateInfo, TinicGameInfo, WindowListener};
-use generics::retro_paths::RetroPaths;
-use generics::{constants::SAVE_IMAGE_EXTENSION_FILE, error_handle::ErrorHandle};
+use tinic_generics::retro_paths::RetroPaths;
+use tinic_generics::{constants::SAVE_IMAGE_EXTENSION_FILE, error_handle::ErrorHandle};
 use libretro_sys::binding_libretro::retro_hw_context_type;
 use retro_audio::RetroAudio;
 use retro_controllers::{RetroController, RetroGamePad};

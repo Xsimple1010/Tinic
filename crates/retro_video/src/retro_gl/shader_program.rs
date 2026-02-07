@@ -3,7 +3,7 @@ use super::{
     shader::Shader,
 };
 use crate::retro_gl::gl::gl::types::GLint;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use std::{ffi::CString, rc::Rc};
 
 pub struct ShaderProgram {

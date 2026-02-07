@@ -1,5 +1,5 @@
 use crate::tools::ffi_tools::get_str_from_ptr;
-use generics::{
+use tinic_generics::{
     constants::{
         MAX_CORE_CONTROLLER_INFO_TYPES, MAX_CORE_SUBSYSTEM_INFO, MAX_CORE_SUBSYSTEM_ROM_INFO,
     },

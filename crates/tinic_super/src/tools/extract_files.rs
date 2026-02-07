@@ -73,7 +73,7 @@ where
     }
 
     event_listener(ExtractProgress::Finished {
-        origin_file: origin_file,
+        origin_file,
     });
 
     Ok(())

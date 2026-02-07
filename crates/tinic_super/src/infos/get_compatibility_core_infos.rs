@@ -1,7 +1,7 @@
 use crate::cores::installed::this_core_is_installed;
 use crate::infos::model::CoreInfo;
 use crate::infos::read_file::read_info_file_blocking;
-use generics::retro_paths::RetroPaths;
+use tinic_generics::retro_paths::RetroPaths;
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use std::path::PathBuf;

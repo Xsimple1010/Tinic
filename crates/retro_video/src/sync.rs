@@ -1,5 +1,5 @@
-use generics::error_handle::ErrorHandle;
-use generics::types::{ArcTMutex, TMutex};
+use tinic_generics::error_handle::ErrorHandle;
+use tinic_generics::types::{ArcTMutex, TMutex};
 use retro_core::av_info::AvInfo;
 use std::sync::Arc;
 use std::thread::sleep;

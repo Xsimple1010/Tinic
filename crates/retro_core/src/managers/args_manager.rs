@@ -1,4 +1,4 @@
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use std::env;
 
 pub struct RetroArgs {

@@ -1,4 +1,4 @@
-use generics::test_workdir::{create_test_work_dir_path, get_test_core_path, get_test_rom_path};
+use tinic_generics::test_workdir::{create_test_work_dir_path, get_test_core_path, get_test_rom_path};
 use tinic::{ErrorHandle, GameInstance, Tinic, TinicGameInfo};
 
 use crate::common::events::{DeviceEvents, WindowEvents};

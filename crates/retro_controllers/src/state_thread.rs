@@ -1,6 +1,6 @@
 use crate::devices_manager::DevicesManager;
-use generics::types::TMutex;
-use generics::{constants::THREAD_SLEEP_TIME, types::ArcTMutex};
+use tinic_generics::types::TMutex;
+use tinic_generics::{constants::THREAD_SLEEP_TIME, types::ArcTMutex};
 use std::sync::Arc;
 use std::{
     thread::{self, sleep},

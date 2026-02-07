@@ -1,8 +1,8 @@
 use crate::event::TinicSuperEventListener;
 use crate::rdb_manager::game_model::GameInfo;
 use crate::rdb_manager::helper::RdbEventType;
-use generics::constants::RDB_HEADER_SIZE;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::constants::RDB_HEADER_SIZE;
+use tinic_generics::error_handle::ErrorHandle;
 use rayon::iter::{ParallelBridge, ParallelIterator};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
@@ -33,9 +33,9 @@ fn get_file_name_from_path(rdb_path: &PathBuf) -> Result<String, ErrorHandle> {
     match rdb_path.file_prefix() {
         Some(name) => match name.to_str() {
             Some(name) => Ok(name.to_string()),
-            None => return Err(ErrorHandle::new("message")),
+            None => Err(ErrorHandle::new("message")),
         },
-        None => return Err(ErrorHandle::new("message")),
+        None => Err(ErrorHandle::new("message")),
     }
 }
 

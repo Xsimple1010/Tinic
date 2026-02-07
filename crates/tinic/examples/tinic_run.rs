@@ -1,5 +1,5 @@
 use crate::common::setup::{TINIC_EXAMPLE_DIR, create_game_instance, create_tinic};
-use generics::test_workdir::remove_test_work_dir_path;
+use tinic_generics::test_workdir::remove_test_work_dir_path;
 use tinic::ErrorHandle;
 mod common;
 

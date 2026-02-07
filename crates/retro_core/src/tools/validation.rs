@@ -1,5 +1,5 @@
-use generics::constants::INVALID_CONTROLLER_PORT;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::constants::INVALID_CONTROLLER_PORT;
+use tinic_generics::error_handle::ErrorHandle;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::path::{Path, PathBuf};
@@ -276,7 +276,7 @@ impl InputValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use generics::test_workdir::get_test_rom_path;
+    use tinic_generics::test_workdir::get_test_rom_path;
     use std::fs::File;
     use tempfile::TempDir;
 

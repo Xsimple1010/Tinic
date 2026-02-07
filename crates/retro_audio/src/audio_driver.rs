@@ -6,7 +6,7 @@ use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait}, Device,
     Stream,
 };
-use generics::{
+use tinic_generics::{
     error_handle::ErrorHandle,
     types::{ArcTMutex, TMutex},
 };

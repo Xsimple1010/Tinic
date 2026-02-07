@@ -1,5 +1,5 @@
 use crate::audio_driver::AudioDriver;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use retro_core::{av_info::AvInfo, RetroAudioEnvCallbacks};
 use ringbuf::{storage::Heap, CachingCons, CachingProd, SharedRb};
 use std::{ptr::slice_from_raw_parts, sync::Arc};

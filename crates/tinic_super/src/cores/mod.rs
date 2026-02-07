@@ -3,8 +3,8 @@ use crate::cores::download::download_core;
 use crate::cores::installed::{has_installed, install_core};
 use crate::event::TinicSuperEventListener;
 use crate::tools::extract_files::ExtractProgress;
-use generics::error_handle::ErrorHandle;
-use generics::retro_paths::RetroPaths;
+use tinic_generics::error_handle::ErrorHandle;
+use tinic_generics::retro_paths::RetroPaths;
 use std::path::PathBuf;
 use std::sync::Arc;
 

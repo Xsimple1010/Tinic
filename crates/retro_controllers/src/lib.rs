@@ -1,4 +1,4 @@
-extern crate generics;
+extern crate tinic_generics;
 extern crate gilrs;
 extern crate winit;
 

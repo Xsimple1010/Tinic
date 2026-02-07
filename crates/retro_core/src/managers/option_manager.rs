@@ -5,8 +5,8 @@ use crate::{
     },
     tools::mutex_tools::get_string_rwlock_from_ptr,
 };
-use generics::constants::{CORE_OPTION_EXTENSION_FILE, MAX_CORE_OPTIONS};
-use generics::error_handle::ErrorHandle;
+use tinic_generics::constants::{CORE_OPTION_EXTENSION_FILE, MAX_CORE_OPTIONS};
+use tinic_generics::error_handle::ErrorHandle;
 use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 use std::sync::Arc;
 use std::{

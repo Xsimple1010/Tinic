@@ -1,8 +1,8 @@
 use crate::event::TinicSuperEventListener;
 use crate::tools::download::download_file;
-use generics::constants::cores_url;
-use generics::error_handle::ErrorHandle;
-use generics::retro_paths::RetroPaths;
+use tinic_generics::constants::cores_url;
+use tinic_generics::error_handle::ErrorHandle;
+use tinic_generics::retro_paths::RetroPaths;
 use std::path::PathBuf;
 use std::sync::Arc;
 

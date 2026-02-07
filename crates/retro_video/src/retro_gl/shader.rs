@@ -2,7 +2,7 @@ use super::gl::gl::{
     self,
     types::{GLenum, GLuint},
 };
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use gl::COMPILE_STATUS;
 use std::{ffi::CString, ptr::null, rc::Rc};
 

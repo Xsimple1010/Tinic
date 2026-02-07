@@ -1,6 +1,6 @@
 use crate::{tools::validation::InputValidator, RetroCoreIns};
-use generics::constants::MAX_CORE_SUBSYSTEM_INFO;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::constants::MAX_CORE_SUBSYSTEM_INFO;
+use tinic_generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::retro_vfs_interface_info;
 use libretro_sys::{
     binding_libretro::{

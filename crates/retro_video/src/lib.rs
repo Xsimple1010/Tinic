@@ -1,4 +1,4 @@
-extern crate generics;
+extern crate tinic_generics;
 extern crate glutin;
 extern crate image;
 extern crate retro_core;

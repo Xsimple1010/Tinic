@@ -3,7 +3,7 @@ use crate::cores::CoreHelper;
 use crate::event::TinicSuperEventListener;
 use crate::infos::helper::InfoHelper;
 use crate::rdb_manager::helper::RdbManager;
-use generics::retro_paths::RetroPaths;
+use tinic_generics::retro_paths::RetroPaths;
 use std::sync::Arc;
 
 pub struct TinicSuper {

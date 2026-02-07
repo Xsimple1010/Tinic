@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-    use generics::{
+    use tinic_generics::{
         retro_paths::RetroPaths,
         test_workdir::{create_test_work_dir_path, get_test_rom_path},
     };

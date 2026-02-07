@@ -1,6 +1,6 @@
 use std::{fmt::Display, sync::Arc};
 
-use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
+use tinic_generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
 
 use crate::{
     DownloadProgress,

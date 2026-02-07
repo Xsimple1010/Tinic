@@ -6,7 +6,7 @@ mod tinic_app_ctx;
 use crate::app::listener::WindowListener;
 use crate::app_dispatcher::{GameInstanceActions, GameInstanceDispatchers};
 use crate::TinicGameInfo;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use retro_controllers::RetroController;
 use std::sync::Arc;
 use winit::{

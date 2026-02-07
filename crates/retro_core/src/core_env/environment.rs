@@ -24,7 +24,7 @@ use crate::{
     },
 };
 use crate::{av_info::AvInfo, tools::validation::InputValidator};
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use std::sync::Arc;
 use std::{
     ffi::{c_char, c_uint},

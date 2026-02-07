@@ -3,7 +3,7 @@ use crate::{
     rdb_manager::helper::RdbEventType,
     tools::{download::download_file, extract_files::extract_zip_file},
 };
-use generics::{constants::RDB_URL, error_handle::ErrorHandle, retro_paths::RetroPaths};
+use tinic_generics::{constants::RDB_URL, error_handle::ErrorHandle, retro_paths::RetroPaths};
 use std::sync::Arc;
 
 pub async fn download_rdb(

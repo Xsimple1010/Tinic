@@ -1,7 +1,7 @@
 use std::sync::atomic::Ordering;
 
 use crate::common::setup::get_core_test;
-use generics::{
+use tinic_generics::{
     error_handle::ErrorHandle,
     test_workdir::{get_test_rom_path, remove_test_work_dir_path},
 };
@@ -21,8 +21,8 @@ fn test_core_initial_state_and_after_load() -> Result<(), ErrorHandle> {
 
     // ---------- SYSTEM INFO ----------
     let system = core.system.clone();
-    assert_eq!(system.ports.read().unwrap().len(), 28);
-    assert_eq!(system.subsystem.read().unwrap().len(), 0);
+    assert_eq!(system.ports.read()?.len(), 28);
+    assert_eq!(system.subsystem.read()?.len(), 0);
     assert_eq!(system.performance_level.load(Ordering::SeqCst), 0);
 
     let info = system.info.clone();
@@ -50,8 +50,8 @@ fn test_core_initial_state_and_after_load() -> Result<(), ErrorHandle> {
 
     // ---------- TIMING ----------
     let timing = &core.av_info.timing;
-    assert_eq!(*timing.fps.read().unwrap(), 0.0);
-    assert_eq!(*timing.sample_rate.read().unwrap(), 0);
+    assert_eq!(*timing.fps.read()?, 0.0);
+    assert_eq!(*timing.sample_rate.read()?, 0);
 
     // =========================
     // 🔹  DEPOIS DO LOAD_GAME
@@ -68,16 +68,16 @@ fn test_core_initial_state_and_after_load() -> Result<(), ErrorHandle> {
     assert_eq!(geo.max_width.load(Ordering::SeqCst), 602);
     assert_eq!(geo.max_height.load(Ordering::SeqCst), 240);
 
-    let aspect = *geo.aspect_ratio.read().unwrap();
+    let aspect = *geo.aspect_ratio.read()?;
     assert!((aspect - 1.0666667).abs() < 0.0001);
 
     // ---------- TIMING ----------
     let timing = &core.av_info.timing;
 
-    let fps = *timing.fps.read().unwrap();
+    let fps = *timing.fps.read()?;
     assert!((fps - 60.0998265).abs() < 0.01);
 
-    assert_eq!(*timing.sample_rate.read().unwrap(), 48_000);
+    assert_eq!(*timing.sample_rate.read()?, 48_000);
 
     // ---------- PIXEL FORMAT ----------
     let pixel_format = core
@@ -99,7 +99,7 @@ fn test_core_initial_state_and_after_load() -> Result<(), ErrorHandle> {
         gfx.context_type,
         retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL
     );
-    assert!(gfx.fbo.read().unwrap().is_none());
+    assert!(gfx.fbo.read()?.is_none());
     assert!(!gfx.depth.load(Ordering::SeqCst));
     assert!(!gfx.stencil.load(Ordering::SeqCst));
     assert!(!gfx.bottom_left_origin.load(Ordering::SeqCst));

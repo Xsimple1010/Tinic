@@ -1,5 +1,5 @@
 use crate::infos::model::CoreInfo;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use std::{ffi::OsStr, path::PathBuf};
 
 fn create_and_join_core_name(file_name: Option<&OsStr>) -> Result<String, ErrorHandle> {

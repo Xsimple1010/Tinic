@@ -1,7 +1,7 @@
 use crate::graphic_api::GraphicApi;
 use crate::tools::validation::InputValidator;
-use generics::error_handle::ErrorHandle;
-use generics::types::{ArcTMutex, TMutex};
+use tinic_generics::error_handle::ErrorHandle;
+use tinic_generics::types::{ArcTMutex, TMutex};
 use libretro_sys::binding_libretro::{
     retro_game_geometry, retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN},
     retro_system_av_info,

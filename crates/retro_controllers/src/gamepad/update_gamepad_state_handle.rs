@@ -1,7 +1,7 @@
 use crate::devices_manager::{DeviceKeyMap, DeviceStateListener};
 use crate::gamepad::retro_gamepad_key_map::GamePadKeyMap;
 use crate::RetroGamePad;
-use generics::{constants::INVALID_CONTROLLER_PORT, error_handle::ErrorHandle, types::ArcTMutex};
+use tinic_generics::{constants::INVALID_CONTROLLER_PORT, error_handle::ErrorHandle, types::ArcTMutex};
 use gilrs::{Button, GamepadId, Gilrs};
 use libretro_sys::binding_libretro::RETRO_DEVICE_JOYPAD;
 use std::sync::{

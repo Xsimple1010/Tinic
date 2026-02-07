@@ -4,8 +4,8 @@ use crate::rdb_manager::game_model::GameInfo;
 use crate::rdb_manager::rdb_parser::read_rdbs_from_dir;
 use crate::tools::extract_files::ExtractProgress;
 use crate::{DownloadProgress, GameIdentifier};
-use generics::error_handle::ErrorHandle;
-use generics::retro_paths::RetroPaths;
+use tinic_generics::error_handle::ErrorHandle;
+use tinic_generics::retro_paths::RetroPaths;
 use std::path::PathBuf;
 use std::sync::Arc;
 

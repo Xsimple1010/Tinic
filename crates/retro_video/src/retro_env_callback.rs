@@ -1,7 +1,7 @@
 use crate::raw_texture::RawTextureData;
 use crate::retro_window::RetroWindowContext;
-use generics::error_handle::ErrorHandle;
-use generics::types::ArcTMutex;
+use tinic_generics::error_handle::ErrorHandle;
+use tinic_generics::types::ArcTMutex;
 use retro_core::RetroVideoEnvCallbacks;
 use std::ffi::c_void;
 use std::ptr::null;

@@ -1,5 +1,5 @@
 use crate::audios::{AudioMetadata, BufferCons, BufferProd};
-use generics::{
+use tinic_generics::{
     error_handle::ErrorHandle,
     types::{ArcTMutex, TMutex},
 };

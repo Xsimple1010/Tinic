@@ -1,5 +1,5 @@
 use crate::rdb_manager::crc32::crc32_file;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use std::path::PathBuf;
 use tokio::fs::{File, read_dir};
 

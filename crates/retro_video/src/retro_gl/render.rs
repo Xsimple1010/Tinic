@@ -13,7 +13,7 @@ use super::{
     vertex_array::VertexArray,
 };
 use crate::raw_texture::RawTextureData;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use glutin::prelude::GlDisplay;
 use retro_core::av_info::{AvInfo, Geometry};
 use std::{ffi::CString, mem::size_of, sync::atomic::Ordering};

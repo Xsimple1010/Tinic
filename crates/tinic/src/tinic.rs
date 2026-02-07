@@ -4,8 +4,8 @@ use crate::app_dispatcher::GameInstanceActions;
 use crate::device_listener::DeviceHandle;
 use crate::{
     GameInstanceDispatchers,
-    generics::error_handle::ErrorHandle,
     retro_controllers::{RetroController, devices_manager::DeviceListener},
+    tinic_generics::error_handle::ErrorHandle,
 };
 use std::sync::Arc;
 use winit::platform::run_on_demand::EventLoopExtRunOnDemand;

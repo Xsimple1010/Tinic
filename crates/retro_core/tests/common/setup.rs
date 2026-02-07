@@ -1,4 +1,4 @@
-use generics::{
+use tinic_generics::{
     error_handle::ErrorHandle,
     retro_paths::RetroPaths,
     test_workdir::{create_test_work_dir_path, get_test_core_path},

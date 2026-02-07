@@ -1,7 +1,7 @@
 use crate::gamepad::retro_gamepad::RetroGamePad;
 use crate::gamepad::update_gamepad_state_handle::get_available_port;
 use crate::keyboard::Keyboard;
-use generics::{
+use tinic_generics::{
     constants::DEFAULT_MAX_PORT,
     error_handle::ErrorHandle,
     types::{ArcTMutex, TMutex},

@@ -1,5 +1,5 @@
 use super::{gl::gl, pixel::Pixel};
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use gl::types::GLuint;
 use retro_core::av_info::AvInfo;
 use std::{

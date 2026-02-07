@@ -1,5 +1,5 @@
 use crate::raw_texture::RawTextureData;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::error_handle::ErrorHandle;
 use image::{ImageBuffer, RgbImage};
 use libretro_sys::binding_libretro::retro_pixel_format;
 use retro_core::av_info::AvInfo;
@@ -71,7 +71,7 @@ impl PrintScree {
 
         img.save(Path::new(out_path))
             .map_err(|e| e.to_string())
-            .unwrap();
+        ?;
 
         Ok(())
     }

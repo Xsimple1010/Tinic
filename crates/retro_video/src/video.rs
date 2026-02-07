@@ -3,7 +3,7 @@ use crate::retro_env_callback::RetroVideoCb;
 use crate::retro_window::{RetroWindowContext, RetroWindowMode};
 use crate::sync::RetroSync;
 use crate::{print_scree::PrintScree, retro_gl::window::RetroGlWindow};
-use generics::{
+use tinic_generics::{
     error_handle::ErrorHandle,
     types::{ArcTMutex, TMutex},
 };

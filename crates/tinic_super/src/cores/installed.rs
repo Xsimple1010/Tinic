@@ -3,7 +3,7 @@ use crate::{
     event::TinicSuperEventListener,
     tools::extract_files::{SevenZipBeforeExtractionAction, extract_7zip_file},
 };
-use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
+use tinic_generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
 use std::{collections::HashSet, path::PathBuf, sync::Arc};
 
 fn remove_so_extension(name: String) -> String {

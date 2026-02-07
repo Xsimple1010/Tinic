@@ -2,9 +2,9 @@ use crate::event::TinicSuperEventListener;
 use crate::infos::helper::InfoEventType;
 use crate::tools::download::download_file;
 use crate::tools::extract_files::{ExtractProgress, extract_zip_file};
-use generics::constants::CORE_INFOS_URL;
-use generics::error_handle::ErrorHandle;
-use generics::retro_paths::RetroPaths;
+use tinic_generics::constants::CORE_INFOS_URL;
+use tinic_generics::error_handle::ErrorHandle;
+use tinic_generics::retro_paths::RetroPaths;
 use std::path::PathBuf;
 use std::sync::Arc;
 

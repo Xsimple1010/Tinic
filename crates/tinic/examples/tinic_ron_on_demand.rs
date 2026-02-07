@@ -1,4 +1,4 @@
-use generics::test_workdir::remove_test_work_dir_path;
+use tinic_generics::test_workdir::remove_test_work_dir_path;
 use tinic::ErrorHandle;
 mod common;
 

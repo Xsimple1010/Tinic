@@ -1,7 +1,7 @@
 use crate::system::SysInfo;
 use crate::tools::validation::InputValidator;
-use generics::constants::SAVE_EXTENSION_FILE;
-use generics::error_handle::ErrorHandle;
+use tinic_generics::constants::SAVE_EXTENSION_FILE;
+use tinic_generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::{LibretroRaw, retro_game_info};
 use std::fs;
 use std::sync::Arc;
