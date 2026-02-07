@@ -13,8 +13,8 @@ default-members = ["crates/tinic"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-retro_controllers = { path = "crates/retro_controllers" }
 retro_core = { path = "crates/retro_core" }
+retro_controllers = { path = "crates/retro_controllers" }
 retro_av = { path = "crates/retro_av" }
 libretro_sys = { path = "crates/libretro_sys" }
 generics = { path = "crates/generics" }
@@ -24,7 +24,7 @@ gilrs = "0.11.0"
 pc-keyboard = "0.8.0"
 image = "0.25.5"
 rodio = "0.20.1"
-sdl2 = "0.37.0"
+sdl2 = { version = "0.37.0", features = ["bundled"] }
 uuid = { features = ["v4"], version = "1.11.0" }
 bindgen = "0.70.1"
 libloading = "0.8.6"
