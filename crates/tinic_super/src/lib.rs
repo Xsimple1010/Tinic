@@ -168,4 +168,36 @@ mod test {
 
         clean_up(&work_dir).await;
     }
+
+    #[tokio::test]
+    async fn art_helper() {
+        let (tinic_super, work_dir) = setup("tinic_super..art_helper").await;
+
+        let thumbnails = tinic_super
+            .art_helper
+            .get_urls(
+                &"Nintendo",
+                &"Super Nintendo Entertainment System",
+                &"Batman Returns (USA)",
+            )
+            .await
+            .unwrap();
+
+        assert!(thumbnails.box_img.is_some(), "box img não foi definida!");
+        assert!(thumbnails.snap_img.is_some(), "snap img não foi definida!");
+        assert!(
+            thumbnails.title_img.is_some(),
+            "title img não foi definida!"
+        );
+
+        let box_path = thumbnails.box_img.unwrap();
+        let snap_path = thumbnails.snap_img.unwrap();
+        let title_path = thumbnails.title_img.unwrap();
+
+        assert!(box_path.exists(), "box img não foi salvo!");
+        assert!(snap_path.exists(), "snap img não foi salvo!");
+        assert!(title_path.exists(), "title img não foi salvo!");
+
+        clean_up(&work_dir).await;
+    }
 }
