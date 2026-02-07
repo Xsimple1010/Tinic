@@ -19,6 +19,7 @@ pub struct TinicApp {
     retro_av: RetroAv,
     retro_core: RetroCoreIns,
     current_full_screen_mode: Fullscreen,
+    can_request_new_frames: bool,
 }
 
 pub enum TinicAppActions {
@@ -58,6 +59,7 @@ impl TinicApp {
             retro_av,
             retro_core,
             controller,
+            can_request_new_frames: true,
             current_full_screen_mode: Fullscreen::Borderless(None),
         })
     }
@@ -115,13 +117,23 @@ impl ApplicationHandler<TinicAppActions> for TinicApp {
                 device_id: _,
                 event,
                 is_synthetic: _,
-            } => match event.physical_key {
-                PhysicalKey::Code(KeyCode::F5) => self.reset(),
-                PhysicalKey::Code(KeyCode::F1) => self.save_state(1),
-                PhysicalKey::Code(KeyCode::F2) => self.load_state(1),
-                PhysicalKey::Code(KeyCode::F11) => self.toggle_full_screen_mode(),
-                _ => Ok(()),
-            },
+            } => {
+                if event.repeat || !event.state.is_pressed() {
+                    return;
+                }
+
+                match event.physical_key {
+                    PhysicalKey::Code(KeyCode::F1) => self.save_state(1),
+                    PhysicalKey::Code(KeyCode::F2) => self.load_state(1),
+                    PhysicalKey::Code(KeyCode::F5) => self.reset(),
+                    PhysicalKey::Code(KeyCode::F8) => {
+                        self.toggle_can_request_new_frames();
+                        Ok(())
+                    }
+                    PhysicalKey::Code(KeyCode::F11) => self.toggle_full_screen_mode(),
+                    _ => Ok(()),
+                }
+            }
             _ => Ok(()),
         };
 
@@ -155,6 +167,10 @@ impl TinicApp {
 
     fn redraw_request(&mut self) -> Result<(), ErroHandle> {
         if self.retro_av.sync() {
+            if !self.can_request_new_frames {
+                return Ok(());
+            }
+
             self.retro_core.run()?;
             self.retro_av.get_new_frame()?
         }
@@ -188,6 +204,16 @@ impl TinicApp {
     fn toggle_full_screen_mode(&mut self) -> Result<(), ErroHandle> {
         self.retro_av
             .set_full_screen(self.current_full_screen_mode.clone())
+    }
+
+    fn toggle_can_request_new_frames(&mut self) {
+        if self.can_request_new_frames {
+            self.controller.resume_thread_events();
+            self.can_request_new_frames = false;
+        } else {
+            self.controller.stop_thread_events();
+            self.can_request_new_frames = true;
+        }
     }
 
     fn connect_controller(&self, device: Device) -> Result<(), ErroHandle> {

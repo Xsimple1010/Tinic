@@ -1,7 +1,6 @@
 use crate::{
     generics::erro_handle::ErroHandle,
     retro_controllers::{devices_manager::DeviceListener, RetroController},
-    retro_core::option_manager::OptionManager,
     tinic_app::{TinicApp, TinicAppActions},
 };
 use generics::{
@@ -14,7 +13,6 @@ use winit::event_loop::{EventLoop, EventLoopProxy};
 
 pub struct Tinic {
     pub controller: Arc<RetroController>,
-    pub options: Arc<Option<OptionManager>>,
     proxy: ArcTMuxte<Option<EventLoopProxy<TinicAppActions>>>,
 }
 
@@ -28,11 +26,7 @@ impl Tinic {
         };
         let controller = Arc::new(RetroController::new(Box::new(tinic_listener))?);
 
-        Ok(Self {
-            controller,
-            proxy,
-            options: Arc::new(None),
-        })
+        Ok(Self { controller, proxy })
     }
 
     pub fn make_context(
@@ -57,8 +51,8 @@ impl Tinic {
             .unwrap();
 
         self.proxy.store(Some(event_loop.create_proxy()));
-
         event_loop.run_app(&mut ctx).unwrap();
+        self.proxy.store(None);
 
         Ok(())
     }
