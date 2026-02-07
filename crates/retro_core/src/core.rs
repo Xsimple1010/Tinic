@@ -242,7 +242,7 @@ impl CoreWrapper {
         Ok(())
     }
 
-    pub fn save_state(&self, slot: usize) -> Result<String, ErroHandle> {
+    pub fn save_state(&self, slot: usize) -> Result<PathBuf, ErroHandle> {
         if !self.game_loaded.load(Ordering::SeqCst) {
             return Err(ErroHandle {
                 level: RETRO_LOG_ERROR,
