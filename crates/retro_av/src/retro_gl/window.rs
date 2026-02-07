@@ -80,8 +80,12 @@ impl RetroVideoAPi for RetroGlWindow {
         self.gl_surface.swap_buffers(&self.gl_context).unwrap();
     }
 
-    fn get_proc_address(&self, _proc_name: &str) -> *const () {
-        todo!("get_proc_address ainda nao foi criado")
+    fn get_proc_address(&self, proc_name: &str) -> *const () {
+        println!("get_proc_address({:?})", proc_name);
+        let cstr = std::ffi::CString::new(proc_name).unwrap();
+        let addr = self.gl_context.display().get_proc_address(cstr.as_c_str());
+
+        addr as *const ()
     }
 
     fn set_full_screen(&mut self, mode: Fullscreen) {

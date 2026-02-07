@@ -158,7 +158,7 @@ impl RetroVideoEnvCallbacks for RetroVideoCb {
 
     fn get_proc_address(&self, proc_name: &str) -> Result<*const (), ErrorHandle> {
         if let Some(win) = &mut *self.window_ctx.try_load()? {
-            win.get_proc_address(proc_name);
+            return Ok(win.get_proc_address(proc_name));
         }
 
         Ok(null())
