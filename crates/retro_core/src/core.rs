@@ -88,8 +88,6 @@ impl CoreWrapper {
                 .retro_set_input_state(Some(core_env::input_state_callback));
         }
 
-        println!("CORE INICIALIZADO");
-
         Ok(core)
     }
 
@@ -177,8 +175,6 @@ impl CoreWrapper {
                 message: "Nao ha nenhuma rum carregada no momento".to_string(),
             });
         }
-
-        println!("TENTA CRIAR OS NOVOS BUFFERS AV");
 
         unsafe { self.raw.retro_run() }
 
