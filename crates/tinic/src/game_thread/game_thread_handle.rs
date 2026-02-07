@@ -3,7 +3,7 @@ use crate::game_thread::game_window_handle::game_window_handle;
 use crate::game_thread::stack_commands_handle::stack_commands_handle;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_DUMMY, RETRO_LOG_ERROR};
-use retro_ab::retro_ab::RetroAB;
+use retro_ab::RetroCore;
 use retro_av::EventPump;
 use retro_av::RetroAv;
 use retro_controllers::RetroController;
@@ -75,8 +75,8 @@ impl GameThread {
         thread::spawn(move || {
             let mut pause_request_new_frames = false;
             let mut use_full_screen_mode = false;
-            let mut retro_ab: Option<RetroAB> = None;
-            let mut av_ctx: Option<(RetroAv, EventPump)> = None;
+            let mut retro_core: Option<RetroCore> = None;
+            let mut retro_av: Option<(RetroAv, EventPump)> = None;
 
             while *is_running.lock().unwrap_or_else(|op| {
                 let mut can_run = op.into_inner();
@@ -86,18 +86,20 @@ impl GameThread {
             }) {
                 if stack_commands_handle(
                     &channel_notify,
-                    &mut retro_ab,
+                    &mut retro_core,
                     &controller_ctx,
-                    &mut av_ctx,
+                    &mut retro_av,
                     &mut pause_request_new_frames,
                     &mut use_full_screen_mode,
                 ) {
                     break;
                 }
 
-                if let Some((av, event_pump)) = &mut av_ctx {
-                    if let Some(retro_ab) = &retro_ab {
-                        if let Err(e) = try_render_frame(retro_ab, av, pause_request_new_frames) {
+                if let Some((retro_av, event_pump)) = &mut retro_av {
+                    if let Some(retro_core) = &retro_core {
+                        if let Err(e) =
+                            try_render_frame(retro_core, retro_av, pause_request_new_frames)
+                        {
                             println!("{:?}", e);
                             break;
                         }
@@ -136,16 +138,16 @@ impl GameThread {
 }
 
 fn try_render_frame(
-    retro_ab: &RetroAB,
+    retro_core: &RetroCore,
     retro_av: &mut RetroAv,
-    paused: bool,
+    pause_request_new_frames: bool,
 ) -> Result<(), ErroHandle> {
-    if !retro_av.sync() || paused {
+    if !retro_av.sync() || pause_request_new_frames {
         return Ok(());
     }
 
     // Pede para core gerar novos buffers de video e audio
-    retro_ab.core().run()?;
+    retro_core.core().run()?;
     // Exibe os buffers gerados pelo core
     retro_av.get_new_frame();
 

@@ -7,15 +7,15 @@ Um simples reprodutor de núcleos libreto
 Este projeto ainda está em fase inicial então muita coisa ainda pode mudar e ser melhorada.
 Tinic é dividido em 3 (três) projetos, cada qual com sua responsabilidade.
 
-### [Retro_ab_rs](./crates/retro_ab_rs)
+### [Retro_core](./crates/retro_core)
 
 Todas as ligações aos núcleos são criadas aqui (depende do SDL2).
 
-### [retro_av](./crates//retro_av)
+### [Retro_av](./crates/retro_av)
 
 Lida com renderização e a reprodução de áudio (depende do SDL2).
 
-### [Retro_ab_gamepad](./crates/retro_controllers)
+### [Retro_controllers](./crates/retro_controllers)
 
 Gerencia os controles conectados.
 

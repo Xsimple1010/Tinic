@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     'crates/retro_controllers',
-    'crates/retro_ab_rs',
+    'crates/retro_core',
     "crates/retro_av",
     "crates/tinic",
     "crates/generics",
@@ -14,7 +14,7 @@ default-members = ["crates/tinic"]
 
 [workspace.dependencies]
 retro_controllers = { path = "crates/retro_controllers" }
-retro_ab = { path = "crates/retro_ab_rs" }
+retro_ab = { path = "crates/retro_core" }
 retro_av = { path = "crates/retro_av" }
 libretro_sys = { path = "crates/libretro_sys" }
 generics = { path = "crates/generics" }

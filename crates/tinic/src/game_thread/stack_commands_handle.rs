@@ -13,7 +13,7 @@ use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::{
     retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE, retro_log_level::RETRO_LOG_ERROR,
 };
-use retro_ab::{core::RetroEnvCallbacks, retro_ab::RetroAB};
+use retro_ab::{core::RetroEnvCallbacks, RetroCore};
 use retro_av::{
     audio_sample_batch_callback, audio_sample_callback, get_proc_address, video_refresh_callback,
     EventPump, RetroAv,
@@ -29,7 +29,7 @@ fn create_retro_contexts(
     core_path: String,
     rom_path: String,
     paths: RetroPaths,
-) -> Result<(RetroAB, (RetroAv, EventPump)), ErroHandle> {
+) -> Result<(RetroCore, (RetroAv, EventPump)), ErroHandle> {
     let callbacks = RetroEnvCallbacks {
         audio_sample_batch_callback,
         audio_sample_callback,
@@ -42,11 +42,11 @@ fn create_retro_contexts(
         context_reset: teste,
     };
 
-    let retro_ab = RetroAB::new(&core_path, paths, callbacks, RETRO_HW_CONTEXT_OPENGL_CORE)?;
+    let retro_core = RetroCore::new(&core_path, paths, callbacks, RETRO_HW_CONTEXT_OPENGL_CORE)?;
 
-    if retro_ab.core().load_game(&rom_path)? {
-        let av = RetroAv::new(retro_ab.core().av_info.clone())?;
-        return Ok((retro_ab, av));
+    if retro_core.core().load_game(&rom_path)? {
+        let retro_av = RetroAv::new(retro_core.core().av_info.clone())?;
+        return Ok((retro_core, retro_av));
     }
 
     Err(ErroHandle {
@@ -57,9 +57,9 @@ fn create_retro_contexts(
 
 pub fn stack_commands_handle(
     channel_notify: &ChannelNotify,
-    core_ctx: &mut Option<RetroAB>,
+    retro_core: &mut Option<RetroCore>,
     controller_ctx: &Arc<Mutex<RetroController>>,
-    av_ctx: &mut Option<(RetroAv, EventPump)>,
+    retro_av: &mut Option<(RetroAv, EventPump)>,
     pause_request_new_frames: &mut bool,
     use_full_screen: &mut bool,
 ) -> bool {
@@ -68,7 +68,7 @@ pub fn stack_commands_handle(
     for cmd in channel_notify.read_game_stack() {
         match cmd {
             LoadGame(core_path, rom_path, paths) => {
-                if core_ctx.is_some() {
+                if retro_core.is_some() {
                     need_stop = true;
                     break;
                 }
@@ -94,8 +94,8 @@ pub fn stack_commands_handle(
                         channel_notify
                             .notify_main_stack(GameLoaded(Some(retro_ab.core().options.clone())));
 
-                        core_ctx.replace(retro_ab);
-                        av_ctx.replace(av);
+                        retro_core.replace(retro_ab);
+                        retro_av.replace(av);
                     }
                     Err(e) => {
                         println!("{:?}", e);
@@ -106,7 +106,7 @@ pub fn stack_commands_handle(
                 }
             }
             LoadState(slot) => {
-                if let Some(ctx) = core_ctx {
+                if let Some(ctx) = retro_core {
                     match ctx.core().load_state(slot) {
                         Ok(_) => {
                             channel_notify.notify_main_stack(SaveStateLoaded(true));
@@ -121,10 +121,10 @@ pub fn stack_commands_handle(
                 }
             }
             SaveState(slot) => {
-                if let Some(ctx) = core_ctx {
+                if let Some(ctx) = retro_core {
                     match ctx.core().save_state(slot) {
                         Ok(saved_path) => {
-                            if let Some((_av, _)) = av_ctx {
+                            if let Some((_av, _)) = retro_av {
                                 // let d = av.video.print_screen();
                             }
 
@@ -157,7 +157,7 @@ pub fn stack_commands_handle(
                 }
             }
             Reset => {
-                if let Some(ctx) = &core_ctx {
+                if let Some(ctx) = &retro_core {
                     if let Err(e) = ctx.core().reset() {
                         println!("{:?}", e);
                         need_stop = true;
@@ -166,7 +166,7 @@ pub fn stack_commands_handle(
                 };
             }
             DeviceConnected(device) => {
-                if let Some(ctx) = core_ctx {
+                if let Some(ctx) = retro_core {
                     let _ = ctx
                         .core()
                         .connect_controller(device.retro_port as u32, device.retro_type);
@@ -175,14 +175,14 @@ pub fn stack_commands_handle(
 
             //VIDEO
             EnableFullScreen => {
-                if let Some((av_ctx, _)) = av_ctx {
-                    av_ctx.video.full_screen();
+                if let Some((retro_av, _)) = retro_av {
+                    retro_av.video.full_screen();
                     *use_full_screen = true;
                 }
             }
             DisableFullScreen => {
-                if let Some((av_ctx, _)) = av_ctx {
-                    av_ctx.video.disable_full_screen();
+                if let Some((retro_av, _)) = retro_av {
+                    retro_av.video.disable_full_screen();
                     *use_full_screen = false;
                 }
             }
