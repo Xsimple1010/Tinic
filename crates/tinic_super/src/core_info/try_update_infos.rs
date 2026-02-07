@@ -1,11 +1,11 @@
-use std::path::PathBuf;
-use std::sync::Arc;
-use generics::constants::{cores_url, CORE_INFOS_URL};
+use crate::event::TinicSuperEventListener;
+use crate::tools::download::download_file;
+use crate::tools::extract_files::extract_zip_file;
+use generics::constants::{CORE_INFOS_URL, cores_url};
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
-use crate::download::download_file;
-use crate::event::TinicSuperEventListener;
-use crate::extract_files::extract_zip_file;
+use std::path::PathBuf;
+use std::sync::Arc;
 
 pub async fn try_update_core_infos(
     retro_paths: &RetroPaths,
@@ -21,15 +21,15 @@ pub async fn try_update_core_infos(
         force_update,
         event_listener.clone(),
     )
-        .await
-        .map_err(|e| ErrorHandle::new(&e.to_string()))?;
+    .await
+    .map_err(|e| ErrorHandle::new(&e.to_string()))?;
 
-    extract_zip_file(
-        path,
-        retro_paths.infos.clone().to_string(),
-        event_listener.clone(),
-    )
-        .unwrap();
+    let info_out_dir = retro_paths.infos.to_string();
+    let event_listener_2 = event_listener.clone();
+
+    tokio::task::spawn_blocking(move || {
+        extract_zip_file(path, info_out_dir, event_listener_2).unwrap();
+    });
 
     let core_url = cores_url()?;
     download_file(core_url, "cores.7z", temp_dir, force_update, event_listener)

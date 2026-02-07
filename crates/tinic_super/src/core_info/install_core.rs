@@ -1,5 +1,4 @@
-use crate::extract_files::{extract_7zip_file, SevenZipBeforeExtractionAction};
-use crate::FileProgress;
+use crate::{FileProgress, tools::extract_files::{SevenZipBeforeExtractionAction, extract_7zip_file}};
 use generics::retro_paths::RetroPaths;
 
 fn remove_so_extension(name: String) -> String {

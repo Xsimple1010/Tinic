@@ -1,8 +1,7 @@
 use generics::retro_paths::RetroPaths;
-use std::ops::Not;
 use std::sync::Arc;
-use tinic_super::core_info::helper::CoreInfoHelper;
 use tinic_super::event::TinicSuperEventListener;
+use tinic_super::rdb_manager::game::GameInfo;
 use tinic_super::tinic_super::TinicSuper;
 
 struct TinicSuperListener;
@@ -19,6 +18,10 @@ impl TinicSuperEventListener for TinicSuperListener {
     fn download_completed(&self, file_name: String) {
         println!("{file_name} downloaded")
     }
+
+    fn rdb_read(&self, game_info: Vec<GameInfo>) {
+        println!("{game_info:?}")
+    }
 }
 
 #[tokio::main]
@@ -32,12 +35,13 @@ async fn main() {
     //     // tinic_super.try_update_core(true).await.unwrap();
     // }
 
-    let rom = "/home/aderval/Downloads/RetroArch_cores/Super Mario World (USA).sfc";
+    let rom = "/home/aderval/Downloads/RetroArch_cores/roms/FFVii.iso";
     let core_infos = tinic_super
         .core_info_helper
         .get_compatibility_core_infos(&rom.into())
         .await;
-    
+
+    tinic_super.rdb_helper.read_rdb_from_cores(core_infos).await;
 
     // tinic_super
     //     .download_all_thumbnail_from_game(

@@ -1,14 +1,20 @@
+use crate::core_info::model::CoreInfo;
+use crate::event::TinicSuperEventListener;
 use crate::rdb_manager::game::GameInfo;
+use futures_util::StreamExt;
+use futures_util::stream::FuturesUnordered;
 use generics::constants::RDB_HEADER_SIZE;
 use generics::error_handle::ErrorHandle;
 use rmp_serde::Deserializer;
 use serde::Deserialize;
+use std::collections::HashSet;
 use std::io::Cursor;
+use std::sync::Arc;
 
-pub fn read_to_end_of_rdb<C>(rdb_path: &str, mut callback: C) -> Result<(), ErrorHandle>
-where
-    C: FnMut(Vec<GameInfo>),
-{
+pub fn read_rdb_blocking(
+    rdb_path: &str,
+    event: Arc<dyn TinicSuperEventListener>,
+) -> Result<(), ErrorHandle> {
     let file = std::fs::read(rdb_path)?;
     let data = file.as_slice();
 
@@ -27,7 +33,7 @@ where
                 game_out.push(game);
 
                 if game_out.len() >= 50 {
-                    callback(std::mem::take(&mut game_out));
+                    event.rdb_read(std::mem::take(&mut game_out));
                 }
             }
             Err(rmp_serde::decode::Error::InvalidMarkerRead(e))
@@ -45,6 +51,35 @@ where
     }
 
     Ok(())
+}
+
+pub async fn read_rdb(rdb_path: String, event: Arc<dyn TinicSuperEventListener>) {
+    tokio::task::spawn_blocking(move || read_rdb_blocking(&rdb_path, event));
+}
+
+pub async fn read_rdb_from_cores(
+    core_infos: Vec<CoreInfo>,
+    rdb_dir: String,
+    event: Arc<dyn TinicSuperEventListener>,
+) {
+    let mut tasks = FuturesUnordered::new();
+
+    let rdb_names: HashSet<String> = core_infos
+        .into_iter()
+        .map(|c| c.database)
+        .flat_map(|d| d)
+        .map(|rdb_name| format!("{}/{rdb_name}.rdb", rdb_dir))
+        .collect();
+
+    for rdb in rdb_names {
+        let event = event.clone();
+
+        tasks.push(async move {
+            read_rdb(rdb, event).await;
+        });
+    }
+
+    while let Some(_) = tasks.next().await {}
 }
 
 pub fn debug_rdb(data: &[u8]) {
