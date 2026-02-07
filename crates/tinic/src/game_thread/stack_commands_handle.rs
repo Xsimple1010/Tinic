@@ -179,7 +179,7 @@ pub fn stack_commands_handle(
             //VIDEO
             EnableFullScreen => {
                 if let Some((retro_av, _)) = retro_av {
-                    retro_av.video.full_screen();
+                    retro_av.video.enable_full_screen();
                     *use_full_screen = true;
                 }
             }
