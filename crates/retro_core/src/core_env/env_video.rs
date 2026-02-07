@@ -26,7 +26,11 @@ use std::{
 pub unsafe extern "C" fn audio_sample_callback(left: i16, right: i16) {
     unsafe {
         if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-            if let Err(e) = core_ctx.callbacks.audio.audio_sample_callback(left, right) {
+            if let Err(e) = core_ctx.callbacks.audio.audio_sample_callback(
+                left,
+                right,
+                core_ctx.av_info.clone(),
+            ) {
                 println!("{:?}", e);
                 let _ = core_ctx.de_init();
             }
@@ -37,10 +41,11 @@ pub unsafe extern "C" fn audio_sample_callback(left: i16, right: i16) {
 pub unsafe extern "C" fn audio_sample_batch_callback(data: *const i16, frames: usize) -> usize {
     unsafe {
         if let Some(core_ctx) = &*addr_of!(CORE_CONTEXT) {
-            let res = core_ctx
-                .callbacks
-                .audio
-                .audio_sample_batch_callback(data, frames);
+            let res = core_ctx.callbacks.audio.audio_sample_batch_callback(
+                data,
+                frames,
+                core_ctx.av_info.clone(),
+            );
 
             match res {
                 Ok(frames) => frames,

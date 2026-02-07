@@ -1,3 +1,4 @@
+use crate::av_info::AvInfo;
 #[cfg(feature = "core_logs")]
 use crate::tools::ffi_tools::get_str_from_ptr;
 use crate::{
@@ -24,6 +25,7 @@ use crate::{
     },
 };
 use generics::error_handle::ErrorHandle;
+use std::sync::Arc;
 use std::{
     ffi::{c_char, c_uint},
     rc::Rc,
@@ -54,11 +56,17 @@ pub trait RetroVideoEnvCallbacks {
 }
 
 pub trait RetroAudioEnvCallbacks {
-    fn audio_sample_callback(&self, left: i16, right: i16) -> Result<(), ErrorHandle>;
+    fn audio_sample_callback(
+        &self,
+        left: i16,
+        right: i16,
+        retro_av: Arc<AvInfo>,
+    ) -> Result<(), ErrorHandle>;
     fn audio_sample_batch_callback(
         &self,
         data: *const i16,
         frames: usize,
+        retro_av: Arc<AvInfo>,
     ) -> Result<usize, ErrorHandle>;
 }
 

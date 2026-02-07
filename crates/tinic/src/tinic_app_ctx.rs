@@ -113,7 +113,7 @@ impl TinicGameCtx {
             return Ok(());
         }
 
-        self.retro_av.prepare_to_sync()?;
+        self.retro_av.prepare_to_sync(&self.retro_core.av_info)?;
         self.retro_core.run()?;
         self.retro_av.sync_now()?;
 
@@ -140,7 +140,8 @@ impl TinicGameCtx {
     }
 
     pub fn print_screen(&self, out_path: &Path) -> Result<(), ErrorHandle> {
-        self.retro_av.print_screen(out_path)
+        self.retro_av
+            .print_screen(out_path, &self.retro_core.av_info)
     }
 
     pub fn toggle_full_screen_mode(&mut self) -> Result<(), ErrorHandle> {

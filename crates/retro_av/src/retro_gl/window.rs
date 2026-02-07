@@ -15,7 +15,7 @@ use glutin::{
 };
 use glutin_winit::{DisplayBuilder, GlWindow};
 use raw_window_handle::HasWindowHandle;
-use retro_core::av_info::{AvInfo, Geometry};
+use retro_core::av_info::AvInfo;
 use winit::window::Fullscreen;
 
 pub struct RetroGlWindow {
@@ -23,6 +23,7 @@ pub struct RetroGlWindow {
     gl_context: PossiblyCurrentContext,
     gl_surface: Surface<WindowSurface>,
     window: Window,
+    av_info: Arc<AvInfo>,
 }
 
 fn create_gl_context(window: &Window, gl_config: &Config) -> NotCurrentContext {
@@ -68,10 +69,14 @@ impl RetroVideoAPi for RetroGlWindow {
         self.window.request_redraw();
     }
 
-    fn draw_new_frame(&self, texture: &RawTextureData, geo: &Geometry) {
+    fn draw_new_frame(&self, texture: &RawTextureData) {
         let size = self.window.inner_size();
-        self.renderer
-            .draw_new_frame(texture, geo, size.width as i32, size.height as i32);
+        self.renderer.draw_new_frame(
+            texture,
+            &self.av_info.video.geometry,
+            size.width as i32,
+            size.height as i32,
+        );
         self.gl_surface.swap_buffers(&self.gl_context).unwrap();
     }
 
@@ -141,6 +146,7 @@ impl RetroGlWindow {
             gl_surface,
             renderer: Render::new(av_info, gl_config.display()).unwrap(),
             window,
+            av_info: av_info.clone(),
         }
     }
 }

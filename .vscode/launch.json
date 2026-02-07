@@ -20,8 +20,8 @@
                 
             },
             "args": [
-                "--core=C:/WFL/cores/ppsspp_libretro.dll",
-                "--rom=C:/WFL/roms/VII.iso"
+                "--core=C:/Users/aderv/RustroverProjects/tinic/retro_out_test/cores/RetroArch-Win64/cores/mednafen_psx_hw_libretro.dll",
+                "--rom=C:/Users/aderv/Downloads/MMX4.cue"
             ],
             "cwd": "${workspaceFolder}"
         },

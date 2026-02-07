@@ -4,9 +4,10 @@ extern crate glutin;
 extern crate image;
 extern crate libretro_sys;
 extern crate retro_core;
-extern crate winit;
 extern crate rubato;
+extern crate winit;
 
+mod audio_driver;
 mod audios;
 mod print_scree;
 mod retro_gl;

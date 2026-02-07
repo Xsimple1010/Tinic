@@ -1,3 +1,4 @@
+use crate::av_info::AvInfo;
 use crate::core_env::{RetroControllerEnvCallbacks, RetroEnvCallbacks};
 use crate::graphic_api::GraphicApi;
 use crate::retro_core::RetroCore;
@@ -7,6 +8,7 @@ use crate::{RetroAudioEnvCallbacks, RetroCoreIns, RetroVideoEnvCallbacks};
 use generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::retro_rumble_effect;
 use std::ptr;
+use std::sync::Arc;
 
 pub fn get_callbacks() -> RetroEnvCallbacks {
     RetroEnvCallbacks {
@@ -51,7 +53,12 @@ impl RetroVideoEnvCallbacks for Video {
 struct Audio;
 
 impl RetroAudioEnvCallbacks for Audio {
-    fn audio_sample_callback(&self, _left: i16, _right: i16) -> Result<(), ErrorHandle> {
+    fn audio_sample_callback(
+        &self,
+        _left: i16,
+        _right: i16,
+        _retro_av: Arc<AvInfo>,
+    ) -> Result<(), ErrorHandle> {
         Ok(())
     }
 
@@ -59,6 +66,7 @@ impl RetroAudioEnvCallbacks for Audio {
         &self,
         _data: *const i16,
         _frames: usize,
+        _retro_av: Arc<AvInfo>,
     ) -> Result<usize, ErrorHandle> {
         println!("audio_sample_batch_callback -> {_frames}");
         Ok(0)
