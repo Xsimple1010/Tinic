@@ -2,7 +2,7 @@ use crate::system::SysInfo;
 use crate::tools::validation::InputValidator;
 use generics::constants::SAVE_EXTENSION_FILE;
 use generics::error_handle::ErrorHandle;
-use libretro_sys::binding_libretro::{retro_game_info, LibretroRaw};
+use libretro_sys::binding_libretro::{LibretroRaw, retro_game_info};
 use std::fs;
 use std::sync::Arc;
 use std::{
@@ -41,6 +41,13 @@ impl<'a> SaveInfo<'a> {
         slot: usize,
         buffer_size: usize,
     ) -> Result<Self, ErrorHandle> {
+        if slot > MAX_SAVE_SLOTS {
+            return Err(ErrorHandle::new(&format!(
+                "Invalid slot number: {}. Maximum allowed slot number is {}",
+                slot, MAX_SAVE_SLOTS
+            )));
+        }
+
         // Validate save directory
         InputValidator::validate_directory_path(save_dir)?;
 
@@ -128,7 +135,8 @@ impl RomTools {
         let path_str = path
             .to_str()
             .ok_or_else(|| ErrorHandle::new("Path contains invalid UTF-8 characters"))?;
-        let path_cstring = InputValidator::create_safe_c_string(path_str)?;
+        let path_cstring =
+            InputValidator::create_safe_c_string(path_str, "Cannot send ROM path to core")?;
 
         let mut size = 0;
 
@@ -142,6 +150,8 @@ impl RomTools {
                     file_size / (1024 * 1024)
                 );
             }
+
+            Self::validate_rom_integrity(path)?;
 
             let mut file = File::open(path)
                 .map_err(|e| ErrorHandle::new(&format!("Failed to open ROM file: {}", e)))?;
@@ -416,72 +426,6 @@ impl RomTools {
 
         Ok(())
     }
-
-    /// List available save states for a ROM
-    pub fn list_save_states(
-        save_dir: &str,
-        library_name: &str,
-        rom_name: &str,
-    ) -> Result<Vec<usize>, ErrorHandle> {
-        let base_path = InputValidator::validate_directory_path(save_dir)?;
-
-        let library_subdir = Self::sanitize_filename(library_name);
-        let rom_subdir = Self::sanitize_filename(rom_name);
-
-        let saves_path = base_path.join(library_subdir).join(rom_subdir);
-
-        if !saves_path.exists() {
-            return Ok(Vec::new());
-        }
-
-        let mut save_slots = Vec::new();
-
-        let entries = fs::read_dir(&saves_path)
-            .map_err(|e| ErrorHandle::new(&format!("Failed to read save directory: {}", e)))?;
-
-        for entry in entries {
-            let entry = entry
-                .map_err(|e| ErrorHandle::new(&format!("Failed to read directory entry: {}", e)))?;
-
-            let path = entry.path();
-            if let Some(extension) = path.extension() {
-                if extension == SAVE_EXTENSION_FILE {
-                    if let Some(stem) = path.file_stem() {
-                        if let Some(stem_str) = stem.to_str() {
-                            if let Ok(slot) = stem_str.parse::<usize>() {
-                                if slot <= MAX_SAVE_SLOTS {
-                                    save_slots.push(slot);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        save_slots.sort();
-        Ok(save_slots)
-    }
-
-    /// Delete a specific save state with validation
-    pub fn delete_save_state(
-        save_dir: &str,
-        library_name: &str,
-        rom_name: &str,
-        slot: usize,
-    ) -> Result<bool, ErrorHandle> {
-        let save_info = SaveInfo::new(save_dir, library_name, rom_name, slot, 1)?;
-        let save_path = Self::get_validated_save_path(&save_info)?;
-
-        if !save_path.exists() {
-            return Ok(false);
-        }
-
-        fs::remove_file(&save_path)
-            .map_err(|e| ErrorHandle::new(&format!("Failed to delete save state: {}", e)))?;
-
-        Ok(true)
-    }
 }
 
 #[cfg(test)]
@@ -541,14 +485,5 @@ mod tests {
         File::create(&empty_path).unwrap();
         let result = RomTools::validate_rom_integrity(&empty_path);
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_list_save_states_empty_directory() {
-        let temp_dir = TempDir::new().unwrap();
-        let result =
-            RomTools::list_save_states(temp_dir.path().to_str().unwrap(), "test_core", "test_rom");
-        assert!(result.is_ok());
-        assert!(result.unwrap().is_empty());
     }
 }

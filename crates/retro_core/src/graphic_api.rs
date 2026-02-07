@@ -1,7 +1,7 @@
 use libretro_sys::binding_libretro::{retro_hw_context_type, retro_hw_render_callback};
 use std::sync::{
-    atomic::{AtomicBool, AtomicU32, Ordering},
     RwLock,
+    atomic::{AtomicBool, AtomicU32, Ordering},
 };
 
 #[derive(Debug)]

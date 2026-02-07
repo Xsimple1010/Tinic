@@ -1,0 +1,23 @@
+[package]
+name = "retro_core"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+core_logs = []
+core_ev_logs = []
+core_full_logs = ["core_ev_logs", "core_logs"]
+hw = []
+
+[dependencies]
+raw-cpuid.workspace = true
+uuid.workspace = true
+libretro_sys.workspace = true
+generics.workspace = true
+
+[dev-dependencies]
+tempfile = "3.8"
+
+[lib]
+name = "retro_core"
+path = "src/lib.rs"

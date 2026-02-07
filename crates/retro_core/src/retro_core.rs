@@ -2,8 +2,8 @@ use crate::av_info::AvInfo;
 use crate::core_env::{self, RetroEnvCallbacks};
 use crate::graphic_api::GraphicApi;
 use crate::tools::game_tools::{RomTools, SaveInfo};
+use crate::tools::validation::InputValidator;
 use crate::{managers::option_manager::OptionManager, system::System};
-use generics::constants::INVALID_CONTROLLER_PORT;
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::LibretroRaw;
@@ -185,11 +185,11 @@ impl RetroCore {
             ));
         }
 
-        if port != INVALID_CONTROLLER_PORT {
-            unsafe {
-                self.raw
-                    .retro_set_controller_port_device(port as c_uint, controller);
-            }
+        let port = InputValidator::validate_controller_port(port)?;
+
+        unsafe {
+            self.raw
+                .retro_set_controller_port_device(port as c_uint, controller);
         }
 
         Ok(())

@@ -1,4 +1,4 @@
-use crate::{RetroCoreIns, tools::ffi_tools::make_c_string};
+use crate::{RetroCoreIns, tools::validation::InputValidator};
 use generics::constants::MAX_CORE_SUBSYSTEM_INFO;
 use generics::error_handle::ErrorHandle;
 use libretro_sys::{
@@ -21,7 +21,7 @@ pub unsafe fn env_cb_directory(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY -> ok");
 
-            let sys_dir = make_c_string(
+            let sys_dir = InputValidator::create_safe_c_string(
                 &core_ctx.paths.system,
                 "Nao foi possivel cria uma C String de sys_dir para enviar ao core",
             )?;
@@ -36,7 +36,7 @@ pub unsafe fn env_cb_directory(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY -> ok");
 
-            let save_dir = make_c_string(
+            let save_dir = InputValidator::create_safe_c_string(
                 &core_ctx.paths.save,
                 "Nao foi possivel cria uma C String de save_dir para enviar ao core",
             )?;
@@ -51,7 +51,7 @@ pub unsafe fn env_cb_directory(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY -> ok");
 
-            let assents_dir = make_c_string(
+            let assents_dir = InputValidator::create_safe_c_string(
                 &core_ctx.paths.assets,
                 "Nao foi possivel cria uma C String de assents_dir para enviar ao core",
             )?;
