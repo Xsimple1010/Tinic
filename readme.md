@@ -74,7 +74,7 @@ fn main() -> Result<(), ErrorHandle> {
 ```
 
 👉 Código completo disponível em:\
-**[`crates/tinic/examples/tinic_example.rs`](crates/tinic/examples/tinic_example.rs)**
+**[`crates/tinic/examples/tinic_run.rs`](crates/tinic/examples/tinic_run.rs)**
 
 ------------------------------------------------------------------------
 
