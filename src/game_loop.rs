@@ -1,186 +1,148 @@
+use crate::retro_stack::{RetroStack, StackCommand};
+use retro_ab::core::{self, RetroContext};
+use retro_ab_av::{
+    context::{RetroAvCtx, RetroAvEvents},
+    Event, Key, KeyEvent, NamedKey, WindowEvent,
+};
+use retro_ab_gamepad::context::GamepadContext;
 use std::{
     sync::{Arc, Mutex},
     thread,
 };
 
-use retro_ab::core::{self, RetroContext};
-use retro_ab_av::{context::RetroAvCtx, Event, EventPump, Keycode};
-use retro_ab_gamepad::{context::GamepadContext, retro_gamepad::RetroGamePad};
+fn game_window_handle(
+    av_ctx: &mut Option<RetroAvCtx>,
+    core_ctx: &mut Option<Arc<RetroContext>>,
+    av_events: &mut RetroAvEvents,
+) {
+    if let Some(core) = &core_ctx {
+        core::run(&core).unwrap();
+    }
+    if let Some(av) = &av_ctx {
+        av.request_redraw();
+    }
+    println!("game_window_handle");
 
-use crate::retro_stack::{RetroStack, StackCommand};
+    av_events.pump(|event, window_target| match event {
+        Event::Resumed => {
+            if let Some(av) = av_ctx {
+                av.resume(window_target);
+            }
+        }
+        Event::Suspended => {
+            if let Some(av) = av_ctx {
+                av.suspended();
+            }
+        }
+        Event::WindowEvent { event, .. } => match event {
+            WindowEvent::CloseRequested
+            | WindowEvent::KeyboardInput {
+                event:
+                    KeyEvent {
+                        logical_key: Key::Named(NamedKey::Escape),
+                        ..
+                    },
+                ..
+            } => {
+                window_target.exit();
+                println!("exist");
+            }
+            WindowEvent::Destroyed => {
+                if let Some(core) = core_ctx.take() {
+                    let _ = core::de_init(core);
+                }
+                //drop
+                av_ctx.take();
+            }
+            WindowEvent::RedrawRequested => {
+                if let Some(av) = av_ctx {
+                    let _ = av.get_new_frame();
+                }
+            }
+            _ => (),
+        },
+        _ => (),
+    });
+}
 
 //TODO: criar uma callback para avisar a interface de possíveis erros
 pub fn init_game_loop(
-    core_ctx: Arc<RetroContext>,
-    gamepads: Arc<Mutex<Vec<RetroGamePad>>>,
+    // gamepads: Arc<Mutex<Vec<RetroGamePad>>>,
     controller_ctx: Arc<Mutex<GamepadContext>>,
     stack: Arc<RetroStack>,
 ) {
     thread::spawn(move || {
-        let mut _pause_request_new_frames = false;
-        let mut retro_av: Option<(RetroAvCtx, EventPump)> = None;
+        let mut running = true;
 
-        'running: loop {
+        let mut av_events = RetroAvEvents::new().unwrap();
+        let mut core_ctx = None;
+        let mut av_ctx = None;
+
+        while running {
             for cmd in stack.read() {
                 match cmd {
-                    StackCommand::LoadGame(path) => {
-                        let result = core::load_game(&core_ctx, path.as_str());
+                    StackCommand::GameQuit => {
+                        if let Some(c_ctx) = core_ctx.take() {
+                            core::de_init(c_ctx);
+                        }
 
-                        match result {
-                            Ok(s) => {
-                                if s {
-                                    if let Ok(mut controller) = controller_ctx.lock() {
-                                        controller.pause_thread_events();
-                                    }
-
-                                    match RetroAvCtx::new(core_ctx.core.av_info.clone()) {
-                                        Ok(retro_av_) => {
-                                            retro_av = Some(retro_av_);
-                                        }
-                                        Err(e) => {
-                                            println!("{:?}", e);
-                                            break 'running;
-                                        }
-                                    }
+                        //drop
+                        av_ctx.take();
+                    }
+                    StackCommand::LoadCore(path, paths, callbacks) => {
+                        match core::load(&path, paths, callbacks) {
+                            Ok(ctx) => match core::init(&ctx) {
+                                Ok(..) => {
+                                    core_ctx.replace(ctx.clone());
                                 }
-                            }
+                                Err(e) => {
+                                    println!("{:?}", e);
+                                    running = true;
+                                    break;
+                                }
+                            },
                             Err(e) => {
                                 println!("{:?}", e);
-                                break 'running;
+                                running = true;
+                                break;
                             }
-                        }
-                    }
-                    StackCommand::UnloadGame => match core::unload_game(&core_ctx) {
-                        Ok(..) => {
-                            if let Ok(mut controller) = controller_ctx.lock() {
-                                controller.resume_thread_events();
-                            }
-                            retro_av = None;
-                        }
-                        Err(e) => {
-                            println!("{:?}", e);
-                            break 'running;
-                        }
-                    },
-                    StackCommand::GameQuit => break 'running,
-                    StackCommand::LoadState => {} //ainda e preciso adicionar isso em retro_ab
-                    StackCommand::SaveState => {} //ainda e preciso adicionar isso em retro_ab
-                    StackCommand::Pause => {
-                        if let Ok(mut controller) = controller_ctx.lock() {
-                            controller.resume_thread_events();
-                            _pause_request_new_frames = true
-                        }
-                    }
-                    StackCommand::Resume => {
-                        if let Ok(mut controller) = controller_ctx.lock() {
-                            controller.pause_thread_events();
-                            _pause_request_new_frames = false
-                        }
-                    }
-                    StackCommand::Reset => {
-                        if let Err(e) = core::reset(&core_ctx) {
-                            println!("{:?}", e);
-                            break 'running;
                         };
                     }
-                    StackCommand::UpdateControllers => {
-                        for gamepad in &*gamepads.lock().unwrap() {
-                            if gamepad.retro_port >= 0 {
-                                let result = core::connect_controller(
-                                    &core_ctx,
-                                    gamepad.retro_port as u32,
-                                    gamepad.retro_type,
-                                );
+                    StackCommand::LoadGame(path) => {
+                        match &core_ctx {
+                            Some(ctx) => {
+                                match core::load_game(&ctx, path.as_str()) {
+                                    Ok(loaded) => {
+                                        if loaded {
+                                            if let Ok(mut controller) = controller_ctx.lock() {
+                                                controller.pause_thread_events();
+                                            }
 
-                                match result {
-                                    Ok(..) => {}
+                                            av_ctx.replace(RetroAvCtx::new(
+                                                ctx.core.av_info.clone(),
+                                                &av_events,
+                                            ));
+                                        }
+                                    }
                                     Err(e) => {
                                         println!("{:?}", e);
-                                        break 'running;
+                                        running = true;
+                                        break;
                                     }
-                                }
+                                };
                             }
-                        }
+                            None => {
+                                println!("core context nao existe!");
+                            }
+                        };
                     }
+                    _ => {}
                 }
             }
 
-            if !_pause_request_new_frames {
-                match core::run(&core_ctx) {
-                    Ok(..) => {
-                        if let Some((av_ctx, _)) = &mut retro_av {
-                            if av_ctx.get_new_frame().is_err() {
-                                break 'running;
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        println!("{:?}", e);
-                        break 'running;
-                    }
-                };
+            if av_ctx.is_some() && core_ctx.is_some() {
+                game_window_handle(&mut av_ctx, &mut core_ctx, &mut av_events);
             }
-
-            if let Some((_, event_pump)) = &mut retro_av {
-                for event in event_pump.poll_iter() {
-                    match event {
-                        Event::Quit { .. }
-                        | Event::KeyDown {
-                            keycode: Some(Keycode::Escape),
-                            ..
-                        } => break 'running,
-                        Event::KeyDown {
-                            keycode: Some(Keycode::F1),
-                            ..
-                        } => {
-                            //reservado para o save state
-                        }
-                        Event::KeyDown {
-                            keycode: Some(Keycode::F2),
-                            ..
-                        } => {
-                            //reservado para o save state
-                        }
-                        Event::KeyDown {
-                            keycode: Some(Keycode::F3),
-                            ..
-                        } => {
-                            if _pause_request_new_frames {
-                                if let Ok(mut controller) = controller_ctx.lock() {
-                                    controller.pause_thread_events();
-                                    _pause_request_new_frames = false
-                                }
-                            } else {
-                                if let Ok(mut controller) = controller_ctx.lock() {
-                                    controller.resume_thread_events();
-                                    _pause_request_new_frames = true
-                                }
-                            }
-                        }
-                        Event::KeyDown {
-                            keycode: Some(Keycode::F5),
-                            ..
-                        } => {
-                            if core::reset(&core_ctx).is_err() {
-                                break 'running;
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-
-        match core::de_init(core_ctx) {
-            Ok(..) => {}
-            Err(e) => println!("{:?}", e),
-        };
-
-        match controller_ctx.lock() {
-            Ok(mut controller) => {
-                controller.resume_thread_events();
-            }
-            Err(..) => {}
         }
     });
 }
