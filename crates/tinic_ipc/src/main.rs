@@ -15,7 +15,7 @@ struct WindowEvents;
 
 impl WindowListener for WindowEvents {
     fn window_closed(&self) {
-        let _ = StdoutWriter::exit_app();
+        let _ = StdoutWriter::window_closed();
     }
 
     fn window_opened(&self) {

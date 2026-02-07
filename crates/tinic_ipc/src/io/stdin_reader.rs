@@ -1,4 +1,4 @@
-use crate::constants::THREAD_SLEEP_TIME_IN_SEC;
+use crate::constants::THREAD_SLEEP_TIME_IN_MILLISECONDS;
 use crate::io::protocol::input::ProtocolInput;
 use crate::AppState;
 use std::io::BufRead;
@@ -6,6 +6,7 @@ use std::sync::atomic::Ordering;
 use std::sync::mpsc::Receiver;
 use std::sync::{mpsc, Arc};
 use std::thread::sleep;
+use std::time::Duration;
 use tinic::TinicGameInfo;
 
 pub struct StdinReader {}
@@ -18,7 +19,9 @@ impl StdinReader {
         std::thread::spawn(move || {
             let stdin = std::io::stdin();
             for line in stdin.lock().lines() {
-                sleep(std::time::Duration::from_secs(THREAD_SLEEP_TIME_IN_SEC));
+                sleep(Duration::from_millis(
+                    THREAD_SLEEP_TIME_IN_MILLISECONDS,
+                ));
                 match line {
                     Ok(line) => {
                         if let Ok(cmd) = serde_json::from_str::<ProtocolInput>(&line) {
@@ -37,7 +40,7 @@ impl StdinReader {
     fn process_command_thread(rx: Receiver<ProtocolInput>, state: Arc<AppState>) {
         std::thread::spawn(move || {
             loop {
-                sleep(std::time::Duration::from_secs(THREAD_SLEEP_TIME_IN_SEC));
+                sleep(Duration::from_millis(THREAD_SLEEP_TIME_IN_MILLISECONDS));
                 if let Ok(cmd) = rx.try_recv() {
                     match cmd {
                         ProtocolInput::LoadGame {
@@ -79,7 +82,6 @@ impl StdinReader {
                     }
                 }
             }
-            println!("command thread closed");
         });
     }
 }
