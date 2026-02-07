@@ -4,7 +4,8 @@ extern crate retro_ab;
 extern crate retro_ab_av;
 extern crate retro_ab_gamepad;
 
-mod game_loop;
+mod game_thread;
+mod game_thread_handle;
 mod game_window_handle;
 mod retro_stack;
 mod stack_commands_handle;

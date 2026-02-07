@@ -5,7 +5,7 @@ use retro_ab_gamepad::{GamePadState, GamepadStateListener};
 use std::ptr::addr_of;
 use std::sync::{Arc, Mutex};
 
-use crate::game_loop::GameThread;
+use crate::game_thread::GameThread;
 use crate::retro_stack::{RetroStack, StackCommand};
 
 static mut GAMEPAD_LISTENER: Option<GamepadStateListener> = None;
