@@ -42,9 +42,9 @@ pub unsafe fn env_cb_option(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL -> ok");
 
-            let option_intl_v2 = unsafe { *(data as *mut retro_core_options_v2_intl) };
-
-            let _ = core_ctx.options.convert_option_v2_intl(option_intl_v2);
+            let _ = core_ctx
+                .options
+                .convert_option_v2_intl(data as *mut retro_core_options_v2_intl);
             let _ = core_ctx.options.try_reload_pref_option();
 
             Ok(true)
@@ -53,11 +53,14 @@ pub unsafe fn env_cb_option(
             #[cfg(feature = "core_ev_logs")]
             println!("RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY -> ok");
 
+            InputValidator::validate_non_null_ptr(
+                data,
+                "ptr data in RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY",
+            )?;
             let option = unsafe { *(data as *mut retro_core_option_display) };
+            let key = unsafe { InputValidator::read_safe_c_string(option.key, 255)? };
 
-            let _ = core_ctx
-                .options
-                .change_visibility(&get_str_from_ptr(option.key), option.visible);
+            let _ = core_ctx.options.change_visibility(&key, option.visible);
 
             Ok(true)
         }
