@@ -124,11 +124,12 @@ impl CoreWrapper {
         }
 
         let loaded = RomTools::try_load_game(&self.raw, &self.system.info, path)?;
+        self.game_loaded.store(loaded, Ordering::SeqCst);
 
         if loaded {
             *self.rom_name.write().unwrap() = RomTools::get_rom_name(&PathBuf::from(path))?;
 
-            self.av_info.update_av_info(&self.raw);
+            self.av_info.update_av_info(&self.raw)?;
 
             Ok(self.av_info.clone())
         } else {
