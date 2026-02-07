@@ -1,9 +1,20 @@
 {
     "cSpell.words": [
+        "ascii",
+        "bindgen",
+        "bitmasks",
+        "BITMASKS",
+        "framebuffer",
         "gamepad",
         "gamepads",
         "gilrs",
+        "JOYPAD",
+        "libloading",
+        "OPENGL",
+        "rwlock",
         "tinic",
+        "usec",
+        "uuid",
         "Uuid"
     ]
 }
