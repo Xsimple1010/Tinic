@@ -771,7 +771,7 @@ dependencies = [
 [[package]]
 name = "retro_ab_gamepad"
 version = "0.1.0"
-source = "git+https://github.com/Xsimple1010/retro_ab_gamepad.git#1c95f819226057bb2dcd3b371d62da5ca9539d72"
+source = "git+https://github.com/Xsimple1010/retro_ab_gamepad.git#e536d3d33d30aba9d772c1b62cf3e9b7726c6915"
 dependencies = [
  "gilrs",
  "lazy_static",
