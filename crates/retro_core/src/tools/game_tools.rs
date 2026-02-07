@@ -126,11 +126,8 @@ impl RomTools {
         // Validate ROM extension
         InputValidator::validate_rom_extension(&validated_path, &sys_info.valid_extensions)?;
 
-        // Validate file size
-        let file_size = InputValidator::validate_file_size(&validated_path, MAX_ROM_SIZE_MB)?;
-
         // Create validated ROM info
-        let rom_info = Self::create_game_info(&validated_path, sys_info, file_size)?;
+        let rom_info = Self::create_game_info(&validated_path, sys_info)?;
         let native_core_info = rom_info.to_core_native();
 
         // Load the game using the validated info
@@ -147,11 +144,7 @@ impl RomTools {
     }
 
     /// Create retro_game_info with proper validation and memory management
-    fn create_game_info(
-        path: &Path,
-        sys_info: &SysInfo,
-        file_size: u64,
-    ) -> Result<RomInfo, ErrorHandle> {
+    fn create_game_info(path: &Path, sys_info: &SysInfo) -> Result<RomInfo, ErrorHandle> {
         let mut buf: Vec<u8> = Vec::new();
         let meta = CString::new("")?;
 
@@ -166,6 +159,9 @@ impl RomTools {
 
         // Only read file into memory if the core doesn't need the full path
         if !*sys_info.need_full_path {
+            // Validate file size
+            let file_size = InputValidator::validate_file_size(&path, MAX_ROM_SIZE_MB)?;
+
             // Additional safety check before reading large files into memory
             if file_size > 100 * 1024 * 1024 {
                 // For files > 100MB, confirm this is intentional
