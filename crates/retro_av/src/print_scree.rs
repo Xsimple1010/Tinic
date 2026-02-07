@@ -22,9 +22,7 @@ impl PrintScree {
             }
             // retro_pixel_format::RETRO_PIXEL_FORMAT_0RGB1555 => ,
             // retro_pixel_format::RETRO_PIXEL_FORMAT_RGB565 => ,
-            _ => Err(ErrorHandle {
-                message: "Formato de pixel desconhecido".to_string(),
-            }),
+            _ => Err(ErrorHandle::new("Formato de pixel desconhecido")),
         }
     }
 
@@ -42,9 +40,7 @@ impl PrintScree {
         };
 
         if buffer.len() != (raw_texture.width * raw_texture.height) as usize * 4 {
-            return Err(ErrorHandle {
-                message: "Tamanho do buffer video esta errado".to_string(),
-            });
+            return Err(ErrorHandle::new("Tamanho do buffer video esta errado"));
         }
 
         // Crie um buffer de imagem a partir do buffer de textura, ignorando o componente X

@@ -136,8 +136,6 @@ impl RetroGlWindow {
 
         gl_context.make_current(&gl_surface).unwrap();
 
-        println!("{:?}", av_info.video.pixel_format.read().unwrap());
-
         Self {
             gl_context,
             gl_surface,

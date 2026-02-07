@@ -41,7 +41,7 @@ impl Shader {
                     gl.GetShaderiv(id, COMPILE_STATUS, &mut status);
 
                     if status == 0 {
-                        let log = CString::new("").unwrap();
+                        let log = CString::new("")?;
                         let log_ptr = log.into_raw();
                         let mut length = 0;
 

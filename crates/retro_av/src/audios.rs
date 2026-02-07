@@ -27,20 +27,12 @@ impl RetroAudio {
     pub fn new() -> Result<Self, ErrorHandle> {
         let (stream, stream_handle) = match OutputStream::try_default() {
             Ok(out) => out,
-            Err(e) => {
-                return Err(ErrorHandle {
-                    message: e.to_string(),
-                })
-            }
+            Err(e) => return Err(ErrorHandle::new(e.to_string().as_str())),
         };
 
         let sink: Sink = match Sink::try_new(&stream_handle) {
             Ok(sink) => sink,
-            Err(e) => {
-                return Err(ErrorHandle {
-                    message: e.to_string(),
-                })
-            }
+            Err(e) => return Err(ErrorHandle::new(e.to_string().as_str())),
         };
 
         Ok(Self {

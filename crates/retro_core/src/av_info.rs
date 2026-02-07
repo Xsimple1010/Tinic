@@ -83,9 +83,9 @@ impl AvInfo {
         raw_geometry_ptr: *const retro_game_geometry,
     ) -> Result<(), ErrorHandle> {
         if raw_geometry_ptr.is_null() {
-            return Err(ErrorHandle {
-                message: "nao foi possível atualiza a geometria da textura".to_string(),
-            });
+            return Err(ErrorHandle::new(
+                "nao foi possível atualiza a geometria da textura",
+            ));
         }
 
         let raw_geometry = unsafe { *raw_geometry_ptr };
@@ -96,9 +96,9 @@ impl AvInfo {
                 *aspect_ratio = raw_geometry.aspect_ratio;
             }
             Err(_) => {
-                return Err(ErrorHandle {
-                    message: "nao foi possível atualiza o aspect_ratio da textura".to_string(),
-                })
+                return Err(ErrorHandle::new(
+                    "nao foi possível atualiza o aspect_ratio da textura",
+                ))
             }
         }
 
@@ -118,7 +118,10 @@ impl AvInfo {
         Ok(())
     }
 
-    fn _set_timing(&self, raw_system_timing: *const retro_system_timing) -> Result<(), ErrorHandle> {
+    fn _set_timing(
+        &self,
+        raw_system_timing: *const retro_system_timing,
+    ) -> Result<(), ErrorHandle> {
         if raw_system_timing.is_null() {
             return Ok(());
         }

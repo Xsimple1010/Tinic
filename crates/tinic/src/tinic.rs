@@ -109,7 +109,10 @@ impl DeviceListener for DeviceHandle {
         let mut invalid_proxy = false;
 
         if let Some(proxy) = self.proxy.load_or(None).as_ref() {
-            if let Err(_) = proxy.send_event(GameInstanceActions::ConnectDevice(device.clone())) {
+            if proxy
+                .send_event(GameInstanceActions::ConnectDevice(device.clone()))
+                .is_err()
+            {
                 invalid_proxy = true;
             }
         }
