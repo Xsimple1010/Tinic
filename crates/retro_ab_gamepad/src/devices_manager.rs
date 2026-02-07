@@ -1,4 +1,5 @@
-use crate::{constants::DEFAULT_MAX_PORT, gamepad::retro_gamepad::RetroGamePad};
+use crate::gamepad::retro_gamepad::RetroGamePad;
+use generics::constants::DEFAULT_MAX_PORT;
 use gilrs::Gilrs;
 use libretro_sys::binding_libretro::{retro_rumble_effect, RETRO_DEVICE_ID_JOYPAD_MASK};
 use std::sync::{Arc, Mutex};
@@ -91,6 +92,7 @@ impl DevicesManager {
     pub fn get_gamepads(&self) -> Vec<RetroGamePad> {
         let gamepads = self.connected_gamepads.lock().unwrap_or_else(|op| {
             let mut gamepads = op.into_inner();
+
             //TODO: o correto seria colocar uma lista verdadeira de gamepads aqui!
             *gamepads = Vec::new();
             gamepads

@@ -1,4 +1,5 @@
-use crate::{constants::EVENT_THREAD_SLEEP_TIME, devices_manager::DevicesManager};
+use crate::devices_manager::DevicesManager;
+use generics::constants::EVENT_THREAD_SLEEP_TIME;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_ERROR, RETRO_LOG_WARN};
 use std::{

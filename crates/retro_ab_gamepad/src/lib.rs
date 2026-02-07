@@ -2,7 +2,6 @@ extern crate gilrs;
 #[macro_use]
 extern crate lazy_static;
 
-mod constants;
 mod gamepad;
 mod keyboard;
 mod retro_ab_controller;
