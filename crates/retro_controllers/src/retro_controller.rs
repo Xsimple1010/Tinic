@@ -58,7 +58,7 @@ impl RetroController {
         Ok(())
     }
 
-    pub fn is_using_keyboar(&self) -> bool {
+    pub fn is_using_keyboard(&self) -> bool {
         self.manager.is_using_keyboard()
     }
 
