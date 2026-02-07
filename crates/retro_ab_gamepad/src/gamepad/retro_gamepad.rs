@@ -14,7 +14,10 @@ pub struct RetroGamePad {
     pub inner_id: GamepadId,
     #[doc = "nome do gamepad"]
     pub name: String,
-    #[doc = "indicar ao Core em qual porta o controle esta conectado, se o valor for -1 significa que todas as porta suportas pelo Core ja estão sendo usadas"]
+    #[doc = "indicar ao Core em qual porta o controle esta conectado, se o valor for
+            -1(INVALID_CONTROLLER_PORT) significa que todas as porta suportas pelo Core
+            ja estão sendo usadas
+    "]
     pub retro_port: i16,
     #[doc = "padrão RETRO_DEVICE_JOYPAD"]
     pub retro_type: u32,

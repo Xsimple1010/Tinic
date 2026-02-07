@@ -7,6 +7,7 @@ use crate::thread_stack::game_stack::GameStackCommand::{
 use crate::thread_stack::main_stack::MainStackCommand::{
     GameLoaded, GameStateSaved, SaveStateLoaded,
 };
+use generics::constants::INVALID_CONTROLLER_PORT;
 use generics::erro_handle::ErroHandle;
 use generics::retro_paths::RetroPaths;
 use libretro_sys::binding_libretro::{
@@ -81,8 +82,7 @@ pub fn stack_commands_handle(
                             //executada. Então por garantia o ideal é conectar todos os devices
                             //que ja existem agora! E depois os próximos conforme forem chegando.
                             for device in ctr.get_list() {
-                                //-1 é uma porta invalida
-                                if device.retro_port > -1 {
+                                if device.retro_port != INVALID_CONTROLLER_PORT {
                                     let _ = retro_ab.core().connect_controller(
                                         device.retro_port as u32,
                                         device.retro_type,
