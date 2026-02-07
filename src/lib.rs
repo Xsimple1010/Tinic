@@ -67,7 +67,7 @@ impl Tinic {
         }
     }
 
-    pub fn load(&mut self, core_path: &str, rom_path: String, paths: Paths) -> Result<(), String> {
+    pub fn load_core(&mut self, core_path: &String, paths: Paths) -> Result<(), String> {
         let core_ctx = core::load(
             core_path,
             paths,
@@ -87,7 +87,7 @@ impl Tinic {
 
                 let gamepads = self.controller_ctx.get_list();
 
-                init_game_loop(rom_path, core_ctx, gamepads, STACK.clone());
+                init_game_loop(core_ctx, gamepads, STACK.clone());
             }
             Err(e) => {
                 return Err(e.message);
@@ -95,6 +95,14 @@ impl Tinic {
         }
 
         Ok(())
+    }
+
+    pub fn load_rom(&self, path: String) {
+        STACK.push(StackCommand::LoadGame(path))
+    }
+
+    pub fn unload_rom(&self) {
+        STACK.push(StackCommand::UnloadGame)
     }
 
     pub fn pause(&self) {

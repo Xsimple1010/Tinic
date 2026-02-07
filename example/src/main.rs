@@ -18,11 +18,8 @@ fn main() -> Result<(), String> {
 
     let mut tinic = Tinic::new(Some(gamepad_state_listener));
 
-    tinic.load(
-        core_path,
-        rom_path.to_string(),
-        test_tools::paths::get_paths(),
-    )?;
+    tinic.load_core(core_path, test_tools::paths::get_paths())?;
+    tinic.load_rom(rom_path.clone().to_owned());
 
     'running: loop {
         println!("Para interagir digite o numero de um dos comandos disponíveis!");
@@ -33,6 +30,8 @@ fn main() -> Result<(), String> {
         println!("4: resume");
         println!("5: reset");
         println!("6: procurar por novos gamepads disponíveis");
+        println!("7: unload rom");
+        println!("8: load rom");
 
         let mut command = String::new();
 
@@ -53,6 +52,10 @@ fn main() -> Result<(), String> {
                     tinic.reset();
                 } else if command.starts_with("6") {
                     tinic.change_controller_pending();
+                } else if command.starts_with("7") {
+                    tinic.unload_rom();
+                } else if command.starts_with("8") {
+                    tinic.load_rom(rom_path.clone().to_owned());
                 }
 
                 println!("");

@@ -1,13 +1,13 @@
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum StackCommand {
-    // LoadGame,
+    LoadGame(String),
+    UnloadGame,
     SaveState,
     LoadState,
     Pause,
     Resume,
-    // UnloadGame,
     UpdateControllers,
     GameQuit,
     Reset,
