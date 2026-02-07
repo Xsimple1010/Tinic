@@ -15,7 +15,7 @@ pub struct DatabaseHelper {
     pub rdb_file: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RDBDatabase {
     pub name: String,
     pub file: PathBuf,
@@ -30,7 +30,7 @@ impl DatabaseHelper {
         rom_file: &str,
         core_info: &CoreInfo,
         database_dir: &String,
-    ) -> Result<Option<GameInfo>, ErrorHandle> {
+    ) -> Result<Option<(GameInfo, RDBDatabase)>, ErrorHandle> {
         let rbs: Vec<RDBDatabase> = Self::get_installed_rdb(database_dir)?
             .into_iter()
             .filter(|rdb| {
@@ -64,14 +64,9 @@ impl DatabaseHelper {
             .ok_or_else(|| ErrorHandle::new("invalid rom extension"))?
             .replace(&format!(".{}", rom_extension), "");
 
-        let out_game = rbs.par_iter().find_map_any(|rdb| {
-            let rdb_file = match rdb.file.to_str() {
-                Some(file) => file,
-                None => return None,
-            };
-
-            Self::identifier_rom_file(rom_size, &rom_name, crc32, rdb_file)
-        });
+        let out_game = rbs
+            .par_iter()
+            .find_map_any(|rdb| Self::identifier_rom_file(rom_size, &rom_name, crc32, rdb));
 
         Ok(out_game)
     }
@@ -80,9 +75,13 @@ impl DatabaseHelper {
         rom_size: u64,
         rom_name: &str,
         crc32: u32,
-        rdb_file: &str,
-    ) -> Option<GameInfo> {
+        rdb: &RDBDatabase,
+    ) -> Option<(GameInfo, RDBDatabase)> {
         let mut out_game = None;
+        let rdb_file = match rdb.file.to_str() {
+            Some(file) => file,
+            None => return None,
+        };
 
         let _ = parse_rdb(rdb_file, |game| {
             if game.crc32 == Some(crc32) {
@@ -108,7 +107,10 @@ impl DatabaseHelper {
             false
         });
 
-        out_game
+        match out_game { 
+            Some(game) => Some((game, rdb.clone())), 
+            None => None
+        }
     }
 
     pub fn search_by_name(&self, name: &str) -> Result<Vec<GameInfo>, ErrorHandle> {

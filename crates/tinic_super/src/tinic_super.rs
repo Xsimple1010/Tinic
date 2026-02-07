@@ -1,7 +1,8 @@
+use crate::art::{get_thumbnail_url, ThumbnailType};
 use crate::core_info::helper::CoreInfoHelper;
 use crate::core_info::model::CoreInfo;
 use crate::database::game::GameInfo;
-use crate::database::helper::DatabaseHelper;
+use crate::database::helper::{DatabaseHelper, RDBDatabase};
 use crate::FileProgress;
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
@@ -53,7 +54,7 @@ impl TinicSuper {
         CoreInfoHelper::get_compatibility_core_infos(&rom_file.into(), &self.retro_paths)
     }
 
-    pub fn identifier_rom_file(&self, rom_file: &str, cores: &Vec<CoreInfo>) -> Option<GameInfo> {
+    pub fn identifier_rom_file(&self, rom_file: &str, cores: &Vec<CoreInfo>) -> Option<(GameInfo, RDBDatabase)> {
         cores.par_iter().find_map_any(|core| {
             DatabaseHelper::identifier_rom_file_with_any_rdb(
                 rom_file,
@@ -62,5 +63,14 @@ impl TinicSuper {
             )
             .unwrap_or_else(|_| None)
         })
+    }
+
+    pub fn get_thumbnail(
+        &self,
+        thumbnail_type: ThumbnailType,
+        sys_name: &str,
+        name: &str,
+    ) -> String {
+        get_thumbnail_url(thumbnail_type, sys_name, name)
     }
 }

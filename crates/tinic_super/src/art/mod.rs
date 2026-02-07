@@ -13,5 +13,7 @@ pub fn get_thumbnail_url(thumbnail_type: ThumbnailType, sys_name: &str, name: &s
         ThumbnailType::Titles => "Named_Titles",
     };
 
-    format!("{THUMBNAIL_BASE_URL}/{sys_name}/{thumbnail_type}/{name}.png")
+    let name = name.replace(" ", "%20");
+    let sys = sys_name.replace(" ", "%20");
+    format!("{THUMBNAIL_BASE_URL}/{sys}/{thumbnail_type}/{name}.png")
 }

@@ -1,5 +1,6 @@
 use generics::retro_paths::RetroPaths;
 use std::sync::Arc;
+use tinic_super::art::ThumbnailType;
 use tinic_super::tinic_super::TinicSuper;
 use tinic_super::FileProgress;
 
@@ -30,6 +31,14 @@ async fn main() {
     //     .filter(|c| c.file_name.eq("ppsspp_libretro"))
     //     .collect();
 
-    let game_info = tinic_super.identifier_rom_file(rom, &core_infos).unwrap();
+    let (game_info, rdb) = tinic_super.identifier_rom_file(rom, &core_infos).unwrap();
     println!("{game_info:?}");
+    println!("{rdb:?}");
+
+    let d = tinic_super.get_thumbnail(
+        ThumbnailType::Box,
+        &rdb.name.replace(".rdb", ""),
+        &game_info.name.unwrap(),
+    );
+    println!("{d}");
 }
