@@ -1,53 +1,57 @@
-use crate::{
-    controller_info::ControllerInfo,
-    tools::{ffi_tools::get_str_from_ptr, mutex_tools::get_string_rwlock_from_ptr},
+use crate::tools::ffi_tools::get_str_from_ptr;
+use generics::constants::{
+    MAX_CORE_CONTROLLER_INFO_TYPES, MAX_CORE_SUBSYSTEM_INFO, MAX_CORE_SUBSYSTEM_ROM_INFO,
 };
-use generics::constants::{MAX_CORE_SUBSYSTEM_INFO, MAX_CORE_SUBSYSTEM_ROM_INFO};
 use libretro_sys::binding_libretro::{
-    retro_subsystem_info, retro_subsystem_memory_info, retro_subsystem_rom_info, retro_system_info,
-    LibretroRaw,
+    retro_controller_description, retro_controller_info, retro_subsystem_info,
+    retro_subsystem_memory_info, retro_subsystem_rom_info, retro_system_info, LibretroRaw,
 };
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
 #[derive(Default, Debug)]
 pub struct SysInfo {
-    pub library_name: RwLock<String>,
-    pub library_version: RwLock<String>,
-    pub valid_extensions: RwLock<String>,
-    pub need_full_path: AtomicBool,
-    pub block_extract: AtomicBool,
+    pub library_name: Arc<String>,
+    pub library_version: Arc<String>,
+    pub valid_extensions: Arc<String>,
+    pub need_full_path: Arc<bool>,
+    pub block_extract: Arc<bool>,
 }
 
 #[derive(Default, Debug)]
 pub struct MemoryInfo {
-    pub extension: RwLock<String>,
-    pub type_: AtomicU32,
+    pub extension: Arc<String>,
+    pub type_: Arc<u32>,
+}
+
+#[derive(Default, Debug)]
+pub struct ControllerDescription {
+    pub desc: Arc<String>,
+    pub id: Arc<u32>,
 }
 
 #[derive(Default, Debug)]
 pub struct SubSystemRomInfo {
-    pub desc: RwLock<String>,
-    pub valid_extensions: RwLock<String>,
-    pub need_full_path: AtomicBool,
-    pub block_extract: AtomicBool,
-    pub required: AtomicBool,
+    pub desc: Arc<String>,
+    pub valid_extensions: Arc<String>,
+    pub need_full_path: Arc<bool>,
+    pub block_extract: Arc<bool>,
+    pub required: Arc<bool>,
     pub memory: MemoryInfo,
-    pub num_memory: AtomicU32,
+    pub num_memory: Arc<u32>,
 }
 
 #[derive(Default, Debug)]
 pub struct SubSystemInfo {
-    pub id: AtomicU32,
-    pub desc: RwLock<String>,
-    pub ident: RwLock<String>,
+    pub id: Arc<u32>,
+    pub desc: Arc<String>,
+    pub ident: Arc<String>,
     pub roms: RwLock<Vec<SubSystemRomInfo>>,
 }
 
 #[derive(Debug)]
 pub struct System {
-    pub ports: RwLock<Vec<ControllerInfo>>,
     pub info: SysInfo,
+    pub ports: RwLock<Vec<ControllerDescription>>,
     pub subsystem: RwLock<Vec<SubSystemInfo>>,
 }
 
@@ -68,61 +72,97 @@ impl System {
                 ports: RwLock::new(Vec::new()),
                 subsystem: RwLock::new(Vec::new()),
                 info: SysInfo {
-                    library_name: RwLock::new(get_str_from_ptr(sys_info.library_name)),
-                    library_version: RwLock::new(get_str_from_ptr(sys_info.library_version)),
-                    valid_extensions: RwLock::new(get_str_from_ptr(sys_info.valid_extensions)),
-                    need_full_path: AtomicBool::new(sys_info.need_fullpath),
-                    block_extract: AtomicBool::new(sys_info.block_extract),
+                    library_name: Arc::new(get_str_from_ptr(sys_info.library_name)),
+                    library_version: Arc::new(get_str_from_ptr(sys_info.library_version)),
+                    valid_extensions: Arc::new(get_str_from_ptr(sys_info.valid_extensions)),
+                    need_full_path: Arc::new(sys_info.need_fullpath),
+                    block_extract: Arc::new(sys_info.block_extract),
                 },
             }
         }
     }
 
     pub fn get_subsystem(&self, raw_subsystem: [retro_subsystem_info; MAX_CORE_SUBSYSTEM_INFO]) {
+        self.subsystem.write().unwrap().clear();
+
         for raw_sys in raw_subsystem {
             if raw_sys.ident.is_null() {
                 break;
             }
 
-            let subsystem = SubSystemInfo::default();
+            let mut roms: Vec<SubSystemRomInfo> = Vec::new();
 
-            subsystem.id.store(raw_sys.id, Ordering::SeqCst);
-            *subsystem.desc.write().unwrap() = get_str_from_ptr(raw_sys.desc);
-            *subsystem.ident.write().unwrap() = get_str_from_ptr(raw_sys.ident);
-
-            let roms = unsafe {
+            let raw_roms = unsafe {
                 *(raw_sys.roms as *mut [retro_subsystem_rom_info; MAX_CORE_SUBSYSTEM_ROM_INFO])
             };
 
             for index in 0..raw_sys.num_roms {
-                let rom = roms[index as usize];
+                let rom = raw_roms[index as usize];
 
                 let memory = unsafe { *(rom.memory as *mut retro_subsystem_memory_info) };
 
-                subsystem.roms.write().unwrap().push(SubSystemRomInfo {
-                    desc: get_string_rwlock_from_ptr(rom.desc),
-                    valid_extensions: get_string_rwlock_from_ptr(rom.valid_extensions),
-                    need_full_path: AtomicBool::new(rom.need_fullpath),
-                    block_extract: AtomicBool::new(rom.block_extract),
-                    required: AtomicBool::new(rom.required),
-                    num_memory: AtomicU32::new(rom.num_memory),
+                roms.push(SubSystemRomInfo {
+                    desc: Arc::new(get_str_from_ptr(rom.desc)),
+                    valid_extensions: Arc::new(get_str_from_ptr(rom.valid_extensions)),
+                    need_full_path: Arc::new(rom.need_fullpath),
+                    block_extract: Arc::new(rom.block_extract),
+                    required: Arc::new(rom.required),
+                    num_memory: Arc::new(rom.num_memory),
                     memory: MemoryInfo {
-                        extension: get_string_rwlock_from_ptr(memory.extension),
-                        type_: AtomicU32::new(memory.type_),
+                        extension: Arc::new(get_str_from_ptr(memory.extension)),
+                        type_: Arc::new(memory.type_),
                     },
                 });
             }
 
+            let subsystem = SubSystemInfo {
+                id: Arc::new(raw_sys.id),
+                desc: Arc::new(get_str_from_ptr(raw_sys.desc)),
+                ident: Arc::new(get_str_from_ptr(raw_sys.ident)),
+                roms: RwLock::new(roms),
+            };
+
             self.subsystem.write().unwrap().push(subsystem);
+        }
+    }
+
+    pub fn get_ports(
+        &self,
+        raw_ctr_infos: [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES],
+    ) {
+        self.ports.write().unwrap().clear();
+
+        for raw_ctr_info in raw_ctr_infos {
+            if raw_ctr_info.types.is_null() {
+                break;
+            }
+
+            let raw_ctr_types = unsafe {
+                *(raw_ctr_info.types
+                    as *mut [retro_controller_description; MAX_CORE_CONTROLLER_INFO_TYPES])
+            };
+
+            for index in 0..raw_ctr_info.num_types as usize {
+                let ctr_type = raw_ctr_types[index];
+
+                if !ctr_type.desc.is_null() {
+                    let controller_description = ControllerDescription {
+                        desc: Arc::new(get_str_from_ptr(ctr_type.desc)),
+                        id: Arc::new(ctr_type.id),
+                    };
+
+                    self.ports.write().unwrap().push(controller_description);
+                } else {
+                    return;
+                }
+            }
         }
     }
 }
 
-//
 #[cfg(test)]
 mod test_system {
     use crate::{system::System, test_tools};
-    use std::sync::atomic::Ordering;
 
     #[test]
     fn test_get_sys_info() {
@@ -130,23 +170,17 @@ mod test_system {
 
         let sys = System::new(&core.raw);
 
-        assert_eq!(
-            *sys.info.library_name.read().unwrap().clone(),
-            "Snes9x".to_owned()
-        );
+        assert_eq!(*sys.info.library_name, "Snes9x".to_owned());
+
+        assert_eq!(*sys.info.library_version, "1.62.3 46f8a6b".to_owned());
 
         assert_eq!(
-            *sys.info.library_version.read().unwrap().clone(),
-            "1.62.3 46f8a6b".to_owned()
-        );
-
-        assert_eq!(
-            *sys.info.valid_extensions.read().unwrap().clone(),
+            *sys.info.valid_extensions,
             "smc|sfc|swc|fig|bs|st".to_owned()
         );
 
-        assert_eq!(sys.info.block_extract.load(Ordering::SeqCst), false);
+        assert_eq!(*sys.info.block_extract, false);
 
-        assert_eq!(sys.info.need_full_path.load(Ordering::SeqCst), false);
+        assert_eq!(*sys.info.need_full_path, false);
     }
 }

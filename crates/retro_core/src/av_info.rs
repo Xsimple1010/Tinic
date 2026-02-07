@@ -1,10 +1,10 @@
-use crate::core::retro_pixel_format;
+use crate::core::retro_pixel_format::{self, RETRO_PIXEL_FORMAT_UNKNOWN};
 use crate::graphic_api::GraphicApi;
 use libretro_sys::binding_libretro::{
     retro_game_geometry, retro_system_av_info, retro_system_timing, LibretroRaw,
 };
 use std::sync::atomic::{AtomicU32, Ordering};
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
 
 #[derive(Default, Debug)]
 pub struct Timing {
@@ -38,8 +38,8 @@ pub struct Geometry {
 
 #[derive(Debug)]
 pub struct Video {
-    pub can_dupe: Mutex<bool>,
-    pub pixel_format: Mutex<retro_pixel_format>,
+    pub can_dupe: RwLock<bool>,
+    pub pixel_format: RwLock<retro_pixel_format>,
     pub geometry: Geometry,
     pub graphic_api: GraphicApi,
 }
@@ -47,8 +47,8 @@ pub struct Video {
 impl Default for Video {
     fn default() -> Self {
         Video {
-            can_dupe: Mutex::new(false),
-            pixel_format: Mutex::new(retro_pixel_format::RETRO_PIXEL_FORMAT_UNKNOWN),
+            can_dupe: RwLock::new(false),
+            pixel_format: RwLock::new(RETRO_PIXEL_FORMAT_UNKNOWN),
             geometry: Geometry::default(),
             graphic_api: GraphicApi::default(),
         }

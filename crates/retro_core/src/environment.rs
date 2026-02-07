@@ -1,5 +1,4 @@
 use crate::{
-    controller_info::ControllerInfo,
     core::CoreWrapper,
     libretro_sys::binding_libretro::{
         retro_controller_info, retro_core_option_display, retro_core_options_v2_intl,
@@ -341,7 +340,7 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
 
             match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => {
-                    *core_ctx.av_info.video.pixel_format.lock().unwrap() =
+                    *core_ctx.av_info.video.pixel_format.write().unwrap() =
                         *(data as *mut retro_pixel_format);
                 }
                 None => return false,
@@ -447,17 +446,7 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
                     let raw_ctr_infos =
                         *(data as *mut [retro_controller_info; MAX_CORE_CONTROLLER_INFO_TYPES]);
 
-                    core_ctx.system.ports.write().unwrap().clear();
-
-                    for raw_ctr_info in raw_ctr_infos {
-                        if raw_ctr_info.num_types != 0 {
-                            let controller_info = ControllerInfo::from_raw(raw_ctr_info);
-
-                            core_ctx.system.ports.write().unwrap().push(controller_info);
-                        } else {
-                            break;
-                        }
-                    }
+                    core_ctx.system.get_ports(raw_ctr_infos);
                 }
                 _ => return false,
             }
@@ -524,7 +513,7 @@ pub unsafe extern "C" fn core_environment(cmd: raw::c_uint, data: *mut c_void) -
                 _ => return false,
             }
 
-            return false;
+            return true;
         }
         RETRO_ENVIRONMENT_SET_HW_RENDER => {
             #[cfg(feature = "core_logs")]
@@ -668,11 +657,11 @@ mod test_environment {
         unsafe {
             match &*addr_of!(CORE_CONTEXT) {
                 Some(core_ctx) => assert_eq!(
-                    *core_ctx.av_info.video.pixel_format.lock().unwrap(),
+                    *core_ctx.av_info.video.pixel_format.read().unwrap(),
                     pixel,
                     "returno inesperado: valor desejado -> {:?}; valor recebido -> {:?}",
                     pixel,
-                    *core_ctx.av_info.video.pixel_format.lock().unwrap()
+                    *core_ctx.av_info.video.pixel_format.read().unwrap()
                 ),
                 _ => panic!("CORE_CONTEXT nao foi encontrado"),
             }

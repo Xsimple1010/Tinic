@@ -3,13 +3,14 @@ use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::fs;
 use std::ops::Not;
 use std::path::Path;
+use std::sync::Arc;
 
 #[derive(Clone, Debug, Eq)]
 pub struct RetroPaths {
-    pub system: String,
-    pub save: String,
-    pub opt: String,
-    pub assets: String,
+    pub system: Arc<String>,
+    pub save: Arc<String>,
+    pub opt: Arc<String>,
+    pub assets: Arc<String>,
 }
 
 impl PartialEq for RetroPaths {
@@ -54,10 +55,10 @@ impl RetroPaths {
         }
 
         Ok(Self {
-            system,
-            opt,
-            save,
-            assets,
+            system: Arc::new(system),
+            opt: Arc::new(opt),
+            save: Arc::new(save),
+            assets: Arc::new(assets),
         })
     }
 }

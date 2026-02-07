@@ -5,7 +5,6 @@ use libretro_sys::binding_libretro::retro_game_info;
 use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
 use std::fs;
 use std::io::Write;
-use std::sync::atomic::Ordering;
 use std::{
     ffi::CString,
     fs::File,
@@ -26,7 +25,7 @@ fn get_full_path(path: &str) -> Result<PathBuf, ErroHandle> {
 }
 
 fn valid_rom_extension(ctx: &CoreWrapper, path: &Path) -> Result<(), ErroHandle> {
-    let valid_extensions = ctx.system.info.valid_extensions.read().unwrap();
+    let valid_extensions = &*ctx.system.info.valid_extensions;
     let path_str = path.extension().unwrap().to_str().unwrap();
 
     if !valid_extensions.contains(path_str) {
@@ -43,7 +42,7 @@ fn valid_rom_extension(ctx: &CoreWrapper, path: &Path) -> Result<(), ErroHandle>
 }
 
 fn get_save_path(ctx: &CoreWrapper, slot: usize) -> Result<PathBuf, ErroHandle> {
-    let mut path = PathBuf::from(ctx.paths.save.clone());
+    let mut path = PathBuf::from(ctx.paths.save.to_string());
     path.push(&*ctx.rom_name.lock().unwrap());
 
     if !path.exists() {
@@ -69,7 +68,7 @@ impl RomTools {
         let path = make_c_string(f_path.to_str().unwrap())?;
         let mut size = 0;
 
-        if !ctx.system.info.need_full_path.load(Ordering::SeqCst) {
+        if !*ctx.system.info.need_full_path {
             let mut file = File::open(&f_path).unwrap();
 
             size = file.metadata().unwrap().len() as usize;

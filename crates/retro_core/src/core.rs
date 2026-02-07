@@ -49,7 +49,7 @@ impl CoreWrapper {
 
         let options = Arc::new(OptionManager::new(
             &paths.opt,
-            system.info.library_name.read().unwrap().clone(),
+            system.info.library_name.clone().to_string(),
         ));
 
         let core = Arc::new(CoreWrapper {
