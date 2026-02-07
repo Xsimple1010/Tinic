@@ -1,18 +1,18 @@
 [package]
-name = "retro_video"
+name = "retro-video"
 version = "0.1.1"
 edition = "2024"
 license = "GPL-3"
-description = "retro_video"
-repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/retro_video"
+description = "retro-video"
+repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/retro-video"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-retro_core.workspace = true
+retro-core.workspace = true
 image.workspace = true
 libretro-sys.workspace = true
-tinic_generics.workspace = true
+tinic-generics.workspace = true
 winit.workspace = true
 glutin.workspace = true
 raw-window-handle.workspace = true

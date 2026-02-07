@@ -1,10 +1,10 @@
 [package]
-name = "retro_core"        # nome único no crates.io
+name = "retro-core"        # nome único no crates.io
 version = "0.1.0"
 edition = "2024"
 license = "GPL-3"
 description = "Core abstractions for the Tinic emulator framework"
-repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/retro_core"
+repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/retro-core"
 readme = "README.md"
 keywords = ["emulator", "libretro", "tinic"]
 categories = ["emulators", "multimedia"]
@@ -19,7 +19,7 @@ hw = []
 raw-cpuid.workspace = true
 uuid.workspace = true
 libretro-sys.workspace = true
-tinic_generics.workspace = true
+tinic-generics.workspace = true
 
 [dev-dependencies]
 tempfile = "3.8"

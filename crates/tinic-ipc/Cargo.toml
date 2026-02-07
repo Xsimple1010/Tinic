@@ -1,5 +1,5 @@
 [package]
-name = "tinic_ipc"
+name = "tinic-ipc"
 version = "0.1.3"
 edition = "2024"
 license = "GPL-3"
@@ -11,4 +11,4 @@ repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/tinic_ipc"
 [dependencies]
 tinic.workspace = true
 serde_json.workspace = true
-tinic_ipc_protocol.workspace = true
+tinic-ipc-protocol.workspace = true

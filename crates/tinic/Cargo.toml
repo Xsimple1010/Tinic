@@ -9,11 +9,11 @@ categories = ["emulators", "libretro"]
 repository = "https://github.com/Xsimple1010/Tinic"
 
 [dependencies]
-retro_core.workspace = true
-retro_controllers.workspace = true
-retro_video.workspace = true
-retro_audio.workspace = true
+retro-core.workspace = true
+retro-controllers.workspace = true
+retro-video.workspace = true
+retro-audio.workspace = true
 libretro-sys.workspace = true
-tinic_generics.workspace = true
+tinic-generics.workspace = true
 winit.workspace = true
 serde = { version = "1.0.228", features = ["derive"] }

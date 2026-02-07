@@ -1,33 +1,33 @@
 [workspace]
 resolver = "2"
 members = [
-    'crates/retro_controllers',
-    'crates/retro_core',
-    "crates/retro_video",
+    'crates/retro-controllers',
+    'crates/retro-core',
+    "crates/retro-video",
     "crates/tinic",
-    "crates/tinic_generics",
+    "crates/tinic-generics",
     "crates/libretro-sys",
-    "crates/tinic_super",
-    "crates/retro_audio",
-    "crates/tinic_ipc",
-    "crates/tinic_ipc_protocol",
-    "crates/tinic_database",
+    "crates/tinic-super",
+    "crates/retro-audio",
+    "crates/tinic-ipc",
+    "crates/tinic-ipc-protocol",
+    "crates/tinic-database",
 ]
-default-members = ["crates/tinic", "crates/tinic_ipc"]
+default-members = ["crates/tinic", "crates/tinic-ipc"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-retro_core = { path = "crates/retro_core", version = "0.1.0", features = ["hw"] }
-retro_controllers = { path = "crates/retro_controllers", version = "0.1.0" }
-retro_video = { path = "crates/retro_video", version = "0.1.1" }
-retro_audio = { path = "crates/retro_audio", version = "0.1.0" }
 libretro-sys = { path = "crates/libretro-sys", version = "0.1.0" }
-tinic_generics = { path = "crates/tinic_generics", version = "0.1.0" }
-tinic_super = { path = "crates/tinic_super", version = "0.1.4" }
-tinic_ipc_protocol = { path = "crates/tinic_ipc_protocol", version = "0.1.4" }
-tinic_ipc = { path = "crates/tinic_ipc", version = "0.1.3" }
-tinic_database = { path = "crates/tinic_database", version = "0.1.0" }
+retro-audio = { path = "crates/retro-audio", version = "0.1.0" }
+retro-controllers = { path = "crates/retro-controllers", version = "0.1.0" }
+retro-core = { path = "crates/retro-core", version = "0.1.0", features = ["hw"] }
+retro-video = { path = "crates/retro-video", version = "0.1.1" }
+tinic-generics = { path = "crates/tinic-generics", version = "0.1.0" }
+tinic-super = { path = "crates/tinic-super", version = "0.1.4" }
+tinic-ipc-protocol = { path = "crates/tinic-ipc-protocol", version = "0.1.4" }
+tinic-ipc = { path = "crates/tinic-ipc", version = "0.1.3" }
+tinic-database = { path = "crates/tinic-database", version = "0.1.0" }
 tinic = { path = "crates/tinic", version = "0.1.7" }
 
 

@@ -1,14 +1,14 @@
 [package]
-name = "tinic_super"
+name = "tinic-super"
 version = "0.1.4"
 edition = "2024"
 license = "GPL-3"
-description = "tinic_super"
-repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/tinic_super"
+description = "tinic-super"
+repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/tinic-super"
 
 
 [dependencies]
-tinic_generics.workspace = true
+tinic-generics.workspace = true
 reqwest.workspace = true
 zip.workspace = true
 sevenz-rust.workspace = true
@@ -19,4 +19,3 @@ serde = { version = "1", features = ["derive"] }
 serde_bytes = "0.11.19"
 crc32fast = "1.4.2"
 rayon = "1.10"
-

@@ -1,10 +1,10 @@
 [package]
-name = "retro_audio"
+name = "retro-audio"
 version = "0.1.0"
 edition = "2024"
 license = "GPL-3"
 description = "retro_audio"
-repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/retro_audio"
+repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/retro-audio"
 
 [features]
 debug-logs = []
@@ -14,5 +14,5 @@ cpal.workspace = true
 rubato.workspace = true
 libretro-sys.workspace = true
 ringbuf.workspace = true
-tinic_generics.workspace = true
-retro_core.workspace = true
+tinic-generics.workspace = true
+retro-core.workspace = true
