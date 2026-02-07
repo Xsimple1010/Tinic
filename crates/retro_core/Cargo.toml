@@ -10,7 +10,7 @@ core_full_logs = ["core_ev_logs", "core_logs"]
 hw = []
 
 [dependencies]
-sdl2.workspace = true
+raw-cpuid.workspace = true
 uuid.workspace = true
 libretro_sys.workspace = true
 generics.workspace = true
