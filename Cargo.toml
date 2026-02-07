@@ -33,7 +33,7 @@ image = "0.25.5"
 rubato = "0.16.1"
 cpal = "0.17.0"
 raw-cpuid = "11.3.0"
-uuid = { features = ["v4"], version = "1.18.0" }
+uuid = { features = ["v4"], version = "1.19.0" }
 bindgen = "0.72.0"
 libloading = "0.8.8"
 cc = "1.2.33"
