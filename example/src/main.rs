@@ -1,5 +1,9 @@
 use std::{env, io};
-use tinic::{self, args_manager, test_tools, Tinic};
+use tinic::{self, args_manager, test_tools, GamePadState, RetroGamePad, Tinic};
+
+fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
+    println!("{:?} - {:?}", _gamepad.name, state);
+}
 
 fn main() -> Result<(), String> {
     let args = args_manager::get_values(env::args().collect());
@@ -12,7 +16,7 @@ fn main() -> Result<(), String> {
         .get_key_value("rom")
         .expect("O caminho para o rom nao foi fornecido tente --rom=caminho_pra_rom_aqui!");
 
-    let mut tinic = Tinic::new();
+    let mut tinic = Tinic::new(Some(gamepad_state_listener));
 
     tinic.load(
         core_path,
@@ -28,6 +32,7 @@ fn main() -> Result<(), String> {
         println!("3: pause");
         println!("4: resume");
         println!("5: reset");
+        println!("6: procurar por novos gamepads disponíveis");
 
         let mut command = String::new();
 
@@ -46,7 +51,11 @@ fn main() -> Result<(), String> {
                     tinic.resume();
                 } else if command.starts_with("5") {
                     tinic.reset();
+                } else if command.starts_with("6") {
+                    tinic.change_controller_pending();
                 }
+
+                println!("");
             }
             Err(..) => println!("erro ao ler o comando!"),
         }

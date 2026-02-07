@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate lazy_static;
 extern crate retro_ab;
 extern crate retro_ab_av;
 extern crate retro_ab_gamepad;
@@ -16,9 +18,16 @@ use std::sync::Arc;
 pub use retro_ab::args_manager;
 pub use retro_ab::paths::Paths;
 pub use retro_ab::test_tools;
+pub use retro_ab_gamepad::retro_gamepad::RetroGamePad;
+pub use retro_ab_gamepad::{GamePadState, GamepadStateListener};
+
+static mut GAMEPAD_LISTENER: Option<GamepadStateListener> = None;
+lazy_static! {
+    static ref STACK: Arc<RetroStack> = RetroStack::new();
+}
 
 pub struct Tinic {
-    stack: Arc<RetroStack>,
+    // stack: Arc<RetroStack>,
     pub controller_ctx: GamepadContext,
     pub core_ctx: Option<Arc<RetroContext>>,
 }
@@ -31,12 +40,29 @@ fn rumble_callback(
     true
 }
 
+fn gamepad_state_listener(state: GamePadState, _gamepad: RetroGamePad) {
+    unsafe {
+        if let Some(listener) = &GAMEPAD_LISTENER {
+            match state {
+                GamePadState::Connected => {
+                    STACK.push(StackCommand::UpdateControllers);
+                }
+                GamePadState::Disconnected => {}
+            }
+            listener(state, _gamepad);
+        };
+    }
+}
+
 impl Tinic {
-    pub fn new() -> Tinic {
+    pub fn new(listener: Option<GamepadStateListener>) -> Tinic {
+        unsafe {
+            GAMEPAD_LISTENER = listener;
+        }
         Self {
-            stack: RetroStack::new(),
+            // stack: RetroStack::new(),
             //TODO:o numero máximo de portas deve ser alterado no futuro
-            controller_ctx: GamepadContext::new(2),
+            controller_ctx: GamepadContext::new(Some(gamepad_state_listener)),
             core_ctx: None,
         }
     }
@@ -59,10 +85,9 @@ impl Tinic {
             Ok(..) => {
                 self.core_ctx = Some(core_ctx.clone());
 
-                let gamepads = self.controller_ctx.search();
-                self.stack.push(StackCommand::UpdateControllers);
+                let gamepads = self.controller_ctx.get_list();
 
-                init_game_loop(rom_path, core_ctx, gamepads, self.stack.clone());
+                init_game_loop(rom_path, core_ctx, gamepads, STACK.clone());
             }
             Err(e) => {
                 return Err(e.message);
@@ -73,38 +98,38 @@ impl Tinic {
     }
 
     pub fn pause(&self) {
-        self.stack.push(StackCommand::Pause);
+        STACK.push(StackCommand::Pause);
     }
 
     pub fn resume(&self) {
-        self.stack.push(StackCommand::Resume);
+        STACK.push(StackCommand::Resume);
     }
 
     pub fn save_state(&self) {
-        self.stack.push(StackCommand::SaveState);
+        STACK.push(StackCommand::SaveState);
     }
 
     pub fn load_state(&self) {
-        self.stack.push(StackCommand::LoadState);
+        STACK.push(StackCommand::LoadState);
     }
 
     pub fn reset(&self) {
-        self.stack.push(StackCommand::Reset);
+        STACK.push(StackCommand::Reset);
     }
 
     pub fn quit_game(&self) {
-        self.stack.push(StackCommand::GameQuit);
+        STACK.push(StackCommand::GameQuit);
     }
 
     // pub fn unload_game(&self) {
-    //     self.stack.push(StackCommand::UnloadGame);
+    //     STACK.push(StackCommand::UnloadGame);
     // }
 
     // pub fn load_game(&self) {
-    //     self.stack.push(StackCommand::LoadGame);
+    //     STACK.push(StackCommand::LoadGame);
     // }
 
     pub fn change_controller_pending(&self) {
-        self.stack.push(StackCommand::UpdateControllers);
+        // STACK.push(StackCommand::UpdateControllers);
     }
 }

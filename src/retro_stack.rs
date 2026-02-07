@@ -37,5 +37,3 @@ impl RetroStack {
         cmd
     }
 }
-
-// pub fn init_game_thread
