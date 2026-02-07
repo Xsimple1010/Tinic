@@ -22,13 +22,11 @@ impl Drop for RetroController {
 }
 
 impl RetroController {
-    pub fn new(listener: Option<DeviceStateListener>) -> Result<RetroController, ErroHandle> {
-        if let Some(listener) = listener {
-            DEVICES_MANAGER
-                .lock()
-                .unwrap()
-                .set_listener(Arc::new(Mutex::new(listener)));
-        }
+    pub fn new(listener: DeviceStateListener) -> Result<RetroController, ErroHandle> {
+        DEVICES_MANAGER
+            .lock()
+            .unwrap()
+            .set_listener(Arc::new(Mutex::new(listener)));
 
         let mut event_thread = EventThread::new();
         event_thread.resume(DEVICES_MANAGER.clone())?;

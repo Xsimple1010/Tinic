@@ -66,24 +66,22 @@ impl ThreadChannel {
         core_path: &str,
         rom_path: &str,
         paths: RetroPaths,
-    ) -> (bool, Option<Arc<OptionManager>>) {
+    ) -> Option<Arc<OptionManager>> {
         self.game_stack
             .push(LoadGame(core_path.to_string(), rom_path.to_string(), paths));
 
         let mut core_options: Option<Arc<OptionManager>> = None;
-        let mut rom_loaded = false;
 
         wait_response(&self.main_stack, |command| match command {
             GameLoaded(options) => {
                 core_options = options.clone();
-                rom_loaded = options.is_none();
 
                 true
             }
             _ => false,
         });
 
-        (rom_loaded, core_options)
+        core_options
     }
 
     // ################### OUTAS AÇÕES MAIS GENÉRICAS DO CORE FICAM AQUI! ###########################

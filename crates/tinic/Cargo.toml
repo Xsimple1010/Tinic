@@ -5,6 +5,7 @@ edition = "2021"
 
 
 [dependencies]
+tinic_super.workspace = true
 retro_core.workspace = true
 retro_controllers.workspace = true
 retro_av.workspace = true
@@ -12,3 +13,4 @@ async-std.workspace = true
 lazy_static.workspace = true
 libretro_sys.workspace = true
 generics.workspace = true
+tokio.workspace = true

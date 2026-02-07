@@ -1,23 +1,27 @@
-use crate::channel::ThreadChannel;
-use crate::game_thread::game_thread_handle::GameThread;
-use crate::thread_stack::main_stack::{SaveImg, SavePath};
+use crate::{
+    channel::ThreadChannel,
+    game_thread::game_thread_handle::GameThread,
+    generics::{erro_handle::ErroHandle, retro_paths::RetroPaths},
+    libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR,
+    retro_controllers::{
+        devices_manager::{Device, DeviceState, DeviceStateListener},
+        RetroController,
+    },
+    retro_core::option_manager::OptionManager,
+    thread_stack::main_stack::{SaveImg, SavePath},
+    tinic_super::{core_info::CoreInfo, core_info_helper::CoreInfoHelper},
+};
 use async_std::task;
-use generics::erro_handle::ErroHandle;
-use generics::retro_paths::RetroPaths;
-use libretro_sys::binding_libretro::retro_log_level::RETRO_LOG_ERROR;
-use retro_controllers::devices_manager::{Device, DeviceState, DeviceStateListener};
-use retro_controllers::RetroController;
-use retro_core::option_manager::OptionManager;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex, RwLock};
 
-static DEVICE_STATE_LISTENER: RwLock<Option<DeviceStateListener>> = RwLock::new(None);
-
 lazy_static! {
+    static ref DEVICE_STATE_LISTENER: RwLock<DeviceStateListener> = RwLock::new(|_, _| {});
     static ref CHANNEL: Arc<ThreadChannel> = Arc::new(ThreadChannel::new());
 }
 
 fn device_state_listener(state: DeviceState, device: Device) {
-    if let Some(listener) = DEVICE_STATE_LISTENER.read().unwrap().as_ref() {
+    if let Ok(listener) = DEVICE_STATE_LISTENER.read() {
         match &state {
             DeviceState::Connected | DeviceState::Disconnected => {
                 CHANNEL.connect_device(device.clone());
@@ -32,10 +36,14 @@ pub struct Tinic {
     pub controller: Arc<Mutex<RetroController>>,
     game_thread: GameThread,
     pub core_options: Option<Arc<OptionManager>>,
+    retro_paths: RetroPaths,
 }
 
 impl Tinic {
-    pub fn new(listener: Option<DeviceStateListener>) -> Result<Tinic, ErroHandle> {
+    pub fn new(
+        listener: DeviceStateListener,
+        retro_paths: RetroPaths,
+    ) -> Result<Tinic, ErroHandle> {
         match DEVICE_STATE_LISTENER.write() {
             Ok(mut device_listener) => *device_listener = listener,
             Err(e) => {
@@ -46,29 +54,23 @@ impl Tinic {
             }
         }
 
-        let controller_ctx = Arc::new(Mutex::new(RetroController::new(Some(
-            device_state_listener,
-        ))?));
+        let controller_ctx = Arc::new(Mutex::new(RetroController::new(device_state_listener)?));
 
         Ok(Self {
             game_thread: GameThread::new(controller_ctx.clone()),
             core_options: None,
             controller: controller_ctx,
+            retro_paths,
         })
     }
 
-    pub fn load_game(
-        &mut self,
-        core_path: &str,
-        rom_path: &str,
-        paths: RetroPaths,
-    ) -> Result<bool, ErroHandle> {
+    pub fn load_game(&mut self, core_path: &str, rom_path: &str) -> Result<bool, ErroHandle> {
         self.game_thread.start(CHANNEL.get_notify())?;
 
-        let (loaded, options) = task::block_on(CHANNEL.load_game(core_path, rom_path, paths));
-        self.core_options = options;
+        self.core_options =
+            task::block_on(CHANNEL.load_game(core_path, rom_path, self.retro_paths.clone()));
 
-        Ok(loaded)
+        Ok(self.core_options.is_some())
     }
 
     pub fn pause(&self) {

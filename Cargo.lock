@@ -3008,7 +3008,6 @@ dependencies = [
  "generics",
  "lazy_static",
  "libretro_sys",
- "reqwest",
  "retro_av",
  "retro_controllers",
  "retro_core",
