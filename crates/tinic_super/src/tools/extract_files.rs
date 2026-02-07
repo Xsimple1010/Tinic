@@ -10,7 +10,10 @@ use zip::ZipArchive;
 
 #[derive(Debug)]
 pub enum ExtractProgress {
-    Extracting(String),
+    Extracting {
+        origin_file: String,
+        inner_file_name: String,
+    },
     Finished,
 }
 
@@ -22,7 +25,15 @@ pub fn extract_zip_file<C>(
 where
     C: Fn(ExtractProgress),
 {
-    let file = File::open(file_path)?;
+    let file = File::open(&file_path)?;
+    let origin_file = match file_path.file_prefix() {
+        Some(name) => match name.to_str() {
+            Some(name) => name.to_string(),
+            None => return Err(zip::result::ZipError::FileNotFound),
+        },
+        None => return Err(zip::result::ZipError::FileNotFound),
+    };
+
     let mut archive = ZipArchive::new(file)?;
 
     // 2️⃣ extrair com progresso global
@@ -52,7 +63,10 @@ where
 
             outfile.write_all(&buffer[..n])?;
 
-            event_listener(ExtractProgress::Extracting(file.name().to_string()));
+            event_listener(ExtractProgress::Extracting {
+                origin_file: origin_file.clone(),
+                inner_file_name: file.name().to_string(),
+            });
         }
     }
 
@@ -77,6 +91,13 @@ pub fn extract_7zip_file<C, CP>(
     CP: FnMut(String) -> SevenZipBeforeExtractionAction,
 {
     let dest_path = PathBuf::from(dest);
+    let origin_file = match src_path.file_prefix() {
+        Some(name) => match name.to_str() {
+            Some(name) => name.to_string(),
+            None => return,
+        },
+        None => return,
+    };
     let mut used_names = HashMap::<String, usize>::new();
 
     let _e = sevenz_rust::decompress_file_with_extract_fn(
@@ -117,7 +138,10 @@ pub fn extract_7zip_file<C, CP>(
                     let mut writer = BufWriter::new(file);
                     std::io::copy(reader, &mut writer)?;
 
-                    event_listener(ExtractProgress::Extracting(final_name.clone()));
+                    event_listener(ExtractProgress::Extracting {
+                        origin_file: origin_file.clone(),
+                        inner_file_name: final_name.clone(),
+                    });
 
                     Ok(true)
                 }
