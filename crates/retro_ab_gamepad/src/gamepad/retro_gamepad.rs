@@ -88,14 +88,14 @@ impl DevicesRequireFunctions for RetroGamePad {
         0
     }
 
-    fn get_key_bitmask(&self) -> i16 {
-        let mut bitmask = 0;
+    fn get_key_bitmasks(&self) -> i16 {
+        let mut bitmasks = 0;
 
         for key in &self.key_map {
             let pressed = if key.pressed { 1 } else { 0 };
-            bitmask += pressed << key.retro;
+            bitmasks += pressed << key.retro;
         }
 
-        bitmask
+        bitmasks
     }
 }

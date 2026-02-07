@@ -107,7 +107,7 @@ impl DevicesManager {
                 return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
                     gamepad.get_key_pressed(key_id)
                 } else {
-                    gamepad.get_key_bitmask()
+                    gamepad.get_key_bitmasks()
                 };
             }
         }
@@ -125,5 +125,5 @@ pub trait DevicesRequireFunctions {
     #[doc = "deve retornar 1 se estive pressionado e 0 se nao estive"]
     fn get_key_pressed(&self, key_id: i16) -> i16;
 
-    fn get_key_bitmask(&self) -> i16;
+    fn get_key_bitmasks(&self) -> i16;
 }
