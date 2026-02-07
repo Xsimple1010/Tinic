@@ -14,9 +14,9 @@ use libretro_sys::binding_libretro::{
     retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL_CORE, retro_log_level::RETRO_LOG_ERROR,
 };
 use retro_ab::{core::RetroEnvCallbacks, retro_ab::RetroAB};
-use retro_ab_av::{
-    audio_sample_batch_callback, audio_sample_callback, get_proc_address, retro_av::RetroAvCtx,
-    video_refresh_callback, EventPump,
+use retro_av::{
+    audio_sample_batch_callback, audio_sample_callback, get_proc_address, video_refresh_callback,
+    EventPump, RetroAv,
 };
 use retro_controllers::{
     input_poll_callback, input_state_callback, rumble_callback, RetroController,
@@ -29,7 +29,7 @@ fn create_retro_contexts(
     core_path: String,
     rom_path: String,
     paths: RetroPaths,
-) -> Result<(RetroAB, (RetroAvCtx, EventPump)), ErroHandle> {
+) -> Result<(RetroAB, (RetroAv, EventPump)), ErroHandle> {
     let callbacks = RetroEnvCallbacks {
         audio_sample_batch_callback,
         audio_sample_callback,
@@ -45,7 +45,7 @@ fn create_retro_contexts(
     let retro_ab = RetroAB::new(&core_path, paths, callbacks, RETRO_HW_CONTEXT_OPENGL_CORE)?;
 
     if retro_ab.core().load_game(&rom_path)? {
-        let av = RetroAvCtx::new(retro_ab.core().av_info.clone())?;
+        let av = RetroAv::new(retro_ab.core().av_info.clone())?;
         return Ok((retro_ab, av));
     }
 
@@ -59,7 +59,7 @@ pub fn stack_commands_handle(
     channel_notify: &ChannelNotify,
     core_ctx: &mut Option<RetroAB>,
     controller_ctx: &Arc<Mutex<RetroController>>,
-    av_ctx: &mut Option<(RetroAvCtx, EventPump)>,
+    av_ctx: &mut Option<(RetroAv, EventPump)>,
     pause_request_new_frames: &mut bool,
     use_full_screen: &mut bool,
 ) -> bool {

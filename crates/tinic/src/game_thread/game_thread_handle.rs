@@ -4,8 +4,8 @@ use crate::game_thread::stack_commands_handle::stack_commands_handle;
 use generics::erro_handle::ErroHandle;
 use libretro_sys::binding_libretro::retro_log_level::{RETRO_LOG_DUMMY, RETRO_LOG_ERROR};
 use retro_ab::retro_ab::RetroAB;
-use retro_ab_av::retro_av::RetroAvCtx;
-use retro_ab_av::EventPump;
+use retro_av::EventPump;
+use retro_av::RetroAv;
 use retro_controllers::RetroController;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -76,7 +76,7 @@ impl GameThread {
             let mut pause_request_new_frames = false;
             let mut use_full_screen_mode = false;
             let mut retro_ab: Option<RetroAB> = None;
-            let mut av_ctx: Option<(RetroAvCtx, EventPump)> = None;
+            let mut av_ctx: Option<(RetroAv, EventPump)> = None;
 
             while *is_running.lock().unwrap_or_else(|op| {
                 let mut can_run = op.into_inner();
@@ -137,7 +137,7 @@ impl GameThread {
 
 fn try_render_frame(
     retro_ab: &RetroAB,
-    retro_av: &mut RetroAvCtx,
+    retro_av: &mut RetroAv,
     paused: bool,
 ) -> Result<(), ErroHandle> {
     if !retro_av.sync() || paused {

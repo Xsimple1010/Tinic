@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate retro_ab;
-extern crate retro_ab_av;
+extern crate retro_av;
 extern crate retro_controllers;
 
 mod channel;

@@ -1,5 +1,5 @@
 [package]
-name = "retro_ab_av"
+name = "retro_av"
 version = "0.1.1"
 edition = "2021"
 
@@ -16,5 +16,3 @@ generics.workspace = true
 [build-dependencies]
 cfg_aliases.workspace = true
 gl_generator.workspace = true
-
-

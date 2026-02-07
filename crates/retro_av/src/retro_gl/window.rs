@@ -91,7 +91,7 @@ impl GlWindow {
 
         let win_result = video
             .window(
-                "retro_ab_av",
+                "retro_av",
                 *geo.base_width.read().unwrap(),
                 *geo.base_height.read().unwrap(),
             )

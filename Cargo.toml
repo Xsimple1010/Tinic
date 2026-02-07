@@ -1,6 +1,13 @@
 [workspace]
 resolver = "2"
-members = ['crates/retro_controllers', 'crates/retro_ab_rs', "crates/retro_ab_av", "crates/tinic", "crates/generics", "crates/libretro_sys"]
+members = [
+    'crates/retro_controllers',
+    'crates/retro_ab_rs',
+    "crates/retro_av",
+    "crates/tinic",
+    "crates/generics",
+    "crates/libretro_sys",
+]
 default-members = ["crates/tinic"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -8,7 +15,7 @@ default-members = ["crates/tinic"]
 [workspace.dependencies]
 retro_controllers = { path = "crates/retro_controllers" }
 retro_ab = { path = "crates/retro_ab_rs" }
-retro_ab_av = { path = "crates/retro_ab_av" }
+retro_av = { path = "crates/retro_av" }
 libretro_sys = { path = "crates/libretro_sys" }
 generics = { path = "crates/generics" }
 async-std = "1.13.0"
@@ -24,4 +31,3 @@ libloading = "0.8.6"
 cc = "1.2.2"
 cfg_aliases = "0.2.1"
 gl_generator = "0.14.0"
-

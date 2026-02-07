@@ -11,7 +11,7 @@ Tinic é dividido em 3 (três) projetos, cada qual com sua responsabilidade.
 
 Todas as ligações aos núcleos são criadas aqui (depende do SDL2).
 
-### [Retro_ab_av](./crates//retro_ab_av)
+### [retro_av](./crates//retro_av)
 
 Lida com renderização e a reprodução de áudio (depende do SDL2).
 

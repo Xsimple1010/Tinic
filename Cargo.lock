@@ -1542,7 +1542,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "retro_ab_av"
+name = "retro_av"
 version = "0.1.1"
 dependencies = [
  "cfg_aliases",
@@ -1822,7 +1822,7 @@ dependencies = [
  "lazy_static",
  "libretro_sys",
  "retro_ab",
- "retro_ab_av",
+ "retro_av",
  "retro_controllers",
 ]
 

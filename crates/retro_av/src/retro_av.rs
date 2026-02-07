@@ -7,7 +7,7 @@ use retro_ab::core::AvInfo;
 use sdl2::{EventPump, Sdl};
 use std::sync::Arc;
 
-pub struct RetroAvCtx {
+pub struct RetroAv {
     pub video: RetroVideo,
     pub audio: RetroAudio,
     sync: RetroSync,
@@ -15,9 +15,9 @@ pub struct RetroAvCtx {
     _sdl: Sdl,
 }
 
-impl RetroAvCtx {
-    #[doc = "cria uma nova instancia de RetroAvCtx. sempre mantenha a instancia dentro da thread onde foi criada!"]
-    pub fn new(av_info: Arc<AvInfo>) -> Result<(RetroAvCtx, EventPump), ErroHandle> {
+impl RetroAv {
+    #[doc = "cria uma nova instancia de RetroAv. sempre mantenha a instancia dentro da thread onde foi criada!"]
+    pub fn new(av_info: Arc<AvInfo>) -> Result<(RetroAv, EventPump), ErroHandle> {
         let _sdl = {
             match sdl2::init() {
                 Ok(sdl) => sdl,
@@ -44,7 +44,7 @@ impl RetroAvCtx {
         let audio = RetroAudio::new(&av_info)?;
 
         Ok((
-            RetroAvCtx {
+            RetroAv {
                 video,
                 audio,
                 _sdl,

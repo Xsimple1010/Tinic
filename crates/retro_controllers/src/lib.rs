@@ -1,3 +1,4 @@
+extern crate generics;
 extern crate gilrs;
 #[macro_use]
 extern crate lazy_static;
