@@ -1,3 +1,4 @@
+use crate::GameIdentifier;
 use crate::core_info::model::CoreInfo;
 use crate::event::TinicSuperEventListener;
 use crate::rdb_manager::download::download_rdb;
@@ -36,11 +37,24 @@ impl RdbManager {
         .await;
     }
 
+    pub async fn identify_roms_from_dir(
+        &self,
+        dir: PathBuf,
+    ) -> Result<Vec<GameIdentifier>, ErrorHandle> {
+        GameIdentifier::from_dir(dir).await
+    }
+
     pub async fn download(
         &self,
         rdbs: &Vec<String>,
         force_update: bool,
     ) -> Result<(), ErrorHandle> {
-        download_rdb(&self.retro_path, rdbs, force_update, self.event_listener.clone()).await
+        download_rdb(
+            &self.retro_path,
+            rdbs,
+            force_update,
+            self.event_listener.clone(),
+        )
+        .await
     }
 }
