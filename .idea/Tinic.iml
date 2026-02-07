@@ -11,6 +11,7 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/tinic_super/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/retro_audio/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/retro_video/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tinic_ipc/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
