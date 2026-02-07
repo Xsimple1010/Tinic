@@ -11,7 +11,7 @@ use libretro_sys::binding_libretro::{
 };
 use std::sync::{Arc, RwLock, atomic::AtomicU8};
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct SysInfo {
     pub library_name: Arc<String>,
     pub library_version: Arc<String>,
@@ -51,12 +51,12 @@ pub struct SubSystemInfo {
     pub roms: RwLock<Vec<SubSystemRomInfo>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct System {
     pub info: SysInfo,
-    pub ports: RwLock<Vec<ControllerDescription>>,
-    pub subsystem: RwLock<Vec<SubSystemInfo>>,
-    pub performance_level: AtomicU8,
+    pub ports: Arc<RwLock<Vec<ControllerDescription>>>,
+    pub subsystem: Arc<RwLock<Vec<SubSystemInfo>>>,
+    pub performance_level: Arc<AtomicU8>,
 }
 
 impl System {
@@ -73,9 +73,9 @@ impl System {
             raw.retro_get_system_info(sys_info);
 
             System {
-                ports: RwLock::new(Vec::new()),
-                subsystem: RwLock::new(Vec::new()),
-                performance_level: AtomicU8::new(0),
+                ports: Arc::new(RwLock::new(Vec::new())),
+                subsystem: Arc::new(RwLock::new(Vec::new())),
+                performance_level: Arc::new(AtomicU8::new(0)),
                 info: SysInfo {
                     library_name: Arc::new(get_str_from_ptr(sys_info.library_name)),
                     library_version: Arc::new(get_str_from_ptr(sys_info.library_version)),

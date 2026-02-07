@@ -1,11 +1,14 @@
 use std::{fmt::Display, path::PathBuf};
 
+use crate::error_handle::ErrorHandle;
+
 pub fn create_test_work_dir_path(test_dir: impl Display) -> PathBuf {
     workspace_root().join(format!("test_workspace/{test_dir}"))
 }
 
-pub fn remove_test_work_dir_path(test_dir: impl Display) -> PathBuf {
-    workspace_root().join(format!("test_workspace/{test_dir}"))
+pub fn remove_test_work_dir_path(test_dir: impl Display) -> Result<(), ErrorHandle> {
+    std::fs::remove_dir_all(workspace_root().join(format!("test_workspace/{test_dir}")))?;
+    Ok(())
 }
 
 pub fn workspace_root() -> PathBuf {

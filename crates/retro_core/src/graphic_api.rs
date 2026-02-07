@@ -1,8 +1,8 @@
 use libretro_sys::binding_libretro::{retro_hw_context_type, retro_hw_render_callback};
 use std::sync::atomic::AtomicU8;
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
     RwLock,
+    atomic::{AtomicBool, Ordering},
 };
 
 #[derive(Debug)]
@@ -40,7 +40,7 @@ pub struct GraphicApi {
 impl Default for GraphicApi {
     fn default() -> Self {
         GraphicApi {
-            context_type: retro_hw_context_type::RETRO_HW_CONTEXT_NONE,
+            context_type: retro_hw_context_type::RETRO_HW_CONTEXT_OPENGL,
             fbo: RwLock::new(None),
             depth: AtomicBool::new(false),
             stencil: AtomicBool::new(false),

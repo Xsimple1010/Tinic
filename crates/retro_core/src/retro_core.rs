@@ -70,6 +70,8 @@ impl RetroCore {
             core.raw
                 .retro_set_environment(Some(core_env::core_environment));
 
+            core.init()?;
+
             core.raw
                 .retro_set_audio_sample(Some(core_env::audio_sample_callback));
 
@@ -85,8 +87,6 @@ impl RetroCore {
             core.raw
                 .retro_set_input_state(Some(core_env::input_state_callback));
         }
-
-        core.init()?;
 
         Ok(core)
     }
@@ -117,7 +117,7 @@ impl RetroCore {
             ));
         }
 
-        let loaded = RomTools::try_load_game(&self.raw, &self.system.info, path)?;
+        let loaded = RomTools::try_load_game(&self.raw, &self.system.info, &path)?;
         self.game_loaded.store(loaded, Ordering::SeqCst);
 
         if loaded {
