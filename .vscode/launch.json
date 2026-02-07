@@ -11,12 +11,13 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=tinic",
+                    "--example=example",
                 ],
                 "filter": {
-                    "name": "tinic",
-                    "kind": "bin"
+                    "name": "example",
+                    "kind": "example"
                 }
+                
             },
             "args": [
                 "--core=C:/WFL/cores/test.dll",
@@ -32,12 +33,12 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=retro_ab",
+                    "--example=retro_ab",
                     "--package=retro_ab"
                 ],
                 "filter": {
                     "name": "retro_ab",
-                    "kind": "bin"
+                    "kind": "example"
                 }
             },
             "args": [],
