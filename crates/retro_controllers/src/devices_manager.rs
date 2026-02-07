@@ -138,13 +138,11 @@ impl DevicesManager {
     }
 
     pub fn get_input_state(&self, port: i16, key_id: i16) -> i16 {
-        if let Some(keyboard) = &*self.keyboard.load_or(None) {
-            if keyboard.retro_port.eq(&port) {
-                return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
-                    keyboard.get_key_pressed(key_id)
-                } else {
-                    keyboard.get_key_bitmasks()
-                };
+        if let Some(keyboard) = &*self.keyboard.load_or(None) && keyboard.retro_port.eq(&port) {
+            return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
+                keyboard.get_key_pressed(key_id)
+            } else {
+                keyboard.get_key_bitmasks()
             }
         }
 

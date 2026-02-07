@@ -1,13 +1,13 @@
 use crate::{
-    RetroCoreIns,
     core_env::environment::CORE_CONTEXT,
     generics::constants::MAX_CORE_CONTROLLER_INFO_TYPES,
     libretro_sys::binding_libretro::{
-        RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE,
-        RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
-        retro_controller_info, retro_rumble_effect, retro_rumble_interface,
+        retro_controller_info, retro_rumble_effect,
+        retro_rumble_interface, RETRO_ENVIRONMENT_GET_INPUT_BITMASKS,
+        RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE, RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
     },
     tools::validation::InputValidator,
+    RetroCoreIns,
 };
 use generics::error_handle::ErrorHandle;
 use std::{ffi::c_uint, os::raw::c_void, ptr::addr_of};
@@ -124,7 +124,7 @@ pub unsafe fn env_cb_gamepad_io(
                 "data in RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE",
             )?;
 
-            let mut rumble_raw = unsafe { *(data as *mut retro_rumble_interface) };
+            let rumble_raw = unsafe { &mut *(data as *mut retro_rumble_interface) };
             rumble_raw.set_rumble_state = Some(rumble_callback);
 
             Ok(true)
