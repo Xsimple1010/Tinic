@@ -70,7 +70,7 @@ impl CoreInfo {
             "core_options_version" => self.core_options_version = value,
             "load_subsystem" => self.load_subsystem = self.get_boolean_value(&value),
             "supports_no_game" => self.supports_no_game = self.get_boolean_value(&value),
-            "database" => {
+            "rdb_manager" => {
                 self.database = value.split("|").map(String::from).collect::<Vec<String>>()
             }
             "hw_render" => self.hw_render = self.get_boolean_value(&value),

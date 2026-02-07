@@ -1,4 +1,4 @@
-use crate::database::game::GameInfo;
+use crate::rdb_manager::game::GameInfo;
 use generics::constants::RDB_HEADER_SIZE;
 use generics::error_handle::ErrorHandle;
 use rmp_serde::Deserializer;

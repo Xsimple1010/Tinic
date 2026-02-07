@@ -1,9 +1,9 @@
 use crate::core_info::model::CoreInfo;
-use crate::database::crc32::crc32_file;
-use crate::database::game::GameInfo;
-use crate::database::rdb::{parse_all_rdb_to_vec, parse_rdb};
 use crate::download::download_file;
 use crate::event::TinicSuperEventListener;
+use crate::rdb_manager::crc32::crc32_file;
+use crate::rdb_manager::game::GameInfo;
+use crate::rdb_manager::rdb::{parse_all_rdb_to_vec, parse_rdb};
 use generics::constants::RDB_BASE_URL;
 use generics::{error_handle::ErrorHandle, retro_paths::RetroPaths};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
@@ -11,7 +11,7 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-pub struct DatabaseHelper {
+pub struct RdbManager {
     pub rdb_file: String,
 }
 
@@ -21,7 +21,7 @@ pub struct RDBDatabase {
     pub file: PathBuf,
 }
 
-impl DatabaseHelper {
+impl RdbManager {
     pub fn get_all_games(self) -> Result<Vec<GameInfo>, ErrorHandle> {
         parse_all_rdb_to_vec(&self.rdb_file)
     }

@@ -1,9 +1,9 @@
 use crate::art::download_all_thumbnail_from_game;
 use crate::core_info::helper::CoreInfoHelper;
 use crate::core_info::model::CoreInfo;
-use crate::database::game::GameInfo;
-use crate::database::helper::{DatabaseHelper, RDBDatabase};
 use crate::event::TinicSuperEventListener;
+use crate::rdb_manager::game::GameInfo;
+use crate::rdb_manager::helper::{RDBDatabase, RdbManager};
 use generics::error_handle::ErrorHandle;
 use generics::retro_paths::RetroPaths;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
@@ -38,9 +38,8 @@ impl TinicSuper {
             let database = core.database.clone();
 
             let _ = tokio::spawn(async move {
-                let _ =
-                    DatabaseHelper::download_db(&retro_path, &database, force_update, on_progress)
-                        .await;
+                let _ = RdbManager::download_db(&retro_path, &database, force_update, on_progress)
+                    .await;
             })
             .await;
         }
@@ -49,7 +48,7 @@ impl TinicSuper {
     }
 
     pub async fn get_all_game_infos(rdb_file: String) -> Result<Vec<GameInfo>, ErrorHandle> {
-        DatabaseHelper { rdb_file }.get_all_games()
+        RdbManager { rdb_file }.get_all_games()
     }
 
     pub fn get_compatibility_core_infos(&self, rom_file: &str) -> Vec<CoreInfo> {
@@ -62,7 +61,7 @@ impl TinicSuper {
         cores: &Vec<CoreInfo>,
     ) -> Option<(GameInfo, RDBDatabase)> {
         cores.par_iter().find_map_any(|core| {
-            DatabaseHelper::identifier_rom_file_with_any_rdb(
+            RdbManager::identifier_rom_file_with_any_rdb(
                 rom_file,
                 core,
                 &self.retro_paths.databases,
