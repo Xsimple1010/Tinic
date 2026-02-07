@@ -98,8 +98,8 @@ impl ThreadChannel {
 
         wait_response(&self.main_stack, |command| {
             return match command {
-                GameStateSaved(save_path, img) => {
-                    save.replace((save_path.clone(), img.clone()));
+                GameStateSaved(s) => {
+                    save = s.to_owned();
                     true
                 }
                 _ => false,

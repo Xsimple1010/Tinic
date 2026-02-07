@@ -8,7 +8,7 @@ type GameSaveImg = String;
 #[derive(Clone, Debug)]
 pub enum MainStackCommand {
     GameLoaded(Option<Arc<OptionManager>>),
-    GameStateSaved(GameSavePath, GameSaveImg),
+    GameStateSaved(Option<(GameSavePath, GameSaveImg)>),
     SaveStateLoaded(bool),
 }
 

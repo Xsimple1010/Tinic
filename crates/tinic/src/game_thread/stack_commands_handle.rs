@@ -132,12 +132,15 @@ pub fn stack_commands_handle(
                                 // let d = av.video.print_screen();
                             }
 
-                            channel_notify
-                                .notify_main_stack(GameStateSaved(saved_path, "img".to_owned()));
+                            channel_notify.notify_main_stack(GameStateSaved(Some((
+                                saved_path,
+                                "img".to_owned(),
+                            ))));
                         }
 
                         Err(e) => {
                             println!("{:?}", e);
+                            channel_notify.notify_main_stack(GameStateSaved(None));
                             need_stop = true;
                         }
                     }
