@@ -43,14 +43,16 @@ fn valid_rom_extension(ctx: &CoreWrapper, path: &Path) -> Result<(), ErroHandle>
 
 fn get_save_path(ctx: &CoreWrapper, slot: usize) -> Result<PathBuf, ErroHandle> {
     let mut path = PathBuf::from(ctx.paths.save.to_string());
+
+    path.push(&*ctx.system.info.library_name.as_str());
     path.push(&*ctx.rom_name.lock().unwrap());
 
     if !path.exists() {
-        fs::create_dir(&path).unwrap();
+        fs::create_dir_all(&path).unwrap();
     }
 
-    path.push(slot.to_string());
-    path.set_extension("save");
+    let file_name = format!("{}.save", slot);
+    path.push(file_name);
 
     Ok(path)
 }
@@ -95,20 +97,19 @@ impl RomTools {
     }
 
     pub fn get_rom_name(path: &Path) -> Result<String, ErroHandle> {
-        let extension = path.extension().unwrap();
+        let extension = ".".to_owned() + path.extension().unwrap().to_str().unwrap();
+
         let name = path
             .file_name()
             .unwrap()
             .to_str()
-            .to_owned()
             .unwrap()
-            .to_string()
-            .replace(extension.to_str().unwrap(), "");
+            .replace(&extension, "");
 
         Ok(name)
     }
 
-    pub fn create_save_state(ctx: &CoreWrapper, slot: usize) -> Result<String, ErroHandle> {
+    pub fn create_save_state(ctx: &CoreWrapper, slot: usize) -> Result<PathBuf, ErroHandle> {
         let size = unsafe { ctx.raw.retro_serialize_size() };
         let mut data = vec![0u8; size];
 
@@ -124,7 +125,8 @@ impl RomTools {
             });
         }
 
-        let mut file = File::create(get_save_path(ctx, slot)?).unwrap();
+        let save_path = get_save_path(ctx, slot)?;
+        let mut file = File::create(&save_path).unwrap();
 
         if let Err(e) = file.write(&data) {
             return Err(ErroHandle {
@@ -133,15 +135,7 @@ impl RomTools {
             });
         };
 
-        // let path = PathBuf::from(file)
-        //     .as_path()
-        //     .canonicalize()
-        //     .unwrap()
-        //     .to_str()
-        //     .unwrap()
-        //     .to_string();
-
-        Ok("path".to_string())
+        Ok(save_path)
     }
 
     pub fn load_save_state(ctx: &CoreWrapper, slot: usize) -> Result<(), ErroHandle> {
