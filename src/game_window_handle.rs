@@ -2,7 +2,11 @@ use crate::retro_stack::{RetroStack, StackCommand};
 use retro_ab_av::{Event, EventPump, Keycode};
 use std::sync::Arc;
 
-pub fn game_window_handle(event_pump: &mut EventPump, stack: &Arc<RetroStack>) {
+pub fn game_window_handle(
+    event_pump: &mut EventPump,
+    stack: &Arc<RetroStack>,
+    pause_request_new_frames: &mut bool,
+) {
     for event in event_pump.poll_iter() {
         match event {
             Event::Quit { .. }
@@ -13,31 +17,20 @@ pub fn game_window_handle(event_pump: &mut EventPump, stack: &Arc<RetroStack>) {
             Event::KeyDown {
                 keycode: Some(Keycode::F1),
                 ..
-            } => {
-                //reservado para o save state
-                stack.push(StackCommand::SaveState)
-            }
+            } => stack.push(StackCommand::SaveState),
             Event::KeyDown {
                 keycode: Some(Keycode::F2),
                 ..
-            } => {
-                //reservado para o save state
-                stack.push(StackCommand::LoadState)
-            }
-            //pausa a rom
+            } => stack.push(StackCommand::LoadState),
             Event::KeyDown {
                 keycode: Some(Keycode::F3),
                 ..
             } => {
-                // if *pause_request_new_frames {
-                //     if let Ok(mut controller) = controller_ctx.lock() {
-                //         controller.stop_thread_events();
-                //         *pause_request_new_frames = false
-                //     }
-                // } else if let Ok(mut controller) = controller_ctx.lock() {
-                //     controller.resume_thread_events();
-                //     *pause_request_new_frames = true
-                // }
+                if *pause_request_new_frames {
+                    stack.push(StackCommand::Resume);
+                } else {
+                    stack.push(StackCommand::Pause);
+                }
             }
             Event::KeyDown {
                 keycode: Some(Keycode::F5),

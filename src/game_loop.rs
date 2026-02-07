@@ -104,13 +104,13 @@ fn spawn_game_thread(
                             };
                         }
 
-                        av.get_new_frame().unwrap();
+                        let _ = av.get_new_frame();
                     }
                 }
             }
 
             if let Some((_, event_pump)) = &mut av_ctx {
-                game_window_handle(event_pump, &stack);
+                game_window_handle(event_pump, &stack, &mut pause_request_new_frames);
             }
         }
 
