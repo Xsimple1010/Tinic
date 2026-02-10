@@ -5,7 +5,7 @@ use crate::common::events::{DeviceEvents, WindowEvents};
 
 pub fn create_tinic() -> Result<Tinic, ErrorHandle> {
     let mut tinic = Tinic::new()?;
-    // definir os listeners é obriga
+    // required listeners
     tinic.set_controller_listener(Box::new(DeviceEvents))?;
     tinic.set_window_listener(Box::new(WindowEvents));
     Ok(tinic)
@@ -24,5 +24,3 @@ pub fn create_game_instance(tinic: &mut Tinic) -> Result<GameInstance, ErrorHand
 
     tinic.create_game_instance(game_info)
 }
-
-// adiciona funções auxiliares
