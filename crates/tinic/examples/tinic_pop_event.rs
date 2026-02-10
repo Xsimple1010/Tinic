@@ -6,8 +6,8 @@ use crate::common::setup::{TINIC_EXAMPLE_DIR, create_game_instance, create_tinic
 fn main() -> Result<(), ErrorHandle> {
     let mut tinic = create_tinic()?;
 
-    // Aqui você tem controle total sobre o loop de jogo, mas você não pode criar outro game_instance
-    // se precisar criar várias games instances uma após a outra use Tinic::run_app_on_demand
+    // Here you have full control over the game loop, but you cannot create another game_instance
+    // If you need to create multiple game instances one after another, use Tinic::run_app_on_demand
     let mut game_instance = create_game_instance(&mut tinic)?;
     loop {
         let status = tinic.pop_event(&mut game_instance);

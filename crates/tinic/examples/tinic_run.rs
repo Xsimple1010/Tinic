@@ -7,8 +7,8 @@ fn main() -> Result<(), ErrorHandle> {
     let mut tinic = create_tinic()?;
     let game_instance = create_game_instance(&mut tinic)?;
 
-    // isso irá travar a thread atual até que o jogo seja encerrado
-    // se precisar de mais controle sobre o loop de jogo, você pode usar Tinic::pop_event
+    // This will block the current thread until the game is closed
+    // If you need more control over the game loop, you can use Tinic::pop_event
     tinic.run(game_instance)?;
 
     remove_test_work_dir_path(TINIC_EXAMPLE_DIR)

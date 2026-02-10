@@ -7,15 +7,14 @@ use crate::common::setup::{TINIC_EXAMPLE_DIR, create_game_instance, create_tinic
 fn main() -> Result<(), ErrorHandle> {
     let mut tinic = create_tinic()?;
 
-    // run_app_on_demand trava a thread atual, mas diferente de run & pop_event
-    // ele permite criar varias games instances uma após a outra.
+    // run_app_on_demand blocks the current thread, but unlike run & pop_event,
+    // it allows creating multiple game instances one after another.
     let game_instance = create_game_instance(&mut tinic)?;
     let _status = tinic.run_app_on_demand(game_instance);
 
+    // Right after run_app_on_demand finishes, we can create another game_instance
     //
-    // logo após a execução do run_app_on_demand, podemos criar outro game_instance
-    //
-    // removar o commit dessa parte do codigo e uma nova janela será criada quando a primeira for fechada
+    // Uncomment this part of the code and a new window will be created when the first one is closed
     // let game_instance = create_game_instance(&mut tinic)?;
     // let _status = tinic.run_app_on_demand(game_instance);
 
