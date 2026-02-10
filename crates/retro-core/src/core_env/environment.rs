@@ -164,9 +164,14 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                     #[cfg(feature = "core_ev_logs")]
                     println!("RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO -> OK");
 
-                    *(data as *mut usize) = 1;
+                    if !data.is_null() {
+                        let out = data as *mut c_uint;
 
-                    true
+                        ptr::write_unaligned(out, 1);
+
+                        return true;
+                    }
+                    false
                 }
                 RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL => {
                     #[cfg(feature = "core_ev_logs")]
