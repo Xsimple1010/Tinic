@@ -14,7 +14,7 @@ fn main() -> Result<(), ErrorHandle> {
 
     // Right after run_app_on_demand finishes, we can create another game_instance
     //
-    // Uncomment this part of the code and a new window will be created when the first one is closed
+    // Uncomment this part of the code, and a new window will be created when the first one is closed
     // let game_instance = create_game_instance(&mut tinic)?;
     // let _status = tinic.run_app_on_demand(game_instance);
 
