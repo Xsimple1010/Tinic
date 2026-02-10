@@ -1,6 +1,4 @@
 use crate::{tools::validation::InputValidator, RetroCoreIns};
-use tinic_generics::constants::MAX_CORE_SUBSYSTEM_INFO;
-use tinic_generics::error_handle::ErrorHandle;
 use libretro_sys::binding_libretro::retro_vfs_interface_info;
 use libretro_sys::{
     binding_libretro::{
@@ -11,6 +9,8 @@ use libretro_sys::{
     binding_log_interface,
 };
 use std::{ffi::c_uint, os::raw::c_void};
+use tinic_generics::constants::MAX_CORE_SUBSYSTEM_INFO;
+use tinic_generics::error_handle::ErrorHandle;
 
 pub unsafe fn env_cb_directory(
     core_ctx: &RetroCoreIns,
@@ -88,10 +88,8 @@ pub unsafe fn env_cb_directory(
                 "data in RETRO_ENVIRONMENT_GET_VFS_INTERFACE",
             )?;
 
-            let vfs_interface = unsafe {
-                &mut *(data as *mut retro_vfs_interface_info)
-            };
-            
+            let vfs_interface = unsafe { &mut *(data as *mut retro_vfs_interface_info) };
+
             println!("vfs_interface: {:?}", vfs_interface);
 
             Ok(true)

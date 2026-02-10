@@ -2,7 +2,6 @@ use crate::{
     tools::{ffi_tools::get_str_from_ptr, validation::InputValidator},
     RetroCoreIns,
 };
-use tinic_generics::error_handle::ErrorHandle;
 use libretro_sys::{
     binding_libretro::{
         retro_core_option_display, retro_core_options_v2_intl,
@@ -16,6 +15,7 @@ use libretro_sys::{
     binding_log_interface,
 };
 use std::{ffi::c_uint, os::raw::c_void, sync::atomic::Ordering};
+use tinic_generics::error_handle::ErrorHandle;
 
 pub unsafe fn env_cb_option(
     core_ctx: &RetroCoreIns,

@@ -1,19 +1,19 @@
 #[cfg(feature = "core_logs")]
 use crate::tools::ffi_tools::get_str_from_ptr;
+use crate::{av_info::AvInfo, tools::validation::InputValidator};
 use crate::{
-    RetroCoreIns,
     core_env::{
         env_directory::env_cb_directory, env_gamepads_io::env_cb_gamepad_io,
         env_option::env_cb_option, env_video::env_cb_av,
     },
     libretro_sys::{
         binding_libretro::{
+            retro_language::{self, RETRO_LANGUAGE_PORTUGUESE_BRAZIL}, retro_log_level,
+            retro_perf_callback, retro_rumble_effect,
             RETRO_ENVIRONMENT_GET_LANGUAGE, RETRO_ENVIRONMENT_GET_LOG_INTERFACE,
             RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, RETRO_ENVIRONMENT_GET_PERF_INTERFACE,
-            RETRO_ENVIRONMENT_GET_VARIABLE, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
-            RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
-            retro_language::{self, RETRO_LANGUAGE_PORTUGUESE_BRAZIL},
-            retro_log_level, retro_perf_callback, retro_rumble_effect,
+            RETRO_ENVIRONMENT_GET_VARIABLE,
+            RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME,
         },
         binding_log_interface::configure_log_interface,
     },
@@ -22,16 +22,17 @@ use crate::{
         core_get_perf_counter, core_perf_log, core_perf_register, core_perf_start, core_perf_stop,
         get_cpu_features, get_features_get_time_usec,
     },
+    RetroCoreIns,
 };
-use crate::{av_info::AvInfo, tools::validation::InputValidator};
-use tinic_generics::error_handle::ErrorHandle;
 use std::sync::Arc;
 use std::{
     ffi::{c_char, c_uint},
+    ptr,
     rc::Rc,
     sync::atomic::Ordering,
 };
 use std::{os::raw::c_void, ptr::addr_of};
+use tinic_generics::error_handle::ErrorHandle;
 
 pub struct RetroEnvCallbacks {
     pub video: Box<dyn RetroVideoEnvCallbacks>,

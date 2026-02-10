@@ -1,16 +1,16 @@
 use crate::{
     core_env::environment::CORE_CONTEXT,
-    tinic_generics::constants::MAX_CORE_CONTROLLER_INFO_TYPES,
     libretro_sys::binding_libretro::{
         retro_controller_info, retro_rumble_effect,
         retro_rumble_interface, RETRO_ENVIRONMENT_GET_INPUT_BITMASKS,
         RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE, RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS,
     },
+    tinic_generics::constants::MAX_CORE_CONTROLLER_INFO_TYPES,
     tools::validation::InputValidator,
     RetroCoreIns,
 };
-use tinic_generics::error_handle::ErrorHandle;
 use std::{ffi::c_uint, os::raw::c_void, ptr::addr_of};
+use tinic_generics::error_handle::ErrorHandle;
 
 unsafe extern "C" fn rumble_callback(
     port: c_uint,

@@ -12,13 +12,13 @@ use crate::{
     tools::validation::InputValidator,
     RetroCoreIns,
 };
-use tinic_generics::error_handle::ErrorHandle;
 #[cfg(feature = "hw")]
 use std::{ffi::c_char, mem};
 use std::{
     ffi::{c_uint, c_void},
     ptr::addr_of,
 };
+use tinic_generics::error_handle::ErrorHandle;
 
 pub unsafe extern "C" fn audio_sample_callback(left: i16, right: i16) {
     unsafe {
@@ -226,7 +226,7 @@ pub unsafe fn env_cb_av(
                     core_ctx.av_info.video.graphic_api.context_type;
             }
 
-            Ok(true)
+            Ok(false)
         }
         #[cfg(feature = "hw")]
         RETRO_ENVIRONMENT_SET_HW_RENDER => {
