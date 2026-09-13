@@ -23,9 +23,6 @@ use crate::{
     },
 };
 use crate::{av_info::AvInfo, tools::validation::InputValidator};
-use libretro_sys::binding_libretro::{
-    RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT,
-};
 use std::sync::Arc;
 use std::{
     ffi::{c_char, c_uint},
@@ -227,17 +224,6 @@ pub unsafe extern "C" fn core_environment(cmd: c_uint, data: *mut c_void) -> boo
                             false
                         }
                     }
-                }
-                // Em env_cb_av.rs, adiciona o caso:
-                RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT => {
-                    // Retorna true para indicar que suportamos shared context
-                    // Isso faz o PPSSPP usar glewExperimental = GL_TRUE
-                    println!("RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT");
-                    true
-                }
-                RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE => {
-                    println!("RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE");
-                    false // não suportado por enquanto
                 }
                 _ => {
                     if handle_env_result(core_ctx, env_cb_av(core_ctx, cmd, data))

@@ -1,7 +1,7 @@
 use crate::raw_texture::RawTextureData;
 use crate::retro_env_callback::RetroVideoCb;
 use crate::retro_gl::proc_resolver::GlProcResolver;
-use crate::retro_window::RetroWindowMode;
+use crate::retro_window::{RetroWindowContext, RetroWindowMode};
 use crate::sync::RetroSync;
 use crate::window_ctx::WindowCtx;
 use crate::{print_scree::PrintScree, retro_gl::window::RetroGlWindow};

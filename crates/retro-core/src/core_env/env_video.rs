@@ -1,6 +1,7 @@
 #[cfg(feature = "hw")]
 use crate::libretro_sys::binding_libretro::{
-    RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER, RETRO_ENVIRONMENT_SET_HW_RENDER,
+    RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER,
+    RETRO_ENVIRONMENT_SET_HW_RENDER, RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT,
     retro_hw_context_type, retro_hw_render_callback,
 };
 use crate::{
@@ -109,6 +110,18 @@ pub unsafe fn env_cb_av(
                 .graphic_api
                 .try_update_from_raw(hw_cb)?)
         },
+        #[cfg(feature = "hw")]
+        RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT => {
+            // Retorna true para indicar que suportamos shared context
+            // Isso faz o PPSSPP usar glewExperimental = GL_TRUE
+            println!("RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT");
+            Ok(true)
+        }
+        #[cfg(feature = "hw")]
+        RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE => {
+            println!("RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE");
+            Ok(false) // não suportado por enquanto
+        }
         _ => Ok(false),
     }
 }
