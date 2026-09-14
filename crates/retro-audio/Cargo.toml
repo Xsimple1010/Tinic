@@ -16,3 +16,4 @@ libretro-sys.workspace = true
 ringbuf.workspace = true
 tinic-generics.workspace = true
 retro-core.workspace = true
+arc-swap.workspace = true

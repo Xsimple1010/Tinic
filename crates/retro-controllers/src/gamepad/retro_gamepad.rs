@@ -68,6 +68,9 @@ impl RetroGamePad {
                 gilrs::EventType::ButtonPressed(button, _) => {
                     pressed_button_handle(&button, id, connected_gamepads, listener)?;
                 }
+                gilrs::EventType::AxisChanged(axis, f32, code) => {
+                    println!("${axis:?}, ${f32} ${code}");
+                }
                 _ => {}
             }
 
