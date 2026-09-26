@@ -13,7 +13,7 @@ mod tinic;
 pub use app::{GameInstance, listener::*};
 pub use app_dispatcher::GameInstanceDispatchers;
 pub use retro_controllers::{
-    RetroController, RetroGamePad,
+    GamePageAxis, RetroController, RetroGamePad,
     devices_manager::{DeviceListener, DeviceStateListener},
 };
 pub use retro_core::args_manager;

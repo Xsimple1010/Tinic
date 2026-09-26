@@ -1,7 +1,7 @@
 use crate::RetroGamePad;
 use crate::devices_manager::{DeviceKeyMap, DeviceStateListener};
 use crate::gamepad::retro_gamepad_key_map::GamePadKeyMap;
-use gilrs::{Button, GamepadId, Gilrs};
+use gilrs::{Axis, Button, GamepadId, Gilrs};
 use libretro_sys::binding_libretro::RETRO_DEVICE_JOYPAD;
 use std::sync::{
     Arc,
@@ -105,6 +105,37 @@ pub fn pressed_button_handle(
             GamePadKeyMap::get_key_name_from_native_button(button).to_owned(),
             gamepad.clone(),
         );
+    }
+
+    Ok(())
+}
+pub fn axis_change_handle(
+    axis: Axis,
+    axis_value: f32,
+    gamepad_id: GamepadId,
+    connected_gamepads: &ArcTMutex<Vec<RetroGamePad>>,
+    listener: &DeviceStateListener,
+) -> TinicResult<()> {
+    for gamepad in &mut *connected_gamepads.load_or(Vec::new()) {
+        if gamepad.inner_id != gamepad_id {
+            continue;
+        }
+
+        match axis {
+            Axis::LeftStickX => gamepad.axis.left_stick_x = axis_value,
+            Axis::LeftStickY => gamepad.axis.left_stick_y = -axis_value,
+            Axis::RightStickX => gamepad.axis.right_stick_x = axis_value,
+            Axis::RightStickY => gamepad.axis.right_stick_y = -axis_value,
+            Axis::LeftZ => gamepad.axis.left_z = axis_value,
+            Axis::RightZ => gamepad.axis.right_z = axis_value,
+            Axis::DPadX => gamepad.axis.dpad_x = axis_value,
+            Axis::DPadY => gamepad.axis.dpad_y = -axis_value,
+            Axis::Unknown => continue,
+        }
+
+        listener
+            .try_load()?
+            .axis_change(gamepad.axis.clone(), gamepad.clone());
     }
 
     Ok(())

@@ -6,7 +6,7 @@ mod gamepad;
 mod retro_controller;
 mod state_thread;
 
-pub use gamepad::retro_gamepad::RetroGamePad;
+pub use gamepad::retro_gamepad::{RetroGamePad, GamePageAxis};
 pub mod devices_manager;
 mod keyboard;
 

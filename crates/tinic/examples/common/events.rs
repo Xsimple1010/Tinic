@@ -1,3 +1,4 @@
+use retro_controllers::GamePageAxis;
 use tinic::{DeviceListener, GameState, RetroGamePad, SaveStateInfo, WindowListener, WindowState};
 
 #[derive(Debug, Default)]
@@ -14,6 +15,10 @@ impl DeviceListener for DeviceEvents {
 
     fn button_pressed(&self, button: String, device: RetroGamePad) {
         println!("{} pressed -> {}", device.name, button)
+    }
+
+    fn axis_change(&self, axis: GamePageAxis, device: RetroGamePad) {
+        println!("{} -> {axis:?}", device.name)
     }
 }
 

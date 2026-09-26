@@ -1,6 +1,4 @@
-use super::update_gamepad_state_handle::{
-    connect_handle, disconnect_handle, pressed_button_handle,
-};
+use super::update_gamepad_state_handle::{axis_change_handle, connect_handle, disconnect_handle, pressed_button_handle};
 use crate::devices_manager::{DeviceKeyMap, DeviceStateListener, DevicesRequiredFunctions};
 use crate::gamepad::retro_gamepad_key_map::GamePadKeyMap;
 use gilrs::{Event, GamepadId, Gilrs};
@@ -16,15 +14,30 @@ pub struct RetroGamePad {
     pub inner_id: GamepadId,
     #[doc = "nome do gamepad"]
     pub name: String,
-    #[doc = "indicar ao Core em qual porta o controle esta conectado, se o valor for
-            -1(INVALID_CONTROLLER_PORT) significa que todas as porta suportas pelo Core
-            ja estão sendo usadas
+    #[doc = "
+        indicar ao Core em qual porta o controle esta conectado, se o valor for
+        -1(INVALID_CONTROLLER_PORT) significa que todas as porta suportas pelo Core
+        ja estão sendo usadas
     "]
     pub retro_port: i16,
     #[doc = "padrão RETRO_DEVICE_JOYPAD"]
     pub retro_type: u32,
     pub key_map: Vec<GamePadKeyMap>,
+    pub axis: GamePageAxis,
 }
+
+#[derive(Default, Debug, Clone)]
+pub struct GamePageAxis {
+    pub left_stick_x: f32,
+    pub left_stick_y: f32,
+    pub left_z: f32,
+    pub right_stick_x: f32,
+    pub right_stick_y: f32,
+    pub right_z: f32,
+    pub dpad_x: f32,
+    pub dpad_y: f32,
+}
+
 
 impl RetroGamePad {
     pub fn new(
@@ -40,10 +53,11 @@ impl RetroGamePad {
             retro_port,
             retro_type,
             key_map: GamePadKeyMap::get_default_key_maps(),
+            axis: GamePageAxis::default(),
         }
     }
 
-    fn update_key_pressed(&mut self, gilrs: &Gilrs) {
+    fn update_key_pressed_bitmarsk(&mut self, gilrs: &Gilrs) {
         let gamepad = gilrs.gamepad(self.inner_id);
 
         for key_info in &mut self.key_map {
@@ -68,12 +82,15 @@ impl RetroGamePad {
                 gilrs::EventType::ButtonPressed(button, _) => {
                     pressed_button_handle(&button, id, connected_gamepads, listener)?;
                 }
+                gilrs::EventType::AxisChanged(axis, axis_value, _) => {
+                    axis_change_handle(axis, axis_value, id, connected_gamepads, listener)?;
+                }
                 _ => {}
             }
 
             for gamepad_info in &mut *connected_gamepads.load_or(Vec::new()) {
                 if gamepad_info.inner_id == id {
-                    gamepad_info.update_key_pressed(gilrs);
+                    gamepad_info.update_key_pressed_bitmarsk(gilrs);
                 }
             }
         }

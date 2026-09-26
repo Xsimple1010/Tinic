@@ -92,11 +92,11 @@ impl RetroControllerEnvCallbacks for RetroControllerCb {
     fn input_state_callback(
         &self,
         port: i16,
-        _device: i16,
-        _index: i16,
+        device: i16,
+        index: i16,
         id: i16,
     ) -> Result<i16, ErrorHandle> {
-        Ok(self.manager.get_input_state(port, id))
+        Ok(self.manager.get_input_state(port, device, index, id))
     }
 
     fn rumble_callback(

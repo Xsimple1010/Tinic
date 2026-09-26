@@ -1,6 +1,6 @@
 use std::io;
 use std::io::Write;
-use tinic::{ErrorHandle, SaveStateInfo, TinicResult};
+use tinic::{ErrorHandle, GamePageAxis, SaveStateInfo, TinicResult};
 use tinic_ipc_protocol::out::ProtocolOut;
 
 pub(crate) fn emit_protocol_event(event: &ProtocolOut) -> TinicResult<()> {
@@ -55,5 +55,20 @@ impl StdoutWriter {
 
     pub fn app_exited() -> TinicResult<()> {
         emit_protocol_event(&ProtocolOut::AppExited)
+    }
+
+    pub fn device_axis_change(id: String, name: String, axis: GamePageAxis) -> TinicResult<()> {
+        emit_protocol_event(&ProtocolOut::DeviceAxisChange {
+            id,
+            name,
+            left_stick_x: axis.left_stick_x,
+            left_stick_y: axis.left_stick_y,
+            left_z: axis.left_z,
+            right_stick_x: axis.right_stick_x,
+            right_stick_y: axis.right_stick_y,
+            right_z: axis.right_z,
+            dpad_x: axis.dpad_x,
+            dpad_y: axis.dpad_y,
+        })
     }
 }

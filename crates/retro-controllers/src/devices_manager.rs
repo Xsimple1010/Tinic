@@ -1,10 +1,13 @@
-use crate::gamepad::retro_gamepad::RetroGamePad;
+use crate::gamepad::retro_gamepad::{GamePageAxis, RetroGamePad};
 use crate::gamepad::update_gamepad_state_handle::get_available_port;
 use crate::keyboard::Keyboard;
 use gilrs::Gilrs;
-use libretro_sys::binding_libretro;
 use libretro_sys::binding_libretro::{
-    RETRO_DEVICE_ID_JOYPAD_MASK, RETRO_DEVICE_JOYPAD, retro_rumble_effect,
+    self, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
+};
+use libretro_sys::binding_libretro::{
+    RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_ID_JOYPAD_MASK,
+    RETRO_DEVICE_JOYPAD, retro_rumble_effect,
 };
 use std::{
     fmt::Debug,
@@ -42,6 +45,7 @@ pub trait DeviceListener: Send {
     fn connected(&self, device: RetroGamePad);
     fn disconnected(&self, device: RetroGamePad);
     fn button_pressed(&self, button: String, device: RetroGamePad);
+    fn axis_change(&self, axis: GamePageAxis, device: RetroGamePad);
 }
 
 pub trait DeviceKeyMap<K, B> {
@@ -160,7 +164,7 @@ impl DevicesManager {
         gamepads.clone()
     }
 
-    pub fn get_input_state(&self, port: i16, key_id: i16) -> i16 {
+    pub fn get_input_state(&self, port: i16, device: i16, index: i16, key_id: i16) -> i16 {
         if let Some(keyboard) = &*self.keyboard.load_or(None)
             && keyboard.retro_port.eq(&port)
         {
@@ -172,13 +176,20 @@ impl DevicesManager {
         }
 
         for gamepad in &*self.connected_gamepads.load_or(Vec::new()) {
-            if gamepad.retro_port.eq(&port) {
-                return if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
-                    gamepad.get_key_pressed(key_id)
-                } else {
-                    gamepad.get_key_bitmasks()
-                };
+            if !gamepad.retro_port.eq(&port) {
+                continue;
             }
+
+            return match device as u32 {
+                RETRO_DEVICE_ANALOG => analog_value(gamepad, index as u32, key_id as u32),
+                _ => {
+                    if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
+                        gamepad.get_key_pressed(key_id)
+                    } else {
+                        gamepad.get_key_bitmasks()
+                    }
+                }
+            };
         }
 
         0
@@ -195,4 +206,18 @@ pub trait DevicesRequiredFunctions {
     fn get_key_pressed(&self, key_id: i16) -> i16;
 
     fn get_key_bitmasks(&self) -> i16;
+}
+
+fn analog_value(gamepad: &RetroGamePad, index: u32, id: u32) -> i16 {
+    let raw: f32 = match (index, id) {
+        (RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X) => gamepad.axis.left_stick_x,
+        (RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y) => gamepad.axis.left_stick_y,
+        (RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X) => gamepad.axis.right_stick_x,
+        (RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y) => gamepad.axis.right_stick_y,
+        // RETRO_DEVICE_INDEX_ANALOG_BUTTON: id aqui é um RETRO_DEVICE_ID_JOYPAD_* (L2/R2 etc)
+        // (RETRO_DEVICE_INDEX_ANALOG_BUTTON, _) => gamepad.get_analog_button_pressure(id),
+        _ => 0.0,
+    };
+
+    (raw.clamp(-1.0, 1.0) * 0x7fff as f32) as i16
 }
