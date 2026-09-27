@@ -12,7 +12,7 @@ use ringbuf::{
     storage::Heap,
     traits::{Consumer, Observer, Producer, Split},
 };
-use std::{result::Result, sync::Arc, time::Duration};
+use std::{result::Result, sync::Arc};
 use tinic_generics::{
     error_handle::{ErrorHandle, TinicResult},
     types::{ArcTMutex, TMutex},
@@ -42,7 +42,7 @@ impl AudioDriver {
                 ErrorHandle::new(&format!("erro ao ler o sample rate do core: {e}"))
             })?;
 
-        let front_rb = SharedRb::<Heap<i16>>::new(600000);
+        let front_rb = SharedRb::<Heap<f32>>::new(600000);
         let (front_prod_buffer, front_cons) = front_rb.split();
 
         // verifica se é necessário fazer resample do audio
@@ -89,7 +89,7 @@ impl AudioDriver {
         self.front_prod_buffer.store(None);
     }
 
-    pub fn add_sample(&self, samples: &[i16], metadata: AudioMetadata) -> TinicResult<()> {
+    pub fn add_sample(&self, samples: &[f32], metadata: AudioMetadata) -> TinicResult<()> {
         if let Some(front_buffer_prod) = &mut *self
             .front_prod_buffer
             .load_or_spawn_err("Front buffer not initialized")?
@@ -105,21 +105,20 @@ impl AudioDriver {
     fn set_up_stream(&self, device: Device, mut cons: BufferCons) -> TinicResult<()> {
         let config = device.default_output_config().unwrap();
 
-        let config = &config.into();
+        let config = config.into();
         let error_callback = |_err| {
             #[cfg(feature = "debug-logs")]
             eprintln!("erro no stream {_err}")
         };
-        let timeout = Some(Duration::from_millis(2));
-        let data_callback = move |front: &mut [i16], _: &cpal::OutputCallbackInfo| {
+        let data_callback = move |front: &mut [f32], _: &cpal::OutputCallbackInfo| {
             if cons.is_empty() {
-                front.fill(0);
+                front.fill(0.0);
                 return;
             }
 
             let len = front.len().min(cons.occupied_len());
             // println!("clap len: {}", front.len());
-            let mut buffer = vec![0; len];
+            let mut buffer = vec![0.0; len];
             cons.pop_slice(&mut buffer);
 
             for (i, sample) in buffer.into_iter().enumerate() {
@@ -127,13 +126,14 @@ impl AudioDriver {
             }
 
             if len < front.len() {
-                front[len..].fill(0);
+                front[len..].fill(0.0);
             }
         };
 
         let stream = device
-            .build_output_stream(config, data_callback, error_callback, timeout)
+            .build_output_stream(config, data_callback, error_callback, None)
             .map_err(|e| ErrorHandle::new(&e.to_string()))?;
+        stream.play().map_err(|e| ErrorHandle::new(&e.to_string()))?;
 
         self.stream.store(Some(stream));
 

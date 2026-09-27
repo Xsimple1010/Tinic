@@ -4,8 +4,8 @@ use ringbuf::{CachingCons, CachingProd, SharedRb, storage::Heap};
 use std::{ptr::slice_from_raw_parts, sync::Arc};
 use tinic_generics::error_handle::{ErrorHandle, TinicResult};
 
-pub type BufferProd = CachingProd<Arc<SharedRb<Heap<i16>>>>;
-pub type BufferCons = CachingCons<Arc<SharedRb<Heap<i16>>>>;
+pub type BufferProd = CachingProd<Arc<SharedRb<Heap<f32>>>>;
+pub type BufferCons = CachingCons<Arc<SharedRb<Heap<f32>>>>;
 
 pub struct RetroAudio {
     drive: Arc<AudioDriver>,
@@ -59,7 +59,7 @@ impl RetroAudioEnvCallbacks for RetroAudioCb {
         av_info: Arc<AvInfo>,
     ) -> TinicResult<()> {
         let metadata = AudioMetadata {
-            channels: 1,
+            channels: 2,
             sample_rate: *av_info
                 .timing
                 .sample_rate
@@ -67,7 +67,11 @@ impl RetroAudioEnvCallbacks for RetroAudioCb {
                 .map_err(|_| ErrorHandle::new("Failed to read sample rate"))?,
         };
 
-        self.drive.add_sample(&[left, right], metadata)
+        // Converte i16 → f32 (normalizado entre -1.0 e 1.0)
+        let left_f32 = left as f32 / i16::MAX as f32;
+        let right_f32 = right as f32 / i16::MAX as f32;
+
+        self.drive.add_sample(&[left_f32, right_f32], metadata)
     }
 
     fn audio_sample_batch_callback(
@@ -80,7 +84,13 @@ impl RetroAudioEnvCallbacks for RetroAudioCb {
             return Ok(0);
         }
 
-        let new_data = unsafe { &*slice_from_raw_parts(data, frames * 2) };
+        let samples_i16 = unsafe { &*slice_from_raw_parts(data, frames * 2) };
+
+        let samples_f32: Vec<f32> = samples_i16
+            .iter()
+            .map(|&s| s as f32 / i16::MAX as f32)
+            .collect();
+
         let metadata = AudioMetadata {
             channels: 2,
             sample_rate: *av_info
@@ -90,7 +100,7 @@ impl RetroAudioEnvCallbacks for RetroAudioCb {
                 .map_err(|_| ErrorHandle::new("Failed to read sample rate"))?,
         };
 
-        self.drive.add_sample(new_data, metadata)?;
+        self.drive.add_sample(&samples_f32, metadata)?;
         Ok(frames)
     }
 }
