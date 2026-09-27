@@ -2,12 +2,9 @@ use crate::gamepad::retro_gamepad::{GamePageAxis, RetroGamePad};
 use crate::gamepad::update_gamepad_state_handle::get_available_port;
 use crate::keyboard::Keyboard;
 use gilrs::Gilrs;
+use libretro_sys::binding_libretro::{self, RETRO_DEVICE_ANALOG};
 use libretro_sys::binding_libretro::{
-    self, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
-};
-use libretro_sys::binding_libretro::{
-    RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_ID_JOYPAD_MASK,
-    RETRO_DEVICE_JOYPAD, retro_rumble_effect,
+    RETRO_DEVICE_ID_JOYPAD_MASK, RETRO_DEVICE_JOYPAD, retro_rumble_effect,
 };
 use std::{
     fmt::Debug,
