@@ -6,6 +6,7 @@ use std::sync::{Arc, atomic::AtomicUsize};
 use tinic_generics::error_handle::TinicResult;
 use tinic_generics::types::ArcTMutex;
 use uuid::Uuid;
+use libretro_sys::binding_libretro::{RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_INDEX_ANALOG_RIGHT};
 
 #[derive(Debug, Clone)]
 pub struct RetroGamePad {
@@ -37,7 +38,6 @@ pub struct GamePageAxis {
     pub dpad_x: f32,
     pub dpad_y: f32,
 }
-
 
 impl RetroGamePad {
     pub fn new(
@@ -119,5 +119,19 @@ impl DevicesRequiredFunctions for RetroGamePad {
         }
 
         bitmasks
+    }
+
+    fn get_analog_value( &self, index: u32, id: u32) -> i16 {
+        let raw: f32 = match (index, id) {
+            (RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X) => self.axis.left_stick_x,
+            (RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y) => self.axis.left_stick_y,
+            (RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X) => self.axis.right_stick_x,
+            (RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y) => self.axis.right_stick_y,
+            // RETRO_DEVICE_INDEX_ANALOG_BUTTON: id aqui é um RETRO_DEVICE_ID_JOYPAD_* (L2/R2 etc)
+            // (RETRO_DEVICE_INDEX_ANALOG_BUTTON, _) => gamepad.get_analog_button_pressure(id),
+            _ => 0.0,
+        };
+
+        (raw.clamp(-1.0, 1.0) * 0x7fff as f32) as i16
     }
 }

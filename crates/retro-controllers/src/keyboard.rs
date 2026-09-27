@@ -50,6 +50,10 @@ impl DevicesRequiredFunctions for Keyboard {
 
         bitmasks
     }
+
+    fn get_analog_value(&self, _: u32, _: u32) -> i16 {
+        0
+    }
 }
 
 #[derive(Debug, Clone)]

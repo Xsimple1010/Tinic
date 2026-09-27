@@ -181,7 +181,7 @@ impl DevicesManager {
             }
 
             return match device as u32 {
-                RETRO_DEVICE_ANALOG => analog_value(gamepad, index as u32, key_id as u32),
+                RETRO_DEVICE_ANALOG => gamepad.get_analog_value(index as u32, key_id as u32),
                 _ => {
                     if key_id as u32 != RETRO_DEVICE_ID_JOYPAD_MASK {
                         gamepad.get_key_pressed(key_id)
@@ -206,18 +206,6 @@ pub trait DevicesRequiredFunctions {
     fn get_key_pressed(&self, key_id: i16) -> i16;
 
     fn get_key_bitmasks(&self) -> i16;
-}
 
-fn analog_value(gamepad: &RetroGamePad, index: u32, id: u32) -> i16 {
-    let raw: f32 = match (index, id) {
-        (RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X) => gamepad.axis.left_stick_x,
-        (RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y) => gamepad.axis.left_stick_y,
-        (RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X) => gamepad.axis.right_stick_x,
-        (RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y) => gamepad.axis.right_stick_y,
-        // RETRO_DEVICE_INDEX_ANALOG_BUTTON: id aqui é um RETRO_DEVICE_ID_JOYPAD_* (L2/R2 etc)
-        // (RETRO_DEVICE_INDEX_ANALOG_BUTTON, _) => gamepad.get_analog_button_pressure(id),
-        _ => 0.0,
-    };
-
-    (raw.clamp(-1.0, 1.0) * 0x7fff as f32) as i16
+    fn get_analog_value(&self, index: u32, key_id: u32) -> i16;
 }
