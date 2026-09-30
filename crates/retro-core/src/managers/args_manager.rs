@@ -55,11 +55,10 @@ pub fn get_value(args: &Vec<String>, key: &str) -> TinicResult<String> {
 
 #[test]
 fn teste_get_values() -> TinicResult<()> {
-    let mut args: Vec<String> = Vec::new();
-
-    args.push("--core=test.c".to_string());
-    args.push("--rom=test.r".to_string());
-
+    let args: Vec<String> = vec![
+        "--core=test.c".to_string(),
+        "--rom=test.r".to_string()
+    ];
     let core = get_value(&args, "--core=")?;
 
     assert_eq!(

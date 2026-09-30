@@ -100,7 +100,7 @@ impl PrintScree {
             let row_start = y * pitch;
             let row = &data[row_start..row_start + width * 2];
 
-            for pixel in row.chunks_exact(2) {
+            for pixel in row.as_chunks::<2>().0 {
                 let value = u16::from_le_bytes([pixel[0], pixel[1]]);
 
                 let r5 = ((value >> 11) & 0x1F) as u8;

@@ -235,7 +235,7 @@ impl RetroWindowContext for RetroGlWindow {
             display.get_proc_address(cstr.as_c_str()) as *const ()
         });
 
-        let render = Render::new(self.gl_config.display(), &self.texture).unwrap();
+        let render = Render::new(self.gl_config.display(), &self.texture)?;
 
         self.renderer = Some(render);
         self.gl_context = Some(gl_context);
@@ -270,12 +270,6 @@ impl RetroWindowContext for RetroGlWindow {
         self.gl_context.is_some()
     }
 
-    fn prepare_for_core(&self) {
-        if let Some(renderer) = &self.renderer {
-            renderer.prepare_for_core();
-        }
-    }
-
     fn init_frame_buffer(&mut self, av_info: &Arc<AvInfo>) -> TinicResult<()> {
         let renderer = match &mut self.renderer {
             Some(renderer) => renderer,
@@ -284,6 +278,12 @@ impl RetroWindowContext for RetroGlWindow {
 
         renderer.init_frame_buffer(av_info)?;
         av_info.video.graphic_api.try_reset_ctx()
+    }
+
+    fn prepare_for_core(&self) {
+        if let Some(renderer) = &self.renderer {
+            renderer.prepare_for_core();
+        }
     }
 }
 

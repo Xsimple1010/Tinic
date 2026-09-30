@@ -10,27 +10,9 @@ pub enum WindowCtx {
 }
 
 impl RetroWindowContext for WindowCtx {
-    fn init_context(&mut self) -> TinicResult<()> {
-        match self {
-            WindowCtx::OpenGl(w) => w.init_context(),
-        }
-    }
-
-    fn destroy(&mut self) -> TinicResult<()> {
-        match self {
-            WindowCtx::OpenGl(w) => w.destroy(),
-        }
-    }
-
     fn request_redraw(&self) {
         match self {
             WindowCtx::OpenGl(w) => w.request_redraw(),
-        }
-    }
-
-    fn draw_context_as_initialized(&self) -> bool {
-        match self {
-            WindowCtx::OpenGl(w) => w.draw_context_as_initialized(),
         }
     }
 
@@ -40,15 +22,27 @@ impl RetroWindowContext for WindowCtx {
         }
     }
 
+    fn set_window_mode(&mut self, mode: RetroWindowMode) {
+        match self {
+            WindowCtx::OpenGl(w) => w.set_window_mode(mode),
+        }
+    }
+
     fn toggle_window_model(&mut self) {
         match self {
             WindowCtx::OpenGl(w) => w.toggle_window_model(),
         }
     }
 
-    fn set_window_mode(&mut self, mode: RetroWindowMode) {
+    fn destroy(&mut self) -> TinicResult<()> {
         match self {
-            WindowCtx::OpenGl(w) => w.set_window_mode(mode),
+            WindowCtx::OpenGl(w) => w.destroy(),
+        }
+    }
+
+    fn init_context(&mut self) -> TinicResult<()> {
+        match self {
+            WindowCtx::OpenGl(w) => w.init_context(),
         }
     }
 
@@ -58,15 +52,21 @@ impl RetroWindowContext for WindowCtx {
         }
     }
 
-    fn prepare_for_core(&self) {
+    fn draw_context_as_initialized(&self) -> bool {
         match self {
-            WindowCtx::OpenGl(w) => w.prepare_for_core(),
+            WindowCtx::OpenGl(w) => w.draw_context_as_initialized(),
         }
     }
 
     fn init_frame_buffer(&mut self, av_info: &Arc<AvInfo>) -> TinicResult<()> {
         match self {
             WindowCtx::OpenGl(w) => w.init_frame_buffer(av_info),
+        }
+    }
+
+    fn prepare_for_core(&self) {
+        match self {
+            WindowCtx::OpenGl(w) => w.prepare_for_core(),
         }
     }
 }

@@ -27,7 +27,7 @@ pub async fn get_compatibility_core_infos(
                 let entry = entry.ok()?;
                 let mut info = read_info_file_blocking(&entry.path(), &core_dir).ok()?;
 
-                let is_installed = this_core_is_installed(&core_dir, &mut info.file_name).ok()?;
+                let is_installed = this_core_is_installed(&core_dir, &info.file_name).ok()?;
                 info.is_installed = is_installed;
 
                 if info.supported_extensions.contains(&extension) {

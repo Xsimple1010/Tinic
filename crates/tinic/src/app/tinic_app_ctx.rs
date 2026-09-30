@@ -153,24 +153,32 @@ impl TinicGameCtx {
     }
 
     pub fn destroy_retro_ctx(&mut self) -> TinicResult<()> {
-        if let Err(r) = self.retro_core.av_info.video.graphic_api.try_destroy_ctx() {
-            println!("{r:?}");
-        }
+        self.retro_core.de_init()?;
+
+        self.retro_core
+            .av_info
+            .video
+            .graphic_api
+            .try_destroy_ctx()?;
         self.retro_video.teardown_graphics()?;
 
-        self.retro_core.de_init()?;
         self.retro_audio.stop();
         self.controller.resume_thread_events();
 
         self.window_listener.game_state_change(GameState::Closed);
         self.window_listener
             .window_state_change(WindowState::Closed);
+        self.can_request_new_frames = false;
 
         Ok(())
     }
 
     pub fn redraw_request(&self) -> TinicResult<()> {
-        self.retro_video.request_redraw()
+        if self.can_request_new_frames {
+            self.retro_video.request_redraw()
+        } else {
+            Ok(())
+        }
     }
 
     pub fn draw_new_frame(&mut self) -> TinicResult<()> {

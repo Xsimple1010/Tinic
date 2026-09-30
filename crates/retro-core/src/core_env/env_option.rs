@@ -1,16 +1,16 @@
 use crate::{
-    tools::{ffi_tools::get_str_from_ptr, validation::InputValidator},
     RetroCoreIns,
+    tools::{ffi_tools::get_str_from_ptr, validation::InputValidator},
 };
 use libretro_sys::{
     binding_libretro::{
-        retro_core_option_display, retro_core_options_v2_intl,
-        retro_variable, RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION,
-        RETRO_ENVIRONMENT_GET_VARIABLE,
-        RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE,
-        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL,
-        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL, RETRO_ENVIRONMENT_SET_VARIABLE,
-        RETRO_ENVIRONMENT_SET_VARIABLES,
+        RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, RETRO_ENVIRONMENT_GET_VARIABLE,
+        RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
+        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL,
+        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK,
+        RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL, RETRO_ENVIRONMENT_SET_VARIABLE,
+        RETRO_ENVIRONMENT_SET_VARIABLES, retro_core_option_display, retro_core_options_v2_intl,
+        retro_variable,
     },
     binding_log_interface,
 };

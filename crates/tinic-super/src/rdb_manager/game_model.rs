@@ -98,10 +98,7 @@ impl<'de> Deserialize<'de> for GameInfo {
                                     game.serial = Some(s);
                                 }
                                 SerialRepr::Bin(raw) => {
-                                    game.serial = match String::from_utf8(raw.to_vec()) {
-                                        Ok(s) => Some(s),
-                                        Err(_) => None,
-                                    };
+                                    game.serial = String::from_utf8(raw.to_vec()).ok();
                                 }
                             }
                         }

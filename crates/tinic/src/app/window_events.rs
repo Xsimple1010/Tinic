@@ -11,10 +11,10 @@ impl GameInstance {
         event: WindowEvent,
     ) {
         let result: TinicResult<()> = match event {
-            WindowEvent::CloseRequested => {
-                let _ = self.ctx.destroy_retro_ctx();
-                event_loop.exit();
-                Ok(())
+             WindowEvent::CloseRequested => {
+                    let _ = self.ctx.destroy_retro_ctx();
+                    event_loop.exit();
+                    Ok(())
             }
             WindowEvent::RedrawRequested => self.ctx.draw_new_frame(),
             WindowEvent::Resized(size) => self.ctx.resize_window(size),
