@@ -96,7 +96,7 @@ impl AudioDriver {
         {
             front_buffer_prod.push_slice(samples);
         } else {
-            self.resampler.add_sample(samples, metadata);
+            self.resampler.add_sample(samples, metadata)?;
         }
 
         Ok(())
