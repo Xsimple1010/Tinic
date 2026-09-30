@@ -22,7 +22,7 @@ use std::num::NonZeroU32;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use tinic_generics::error_handle::{ErrorHandle, TinicResult};
-use tinic_generics::types::TMutex;
+use tinic_generics::types::{ArcTMutex, TMutex};
 use winit::dpi::PhysicalSize;
 use winit::window::Fullscreen;
 
@@ -34,7 +34,7 @@ pub struct RetroGlWindow {
     gl_config: Config,
     window: Window,
     av_info: Arc<AvInfo>,
-    texture: Arc<TMutex<RawTextureData>>,
+    texture: ArcTMutex<RawTextureData>,
     pub proc_resolve: Arc<GlProcResolver>,
 }
 
