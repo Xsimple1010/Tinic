@@ -16,4 +16,5 @@ retro-audio.workspace = true
 libretro-sys.workspace = true
 tinic-generics.workspace = true
 winit.workspace = true
-serde = { version = "1.0.228", features = ["derive"] }
+tinic-ipc-protocol.workspace = true
+serde_json.workspace = true

@@ -1,4 +1,4 @@
-use crate::gamepad::retro_gamepad::{GamePageAxis, RetroGamePad};
+use crate::gamepad::retro_gamepad::RetroGamePad;
 use crate::gamepad::update_gamepad_state_handle::get_available_port;
 use crate::keyboard::Keyboard;
 use gilrs::Gilrs;
@@ -18,6 +18,7 @@ use tinic_generics::{
     error_handle::{ErrorHandle, TinicResult},
     types::{ArcTMutex, TMutex},
 };
+use tinic_ipc_protocol::out::GamePadAxis;
 use winit::keyboard::PhysicalKey;
 
 #[derive(Debug, Clone, Copy)]
@@ -42,7 +43,7 @@ pub trait DeviceListener: Send {
     fn connected(&self, device: RetroGamePad);
     fn disconnected(&self, device: RetroGamePad);
     fn button_pressed(&self, button: String, device: RetroGamePad);
-    fn axis_change(&self, axis: GamePageAxis, device: RetroGamePad);
+    fn axis_change(&self, axis: GamePadAxis, device: RetroGamePad);
 }
 
 pub trait DeviceKeyMap<K, B> {

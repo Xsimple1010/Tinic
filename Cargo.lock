@@ -2930,6 +2930,7 @@ dependencies = [
  "libretro-sys",
  "retro-core",
  "tinic-generics",
+ "tinic-ipc-protocol",
  "uuid",
  "winit",
 ]
@@ -3628,8 +3629,9 @@ dependencies = [
  "retro-controllers",
  "retro-core",
  "retro-video",
- "serde",
+ "serde_json",
  "tinic-generics",
+ "tinic-ipc-protocol",
  "winit",
 ]
 
@@ -3655,7 +3657,7 @@ name = "tinic-ipc"
 version = "0.1.4-rc1"
 dependencies = [
  "serde_json",
- "tinic",
+ "tinic-generics",
  "tinic-ipc-protocol",
 ]
 
@@ -3664,7 +3666,8 @@ name = "tinic-ipc-protocol"
 version = "0.1.4"
 dependencies = [
  "serde",
- "tinic",
+ "serde_json",
+ "tinic-generics",
 ]
 
 [[package]]

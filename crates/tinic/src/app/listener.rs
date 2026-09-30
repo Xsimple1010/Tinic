@@ -1,32 +1,4 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum WindowState {
-    Opened,
-    Closed,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "snake_case")]
-pub enum GameState {
-    #[default]
-    Closed,
-    Running,
-    Paused,
-}
-
-pub type SavePath = String;
-pub type SaveImgPreview = String;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum SaveStateInfo {
-    Susses {
-        save_path: String,
-        save_img_preview: String,
-    },
-    Failed,
-}
+use tinic_ipc_protocol::out::{GameState, SaveStateInfo, WindowState};
 
 pub trait WindowListener: Send + Sync {
     fn window_state_change(&self, state: WindowState);

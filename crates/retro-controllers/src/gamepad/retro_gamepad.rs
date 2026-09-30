@@ -1,12 +1,18 @@
-use super::update_gamepad_state_handle::{axis_change_handle, connect_handle, disconnect_handle, pressed_button_handle};
+use super::update_gamepad_state_handle::{
+    axis_change_handle, connect_handle, disconnect_handle, pressed_button_handle,
+};
 use crate::devices_manager::{DeviceKeyMap, DeviceStateListener, DevicesRequiredFunctions};
 use crate::gamepad::retro_gamepad_key_map::GamePadKeyMap;
 use gilrs::{Event, GamepadId, Gilrs};
+use libretro_sys::binding_libretro::{
+    RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_LEFT,
+    RETRO_DEVICE_INDEX_ANALOG_RIGHT,
+};
 use std::sync::{Arc, atomic::AtomicUsize};
 use tinic_generics::error_handle::TinicResult;
 use tinic_generics::types::ArcTMutex;
+use tinic_ipc_protocol::out::GamePadAxis;
 use uuid::Uuid;
-use libretro_sys::binding_libretro::{RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_INDEX_ANALOG_RIGHT};
 
 #[derive(Debug, Clone)]
 pub struct RetroGamePad {
@@ -24,19 +30,7 @@ pub struct RetroGamePad {
     #[doc = "padrão RETRO_DEVICE_JOYPAD"]
     pub retro_type: u32,
     pub key_map: Vec<GamePadKeyMap>,
-    pub axis: GamePageAxis,
-}
-
-#[derive(Default, Debug, Clone)]
-pub struct GamePageAxis {
-    pub left_stick_x: f32,
-    pub left_stick_y: f32,
-    pub left_z: f32,
-    pub right_stick_x: f32,
-    pub right_stick_y: f32,
-    pub right_z: f32,
-    pub dpad_x: f32,
-    pub dpad_y: f32,
+    pub axis: GamePadAxis,
 }
 
 impl RetroGamePad {
@@ -53,7 +47,7 @@ impl RetroGamePad {
             retro_port,
             retro_type,
             key_map: GamePadKeyMap::get_default_key_maps(),
-            axis: GamePageAxis::default(),
+            axis: GamePadAxis::default(),
         }
     }
 
@@ -121,7 +115,7 @@ impl DevicesRequiredFunctions for RetroGamePad {
         bitmasks
     }
 
-    fn get_analog_value( &self, index: u32, id: u32) -> i16 {
+    fn get_analog_value(&self, index: u32, id: u32) -> i16 {
         let raw: f32 = match (index, id) {
             (RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X) => self.axis.left_stick_x,
             (RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y) => self.axis.left_stick_y,

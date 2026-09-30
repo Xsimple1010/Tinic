@@ -9,8 +9,6 @@ use crate::{
 };
 use std::sync::Arc;
 use tinic_generics::error_handle::TinicResult;
-use winit::event_loop::ControlFlow;
-use winit::platform::run_on_demand::EventLoopExtRunOnDemand;
 use winit::{
     event_loop::EventLoop,
     platform::pump_events::{EventLoopExtPumpEvents, PumpStatus},
@@ -179,30 +177,6 @@ impl Tinic {
         match event_loop.pump_app_events(None, game_instance) {
             PumpStatus::Exit(code) => TinicGameInstanceStatus::Exit(code),
             PumpStatus::Continue => TinicGameInstanceStatus::Continue,
-        }
-    }
-
-    #[doc = "
-        # Run On Demand
-
-        This function allows you to create multiple `GameInstance`s.
-        However, the main thread will be **blocked** until the window is closed.
-        Use the returned **`TinicGameInstanceStatus`** to determine whether the window has been closed.
-    "]
-    pub fn run_app_on_demand(
-        &mut self,
-        mut game_instance: GameInstance,
-    ) -> TinicGameInstanceStatus {
-        let event_loop = match self.event_loop.as_mut() {
-            Some(event_loop) => event_loop,
-            None => return TinicGameInstanceStatus::Exit(0),
-        };
-
-        event_loop.set_control_flow(ControlFlow::Poll);
-
-        match event_loop.run_app_on_demand(&mut game_instance) {
-            Ok(()) => TinicGameInstanceStatus::Continue,
-            Err(_e) => TinicGameInstanceStatus::Exit(1),
         }
     }
 }

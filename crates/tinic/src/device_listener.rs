@@ -1,6 +1,7 @@
 use crate::app_dispatcher::GameInstanceDispatchers;
+use retro_controllers::RetroGamePad;
 use retro_controllers::devices_manager::DeviceListener;
-use retro_controllers::{GamePageAxis, RetroGamePad};
+use tinic_ipc_protocol::out::GamePadAxis;
 
 pub struct DeviceHandle {
     pub extern_listener: Box<dyn DeviceListener>,
@@ -47,8 +48,8 @@ impl DeviceListener for DeviceHandle {
     fn button_pressed(&self, button: String, device: RetroGamePad) {
         self.extern_listener.button_pressed(button, device);
     }
-    
-    fn axis_change(&self, axis: GamePageAxis, device: RetroGamePad) {
+
+    fn axis_change(&self, axis: GamePadAxis, device: RetroGamePad) {
         self.extern_listener.axis_change(axis, device);
     }
 }

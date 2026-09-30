@@ -13,10 +13,11 @@ mod tinic;
 pub use app::{GameInstance, listener::*};
 pub use app_dispatcher::GameInstanceDispatchers;
 pub use retro_controllers::{
-    GamePageAxis, RetroController, RetroGamePad,
+    RetroController, RetroGamePad,
     devices_manager::{DeviceListener, DeviceStateListener},
 };
 pub use retro_core::args_manager;
 pub use tinic::*;
 pub use tinic_generics::error_handle::{ErrorHandle, TinicResult};
 pub use tinic_generics::retro_paths::RetroPaths;
+pub use tinic_ipc_protocol::out::GamePadAxis;

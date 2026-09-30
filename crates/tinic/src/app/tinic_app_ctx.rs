@@ -1,5 +1,4 @@
-use crate::app::listener::{GameState, WindowState};
-use crate::{SaveStateInfo, TinicGameInfo, WindowListener};
+use crate::{TinicGameInfo, WindowListener};
 use retro_audio::RetroAudio;
 use retro_controllers::{RetroController, RetroGamePad};
 use retro_core::{RetroCore, RetroCoreIns, RetroEnvCallbacks, graphic_api::GraphicApi};
@@ -13,6 +12,7 @@ use tinic_generics::{constants::SAVE_IMAGE_EXTENSION_FILE, error_handle::ErrorHa
 use winit::dpi::PhysicalSize;
 use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::PhysicalKey;
+use tinic_ipc_protocol::out::{GameState, SaveStateInfo, WindowState};
 
 pub struct TinicGameCtx {
     retro_video: RetroVideo,

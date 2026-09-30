@@ -1,5 +1,5 @@
-use retro_controllers::GamePageAxis;
-use tinic::{DeviceListener, GameState, RetroGamePad, SaveStateInfo, WindowListener, WindowState};
+use tinic::{DeviceListener, GamePadAxis, RetroGamePad, WindowListener};
+use tinic_ipc_protocol::out::{GameState, SaveStateInfo, WindowState};
 
 #[derive(Debug, Default)]
 pub struct DeviceEvents;
@@ -17,7 +17,7 @@ impl DeviceListener for DeviceEvents {
         println!("{} pressed -> {}", device.name, button)
     }
 
-    fn axis_change(&self, axis: GamePageAxis, device: RetroGamePad) {
+    fn axis_change(&self, axis: GamePadAxis, device: RetroGamePad) {
         println!("{} -> {axis:?}", device.name)
     }
 }

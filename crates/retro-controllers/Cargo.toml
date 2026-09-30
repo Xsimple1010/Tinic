@@ -14,3 +14,4 @@ tinic-generics.workspace = true
 libretro-sys.workspace = true
 retro-core.workspace = true
 winit.workspace = true
+tinic-ipc-protocol.workspace = true

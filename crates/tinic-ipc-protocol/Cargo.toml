@@ -8,5 +8,6 @@ repository = "https://github.com/Xsimple1010/Tinic/tree/master/crates/tinic-ipc-
 
 
 [dependencies]
-tinic.workspace = true
 serde.workspace = true
+serde_json.workspace = true
+tinic-generics.workspace = true

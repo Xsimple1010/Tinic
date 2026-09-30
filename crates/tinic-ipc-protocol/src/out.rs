@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-pub use tinic::{GameState, SaveStateInfo, WindowState};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
@@ -20,14 +19,7 @@ pub enum ProtocolOut {
     DeviceAxisChange {
         id: String,
         name: String,
-        left_stick_x: f32,
-        left_stick_y: f32,
-        left_z: f32,
-        right_stick_x: f32,
-        right_stick_y: f32,
-        right_z: f32,
-        dpad_x: f32,
-        dpad_y: f32,
+        axis: GamePadAxis,
     },
     WindowStateChange {
         state: WindowState,
@@ -46,4 +38,44 @@ pub enum ProtocolOut {
     },
     // *********
     AppExited,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WindowState {
+    Opened,
+    Closed,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum GameState {
+    #[default]
+    Closed,
+    Running,
+    Paused,
+}
+
+pub type SavePath = String;
+pub type SaveImgPreview = String;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SaveStateInfo {
+    Susses {
+        save_path: String,
+        save_img_preview: String,
+    },
+    Failed,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct GamePadAxis {
+    pub left_stick_x: f32,
+    pub left_stick_y: f32,
+    pub left_z: f32,
+    pub right_stick_x: f32,
+    pub right_stick_y: f32,
+    pub right_z: f32,
+    pub dpad_x: f32,
+    pub dpad_y: f32,
 }
